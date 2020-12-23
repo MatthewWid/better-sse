@@ -1,0 +1,17 @@
+{
+	"name": "better-sse",
+	"description": "Dead simple, dependency-less, spec-compliant server-side events implementation for Node, written in TypeScript.",
+	"version": "0.1.0",
+	"license": "MIT",
+	"author": "Matthew W. <matthew.widdi@gmail.com>",
+	"repository": "github:MatthewWid/better-sse",
+	"bugs": "https://github.com/MatthewWid/better-sse/issues",
+	"keywords": [
+		"server-sent-events",
+		"sse",
+		"realtime",
+		"real-time",
+		"tcp",
+		"events"
+	]
+}
