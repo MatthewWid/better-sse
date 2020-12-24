@@ -28,7 +28,9 @@ import sse from "better-sse";
 // Express
 app.get(
 	"/sse",
-	sse.middleware.express,
+	sse.middleware({
+		framework: "express"
+	}),
 	(req, res) => {
 		// Add event line
 		// event: ping\n
@@ -58,7 +60,7 @@ app.get(
 		// Add ignored line (comment)
 		// :Ignore me\n
 		res.sse.comment("Ignore me");
-		
+
 		// Dispatch the event
 		// \n
 		res.sse.dispatch():
@@ -74,7 +76,7 @@ app.get(
 		// Create and dispatch an event with data all at once
 		// (Auto-incrementing ID field)
 		res.sse.push("speak", "Hi there!");
-		
+
 		// Or with no associated event name
 		// (No event or ID field will be added)
 		res.sse.push("Hi there!");
@@ -97,10 +99,7 @@ app.use(sse.middleware.express);
 sse.broadcast.push("greet", "Hello my minions.");
 
 // Send a disconnect event to all connected users
-sse
-	.broadcast
-	.event("disconnect")
-	.dispatch();
+sse.broadcast.event("disconnect").dispatch();
 ```
 
 ## Client/Browser Wrapper
@@ -129,3 +128,4 @@ sse.on("message", (event) => {
 
 // Listen on custom event name
 sse.on("custom", (event) => {});
+```
