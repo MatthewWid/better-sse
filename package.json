@@ -17,7 +17,8 @@
 	],
 	"scripts": {
 		"build": "parcel build --target node --out-dir ./build --out-file better-sse.js ./src/index.ts",
-		"dev": "parcel watch --target node --out-dir ./build --out-file better-sse.js ./src/index.ts"
+		"dev": "parcel watch --target node --out-dir ./build --out-file better-sse.js ./src/index.ts",
+		"check": "tsc --noEmit ./src/index.ts"
 	},
 	"devDependencies": {
 		"parcel-bundler": "^1.12.4",
