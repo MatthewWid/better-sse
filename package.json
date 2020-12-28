@@ -2,7 +2,8 @@
 	"name": "better-sse",
 	"description": "Dead simple, dependency-less, spec-compliant server-side events implementation for Node, written in TypeScript.",
 	"version": "0.1.0",
-	"main": "./build/better-sse.js",
+	"main": "./build/index.js",
+	"types": "./build/index",
 	"license": "MIT",
 	"author": "Matthew W. <matthew.widdi@gmail.com>",
 	"repository": "github:MatthewWid/better-sse",
@@ -16,8 +17,8 @@
 		"events"
 	],
 	"scripts": {
-		"build": "parcel build --target node --out-dir ./build --out-file better-sse.js ./src/index.ts",
-		"dev": "parcel watch --target node --out-dir ./build --out-file better-sse.js ./src/index.ts",
+		"build": "parcel build --target node --out-dir ./build ./src/index.ts",
+		"dev": "parcel watch --target node --out-dir ./build ./src/index.ts",
 		"lint": "eslint \"./src/**/*.ts\""
 	},
 	"devDependencies": {

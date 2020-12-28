@@ -6,7 +6,9 @@
 		"paths": {
 			"~*": ["./*"]
 		},
-		"moduleResolution": "node"
+		"outDir": "./build",
+		"moduleResolution": "node",
+		"declaration": true
 	},
 	"include": ["./src/**/*"]
 }
