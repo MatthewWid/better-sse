@@ -1,7 +1,9 @@
 import serialize, {SerializerFunction} from "./lib/serialize";
+import sanitize, {SanitizerFunction} from "./lib/sanitize";
 
 export interface SessionOptions {
 	serializer?: SerializerFunction;
+	sanitizer?: SanitizerFunction;
 }
 
 /**
@@ -13,9 +15,11 @@ export interface SessionOptions {
  */
 abstract class Session {
 	private serialize: SerializerFunction;
+	private sanitize: SanitizerFunction;
 
 	constructor(options: SessionOptions = {}) {
 		this.serialize = options.serializer ?? serialize;
+		this.sanitize = options.sanitizer ?? sanitize;
 	}
 
 	/**
@@ -39,6 +43,31 @@ abstract class Session {
 			"Cache-Control": "no-cache, no-transform",
 			Connection: "keep-alive",
 		});
+	}
+
+	/**
+	 * Write a line with a field key and value appended with a newline character.
+	 */
+	writeField(name: string, value: string): void {
+		const sanitized = sanitize(value);
+
+		const text = `${name}: ${sanitized}\n`;
+
+		this.writeBodyChunk(text);
+	}
+
+	/**
+	 * Flush the buffered data to the client by writing an additional newline.
+	 */
+	dispatch(): void {
+		this.writeBodyChunk("\n");
+	}
+
+	/**
+	 * Write an event with the given name/type.
+	 */
+	event(type: string): void {
+		this.writeField("event", type);
 	}
 }
 
