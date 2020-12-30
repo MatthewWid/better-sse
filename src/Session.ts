@@ -1,4 +1,8 @@
-export interface SessionOptions {}
+import serialize, {SerializerFunction} from "./lib/serialize";
+
+export interface SessionOptions {
+	serializer?: SerializerFunction;
+}
 
 /**
  * A Session represents an open connection between the server and the client.
@@ -8,7 +12,11 @@ export interface SessionOptions {}
  * Once extended via an adapter, a middleware can call upon the subclassed Session which then performs the program logic that is made compatible with the framework.
  */
 abstract class Session {
-	constructor(options: SessionOptions = {}) {}
+	private serialize: SerializerFunction;
+
+	constructor(options: SessionOptions = {}) {
+		this.serialize = options.serializer ?? serialize;
+	}
 
 	/**
 	 * Write 200 OK and all given headers to the response WITHOUT ending the response.
