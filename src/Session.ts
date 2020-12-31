@@ -49,7 +49,7 @@ abstract class Session {
 	 * Write a line with a field key and value appended with a newline character.
 	 */
 	writeField(name: string, value: string): void {
-		const sanitized = sanitize(value);
+		const sanitized = this.sanitize(value);
 
 		const text = `${name}: ${sanitized}\n`;
 
