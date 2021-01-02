@@ -70,10 +70,43 @@ abstract class Session {
 	}
 
 	/**
-	 * Write an event with the given name/type.
+	 * Set the event to the given name/type.
 	 */
 	event(type: string): this {
 		this.writeField("event", type);
+
+		return this;
+	}
+
+	/**
+	 * Write arbitrary data onto the wire that is automatically serialized to a string using the given `serializer` function option or JSON stringification by default.
+	 */
+	data(data: unknown): this {
+		const serialized = this.serialize(data);
+
+		this.writeField("data", serialized);
+
+		return this;
+	}
+
+	/**
+	 * Set the event ID to the given number.
+	 */
+	id(id: number): this {
+		const stringifed = id.toString();
+
+		this.writeField("id", stringifed);
+
+		return this;
+	}
+
+	/**
+	 * Set the suggested reconnection time to the given milliseconds.
+	 */
+	retry(time: number): this {
+		const stringifed = time.toString();
+
+		this.writeField("retry", stringifed);
 
 		return this;
 	}
