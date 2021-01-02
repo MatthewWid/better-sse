@@ -37,37 +37,45 @@ abstract class Session {
 	/**
 	 * Call when a request has been received from the client and the response is ready to be written to.
 	 */
-	onConnect(): void {
+	onConnect(): this {
 		this.writeAndFlushHeaders({
 			"Content-Type": "text/event-stream",
 			"Cache-Control": "no-cache, no-transform",
 			Connection: "keep-alive",
 		});
+
+		return this;
 	}
 
 	/**
 	 * Write a line with a field key and value appended with a newline character.
 	 */
-	writeField(name: string, value: string): void {
+	writeField(name: string, value: string): this {
 		const sanitized = this.sanitize(value);
 
 		const text = `${name}: ${sanitized}\n`;
 
 		this.writeBodyChunk(text);
+
+		return this;
 	}
 
 	/**
 	 * Flush the buffered data to the client by writing an additional newline.
 	 */
-	dispatch(): void {
+	dispatch(): this {
 		this.writeBodyChunk("\n");
+
+		return this;
 	}
 
 	/**
 	 * Write an event with the given name/type.
 	 */
-	event(type: string): void {
+	event(type: string): this {
 		this.writeField("event", type);
+
+		return this;
 	}
 }
 
