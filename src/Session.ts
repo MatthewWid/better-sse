@@ -14,6 +14,12 @@ export interface SessionOptions {
  * Once extended via an adapter, a middleware can call upon the subclassed Session which then performs the program logic that is made compatible with the framework.
  */
 abstract class Session {
+	/**
+	 * The last ID sent to the client.
+	 * This is initialized to the last event ID given by the user, and otherwise is equal to the last number given to the `.id` method.
+	 */
+	lastId = 0;
+
 	private serialize: SerializerFunction;
 	private sanitize: SanitizerFunction;
 
@@ -97,6 +103,8 @@ abstract class Session {
 
 		this.writeField("id", stringifed);
 
+		this.lastId = id;
+
 		return this;
 	}
 
@@ -107,6 +115,29 @@ abstract class Session {
 		const stringifed = time.toString();
 
 		this.writeField("retry", stringifed);
+
+		return this;
+	}
+
+	/**
+	 * Create and dispatch an event with the given data all at once.
+	 * This is equivalent to calling `.event()`, `.id()`, `.data()` and `.dispatch()` all at once.
+	 */
+	push(eventOrData: string | unknown, data?: unknown): this {
+		let eventName;
+		let rawData;
+
+		if (eventOrData && typeof data === undefined) {
+			eventName = "message";
+			rawData = eventOrData;
+		} else {
+			eventName = (eventOrData as string).toString();
+			rawData = data;
+		}
+
+		const nextId = this.lastId + 1;
+
+		this.event(eventName).id(nextId).data(rawData).dispatch();
 
 		return this;
 	}
