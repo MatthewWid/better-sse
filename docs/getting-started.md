@@ -1,6 +1,6 @@
 # Getting Started
 
-This section will cover getting started with the Better SSE package for its most common use case - [Express applications](https://expressjs.com/).
+This section will cover basic usage of the Better SSE package for its most common use case - [Express applications](https://expressjs.com/).
 
 If you need to use server-sent events for another framework or use case please see the recipes section.
 
@@ -21,10 +21,10 @@ yarn add better-sse
 ### Import
 
 ```javascript
-# ESModules / TypeScript
+// ESModules / TypeScript
 import sse from "better-sse";
 
-# CommonJS
+// CommonJS
 const sse = require("better-sse").default;
 ```
 
