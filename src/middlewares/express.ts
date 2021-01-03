@@ -16,6 +16,8 @@ const createMiddleware = (options?: SessionOptions) => (
 
 	res.sse = session;
 
+	res.push = session.push;
+
 	next();
 };
 

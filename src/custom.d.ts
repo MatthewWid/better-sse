@@ -4,6 +4,7 @@ declare global {
 	namespace Express {
 		interface Response {
 			sse: ExpressSession;
+			push: ExpressSession["push"];
 		}
 	}
 }
