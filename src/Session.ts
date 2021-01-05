@@ -1,3 +1,4 @@
+import {randomBytes} from "crypto";
 import serialize, {SerializerFunction} from "./lib/serialize";
 import sanitize, {SanitizerFunction} from "./lib/sanitize";
 
@@ -18,7 +19,7 @@ abstract class Session {
 	 * The last ID sent to the client.
 	 * This is initialized to the last event ID given by the user, and otherwise is equal to the last number given to the `.id` method.
 	 */
-	lastId = 0;
+	lastId = "";
 
 	private serialize: SerializerFunction;
 	private sanitize: SanitizerFunction;
@@ -110,12 +111,12 @@ abstract class Session {
 	/**
 	 * Set the event ID to the given number.
 	 */
-	id = (id: number): this => {
-		const stringifed = id.toString();
+	id = (id: string | null): this => {
+		const stringifed = id ? id : "";
 
 		this.writeField("id", stringifed);
 
-		this.lastId = id;
+		this.lastId = stringifed;
 
 		return this;
 	};
@@ -158,7 +159,7 @@ abstract class Session {
 			rawData = data;
 		}
 
-		const nextId = this.lastId + 1;
+		const nextId = randomBytes(4).toString("hex");
 
 		this.event(eventName).id(nextId).data(rawData).dispatch();
 
