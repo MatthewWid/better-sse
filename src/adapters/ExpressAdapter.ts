@@ -25,7 +25,7 @@ class ExpressAdapter extends Session {
 		this.res.flushHeaders();
 	};
 
-	readHeader = (name: string): string | null => this.req.get(name) ?? null;
+	readHeader = (name: string): string => this.req.get(name) ?? "";
 
 	writeBodyChunk = (chunk: string): void => {
 		this.res.write(chunk);

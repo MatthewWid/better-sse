@@ -5,6 +5,7 @@ import sanitize, {SanitizerFunction} from "./lib/sanitize";
 export interface SessionOptions {
 	serializer?: SerializerFunction;
 	sanitizer?: SanitizerFunction;
+	trustClientEventId?: boolean;
 }
 
 /**
@@ -23,10 +24,12 @@ abstract class Session {
 
 	private serialize: SerializerFunction;
 	private sanitize: SanitizerFunction;
+	private trustClientEventId: boolean;
 
 	constructor(options: SessionOptions = {}) {
 		this.serialize = options.serializer ?? serialize;
 		this.sanitize = options.sanitizer ?? sanitize;
+		this.trustClientEventId = options.trustClientEventId ?? true;
 	}
 
 	/**
@@ -37,9 +40,9 @@ abstract class Session {
 	}): void;
 
 	/**
-	 * Retrieve the value of any arbitrary request header. If no such header exists on the request payload, return `null`.
+	 * Retrieve the value of any arbitrary request header. If no such header exists on the request payload, return an empty string.
 	 */
-	protected abstract readHeader(name: string): string | null;
+	protected abstract readHeader(name: string): string;
 
 	/**
 	 * Write a chunk of data to the response body WITHOUT ending the response.
@@ -50,6 +53,10 @@ abstract class Session {
 	 * Call when a request has been received from the client and the response is ready to be written to.
 	 */
 	onConnect = (): this => {
+		if (this.trustClientEventId) {
+			this.lastId = this.readHeader("Last-Event-ID");
+		}
+
 		this.writeAndFlushHeaders({
 			"Content-Type": "text/event-stream",
 			"Cache-Control": "no-cache, no-transform",
