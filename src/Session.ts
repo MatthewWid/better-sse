@@ -3,8 +3,23 @@ import serialize, {SerializerFunction} from "./lib/serialize";
 import sanitize, {SanitizerFunction} from "./lib/sanitize";
 
 export interface SessionOptions {
+	/**
+	 * Serialize data to a string. By default data is serialized using `JSON.stringify`.
+	 *
+	 * Note that only values written with `.data()` or `.push()` are serialized, as everything else is assumed to already be a string.
+	 */
 	serializer?: SerializerFunction;
+	/**
+	 * Sanitize values so as to not prematurely dispatch events when writing fields whose text inadvertantly contains newlines.
+	 *
+	 * By default CR, LF and CRLF characters are replaced with a single LF character (`\n`) and then any trailing LF characters are stripped so as to prevent a blank line being written and accidentally dispatching the event before `.dispatch()` is called.
+	 */
 	sanitizer?: SanitizerFunction;
+	/**
+	 * Whether to trust the last event ID given by the client in the `Last-Event-ID` request header.
+	 *
+	 * When set to `false`, the `lastId` property will always be initialized to an empty string.
+	 */
 	trustClientEventId?: boolean;
 }
 
@@ -50,6 +65,8 @@ abstract class Session {
 	protected abstract writeBodyChunk(chunk: string): void;
 
 	/**
+	 * *This should only be called by adapters and their respective middlewares, not by the user.*
+	 *
 	 * Call when a request has been received from the client and the response is ready to be written to.
 	 */
 	onConnect = (): this => {
@@ -67,6 +84,8 @@ abstract class Session {
 	};
 
 	/**
+	 * *This should only be called by adapters and their respective middlewares, not by the user.*
+	 *
 	 * Call when a resonse has been fully sent and the request/response cycle has concluded.
 	 */
 	onDisconnect = (): this => {
@@ -96,7 +115,7 @@ abstract class Session {
 	};
 
 	/**
-	 * Set the event to the given name/type.
+	 * Set the event to the given name (also referred to as "type" in the specification).
 	 */
 	event(type: string): this {
 		this.writeField("event", type);
@@ -116,7 +135,9 @@ abstract class Session {
 	};
 
 	/**
-	 * Set the event ID to the given number.
+	 * Set the event ID to the given string.
+	 *
+	 * Passing `null` will set the event ID to an empty string value.
 	 */
 	id = (id: string | null): this => {
 		const stringifed = id ? id : "";
@@ -152,7 +173,11 @@ abstract class Session {
 
 	/**
 	 * Create and dispatch an event with the given data all at once.
-	 * This is equivalent to calling `.event()`, `.id()`, `.data()` and `.dispatch()` all at once.
+	 * This is equivalent to calling `.event()`, `.id()`, `.data()` and `.dispatch()` in that order.
+	 *
+	 * If no event name is given, the event name (type) is set to `"message"`.
+	 *
+	 * Note that this sets the event ID (and thus the `lastId` property) to a string of eight random characters (`a-z0-9`).
 	 */
 	push = (eventOrData: string | unknown, data?: unknown): this => {
 		let eventName;
