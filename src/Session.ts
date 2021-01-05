@@ -4,23 +4,39 @@ import sanitize, {SanitizerFunction} from "./lib/sanitize";
 
 export interface SessionOptions {
 	/**
-	 * Serialize data to a string. By default data is serialized using `JSON.stringify`.
+	 * Serialize data to a string that can be written.
 	 *
 	 * Note that only values written with `.data()` or `.push()` are serialized, as everything else is assumed to already be a string.
+	 *
+	 * Defaults to `JSON.stringify`.
 	 */
 	serializer?: SerializerFunction;
 	/**
 	 * Sanitize values so as to not prematurely dispatch events when writing fields whose text inadvertantly contains newlines.
 	 *
-	 * By default CR, LF and CRLF characters are replaced with a single LF character (`\n`) and then any trailing LF characters are stripped so as to prevent a blank line being written and accidentally dispatching the event before `.dispatch()` is called.
+	 * By default, CR, LF and CRLF characters are replaced with a single LF character (`\n`) and then any trailing LF characters are stripped so as to prevent a blank line being written and accidentally dispatching the event before `.dispatch()` is called.
 	 */
 	sanitizer?: SanitizerFunction;
 	/**
 	 * Whether to trust the last event ID given by the client in the `Last-Event-ID` request header.
 	 *
 	 * When set to `false`, the `lastId` property will always be initialized to an empty string.
+	 *
+	 * Defaults to `true`.
 	 */
 	trustClientEventId?: boolean;
+	/**
+	 * Time in milliseconds for the client to wait before attempting to reconnect if the connection is closed. This is a request to the client browser, and does not guaruntee that the client will actually respect the given time.
+	 *
+	 * This is equivalent to immediately calling `.retry().dispatch()` after a connection is made.
+	 *
+	 * Give as `null` to avoid sending an explicit reconnection time and allow the client browser to decide itself.
+	 *
+	 * Defaults to `2000` milliseconds.
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/server-sent-events.html#concept-event-stream-reconnection-time
+	 */
+	retry?: number | null;
 }
 
 /**
@@ -40,11 +56,13 @@ abstract class Session {
 	private serialize: SerializerFunction;
 	private sanitize: SanitizerFunction;
 	private trustClientEventId: boolean;
+	private initialRetry: number | null;
 
 	constructor(options: SessionOptions = {}) {
 		this.serialize = options.serializer ?? serialize;
 		this.sanitize = options.sanitizer ?? sanitize;
 		this.trustClientEventId = options.trustClientEventId ?? true;
+		this.initialRetry = options.retry ?? 2000;
 	}
 
 	/**
@@ -79,6 +97,10 @@ abstract class Session {
 			"Cache-Control": "no-cache, no-transform",
 			Connection: "keep-alive",
 		});
+
+		if (this.initialRetry !== null) {
+			this.retry(this.initialRetry).dispatch();
+		}
 
 		return this;
 	};
