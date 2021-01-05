@@ -20,48 +20,36 @@ yarn add better-sse
 
 _Better SSE ships with types built in. No need to install from `@types` for TypeScript users!_
 
-# Usage
+# Basic Usage
 
-Import:
+Better SSE has compatibility with many different frameworks and libraries, but is commonly used by users implementing an application with the [Express framework](http://expressjs.com/).
 
-```typescript
-// TypeScript / ESModules
-import * as sse from "better-sse";
+See the recipes section of the documentation for use with other frameworks and libraries.
 
-// or with ESModule Interop enabled in TypeScript
+```javascript
+// Server
 import sse from "better-sse";
 
-// CommonJS
-const sse = require("better-sse");
-```
-
-## Express
-
-Add as middleware:
-
-```javascript
-app.get("/sse", sse.middleware.express());
-```
-
-Access the SSE session on the `res.sse` property:
-
-```javascript
-(req, res) => {
-	res.sse.push("speak", "Hello world");
-};
-```
-
-(Client-side) Connect to the server:
-
-```javascript
-const sse = new EventSource("/sse");
-
-sse.addEventListener("speak", (event) => {
-	console.log(event.data);
-	sse.close();
+app.get("/sse", sse(), (req, res) => {
+	res.push("speak", "Hello, world!");
 });
 ```
+
+```javascript
+// Client
+const sse = new EventSource("/sse");
+
+sse.addEventListener("speak", ({data}) => {
+	console.log(data);
+});
+```
+
+Check the API documentation for information on getting more fine-tuned control over your data such as managing event IDs, data serialization, streams, dispatch controls and more!
 
 # License
 
 This project is licensed under the MIT license.
+
+```
+
+```
