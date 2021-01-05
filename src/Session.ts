@@ -43,7 +43,7 @@ abstract class Session {
 	/**
 	 * Call when a request has been received from the client and the response is ready to be written to.
 	 */
-	onConnect(): this {
+	onConnect = (): this => {
 		this.writeAndFlushHeaders({
 			"Content-Type": "text/event-stream",
 			"Cache-Control": "no-cache, no-transform",
@@ -51,29 +51,29 @@ abstract class Session {
 		});
 
 		return this;
-	}
+	};
 
 	/**
 	 * Write a line with a field key and value appended with a newline character.
 	 */
-	writeField(name: string, value: string): this {
+	private writeField = (name: string, value: string): this => {
 		const sanitized = this.sanitize(value);
 
-		const text = `${name}: ${sanitized}\n`;
+		const text = `${name}:${sanitized}\n`;
 
 		this.writeBodyChunk(text);
 
 		return this;
-	}
+	};
 
 	/**
 	 * Flush the buffered data to the client by writing an additional newline.
 	 */
-	dispatch(): this {
+	dispatch = (): this => {
 		this.writeBodyChunk("\n");
 
 		return this;
-	}
+	};
 
 	/**
 	 * Set the event to the given name/type.
@@ -87,18 +87,18 @@ abstract class Session {
 	/**
 	 * Write arbitrary data onto the wire that is automatically serialized to a string using the given `serializer` function option or JSON stringification by default.
 	 */
-	data(data: unknown): this {
+	data = (data: unknown): this => {
 		const serialized = this.serialize(data);
 
 		this.writeField("data", serialized);
 
 		return this;
-	}
+	};
 
 	/**
 	 * Set the event ID to the given number.
 	 */
-	id(id: number): this {
+	id = (id: number): this => {
 		const stringifed = id.toString();
 
 		this.writeField("id", stringifed);
@@ -106,24 +106,24 @@ abstract class Session {
 		this.lastId = id;
 
 		return this;
-	}
+	};
 
 	/**
 	 * Set the suggested reconnection time to the given milliseconds.
 	 */
-	retry(time: number): this {
+	retry = (time: number): this => {
 		const stringifed = time.toString();
 
 		this.writeField("retry", stringifed);
 
 		return this;
-	}
+	};
 
 	/**
 	 * Create and dispatch an event with the given data all at once.
 	 * This is equivalent to calling `.event()`, `.id()`, `.data()` and `.dispatch()` all at once.
 	 */
-	push(eventOrData: string | unknown, data?: unknown): this {
+	push = (eventOrData: string | unknown, data?: unknown): this => {
 		let eventName;
 		let rawData;
 
@@ -140,7 +140,7 @@ abstract class Session {
 		this.event(eventName).id(nextId).data(rawData).dispatch();
 
 		return this;
-	}
+	};
 }
 
 export default Session;
