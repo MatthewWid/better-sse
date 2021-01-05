@@ -183,7 +183,7 @@ abstract class Session {
 		let eventName;
 		let rawData;
 
-		if (eventOrData && typeof data === undefined) {
+		if (eventOrData && typeof data === "undefined") {
 			eventName = "message";
 			rawData = eventOrData;
 		} else {
