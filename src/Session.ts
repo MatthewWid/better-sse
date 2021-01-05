@@ -120,6 +120,17 @@ abstract class Session {
 	};
 
 	/**
+	 * Write a comment (an ignored field).
+	 *
+	 * This will not fire an event, but is often used to keep the connection alive.
+	 */
+	comment = (text: string): this => {
+		this.writeField("", text);
+
+		return this;
+	};
+
+	/**
 	 * Create and dispatch an event with the given data all at once.
 	 * This is equivalent to calling `.event()`, `.id()`, `.data()` and `.dispatch()` all at once.
 	 */
