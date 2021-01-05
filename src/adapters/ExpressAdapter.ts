@@ -15,7 +15,7 @@ class ExpressAdapter extends Session {
 		super(options);
 	}
 
-	writeAndFlushHeaders(headers: {[name: string]: string}): void {
+	writeAndFlushHeaders = (headers: {[name: string]: string}): void => {
 		this.res.status(200);
 
 		Object.entries<string>(headers).forEach(([name, value]) => {
@@ -23,11 +23,13 @@ class ExpressAdapter extends Session {
 		});
 
 		this.res.flushHeaders();
-	}
+	};
 
-	writeBodyChunk(chunk: string): void {
+	readHeader = (name: string): string | null => this.req.get(name) ?? null;
+
+	writeBodyChunk = (chunk: string): void => {
 		this.res.write(chunk);
-	}
+	};
 }
 
 export default ExpressAdapter;

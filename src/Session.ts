@@ -36,6 +36,11 @@ abstract class Session {
 	}): void;
 
 	/**
+	 * Retrieve the value of any arbitrary request header. If no such header exists on the request payload, return `null`.
+	 */
+	protected abstract readHeader(name: string): string | null;
+
+	/**
 	 * Write a chunk of data to the response body WITHOUT ending the response.
 	 */
 	protected abstract writeBodyChunk(chunk: string): void;
@@ -50,6 +55,13 @@ abstract class Session {
 			Connection: "keep-alive",
 		});
 
+		return this;
+	};
+
+	/**
+	 * Call when a resonse has been fully sent and the request/response cycle has concluded.
+	 */
+	onDisconnect = (): this => {
 		return this;
 	};
 
