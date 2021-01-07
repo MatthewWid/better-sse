@@ -19,8 +19,12 @@
 	"scripts": {
 		"build": "parcel build --target node --out-dir ./build ./src/index.ts",
 		"dev": "parcel watch --target node --out-dir ./build ./src/index.ts",
-		"lint": "eslint \"./src/**/*.ts\""
+		"lint": "eslint \"./src/**/*.ts\"",
+		"prepublishOnly": "npm run build"
 	},
+	"files": [
+		"build/"
+	],
 	"dependencies": {},
 	"devDependencies": {
 		"@types/express": "^4.17.9",
