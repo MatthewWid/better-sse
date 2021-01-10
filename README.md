@@ -49,7 +49,3 @@ Check the API documentation for information on getting more fine-tuned control o
 # License
 
 This project is licensed under the MIT license.
-
-```
-
-```
