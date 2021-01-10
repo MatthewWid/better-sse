@@ -42,6 +42,13 @@ import sse from "better-sse";
 app.get("/sse", sse(), (req, res) => {
 	res.push("speak", "Hello, world!");
 });
+
+// use with streams
+app.get('/sse-stream', sse(), async (req, res) => {
+	try {
+		const done = await res.stream(anyReadableStream)
+	} catch(err) {}
+})
 ```
 
 ```javascript
