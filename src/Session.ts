@@ -37,6 +37,16 @@ export interface SessionOptions {
 	 * @see https://html.spec.whatwg.org/multipage/server-sent-events.html#concept-event-stream-reconnection-time
 	 */
 	retry?: number | null;
+	/**
+	 * Status code to be sent to the client.
+	 * 
+	 * Event stream requests can be redirected using HTTP 301 and 307 redirects.
+	 * 
+	 * A client can be told to stop reconnecting by using 204 status code.
+	 * 
+	 * Defaults to 200.
+	 */
+	statusCode?: number;
 }
 
 /**
@@ -52,6 +62,7 @@ abstract class Session {
 	 * This is initialized to the last event ID given by the user, and otherwise is equal to the last number given to the `.id` method.
 	 */
 	lastId = "";
+	statusCode: number;
 
 	private serialize: SerializerFunction;
 	private sanitize: SanitizerFunction;
@@ -61,6 +72,7 @@ abstract class Session {
 	constructor(options: SessionOptions = {}) {
 		this.serialize = options.serializer ?? serialize;
 		this.sanitize = options.sanitizer ?? sanitize;
+		this.statusCode = options.statusCode ?? 200;
 		this.trustClientEventId = options.trustClientEventId ?? true;
 		this.initialRetry = options.retry ?? 2000;
 	}
