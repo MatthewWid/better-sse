@@ -1,8 +1,9 @@
 # Better SSE
 
 <p>
-	<img src="https://img.shields.io/npm/v/better-sse?label=version&style=flat-square" />
-	<img src="https://img.shields.io/npm/l/better-sse?style=flat-square" />
+	<img src="https://img.shields.io/npm/v/better-sse?color=blue&style=flat-square" />
+	<img src="https://img.shields.io/npm/l/better-sse?color=green&style=flat-square" />
+	<img src="https://img.shields.io/npm/dt/better-sse?color=grey&style=flat-square" />
 	<a href="https://github.com/MatthewWid/better-sse"><img src="https://img.shields.io/github/stars/MatthewWid/better-sse?style=social" /></a>
 </p>
 
@@ -14,7 +15,7 @@ This package aims to be the easiest to use, most compliant and most streamlined 
 
 [See the MDN guide to server-sent events.](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
 
-Consider starring the project [on GitHub ⭐](https://github.com/MatthewWid/better-sse).
+Please consider starring the project [on GitHub ⭐](https://github.com/MatthewWid/better-sse).
 
 # Installation
 
