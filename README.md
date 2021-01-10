@@ -1,8 +1,10 @@
 # Better SSE
 
-<img src="https://img.shields.io/npm/v/better-sse?label=version&style=flat-square" />
-<img src="https://img.shields.io/npm/l/better-sse?style=flat-square" />
-<a href="https://github.com/MatthewWid/better-sse"><img src="https://img.shields.io/github/stars/MatthewWid/better-sse?style=social" /></a>
+<p>
+	<img src="https://img.shields.io/npm/v/better-sse?label=version&style=flat-square" />
+	<img src="https://img.shields.io/npm/l/better-sse?style=flat-square" />
+	<a href="https://github.com/MatthewWid/better-sse"><img src="https://img.shields.io/github/stars/MatthewWid/better-sse?style=social" /></a>
+</p>
 
 A dead simple, dependency-less, spec-compliant server-side events implementation for Node, written in TypeScript.
 
