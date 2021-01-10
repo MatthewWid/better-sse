@@ -1,5 +1,9 @@
 # Better SSE
 
+<img src="https://img.shields.io/npm/v/better-sse?label=version&style=flat-square" />
+<img src="https://img.shields.io/npm/l/better-sse?style=flat-square" />
+<a href="https://github.com/MatthewWid/better-sse"><img src="https://img.shields.io/github/stars/MatthewWid/better-sse?style=social" /></a>
+
 A dead simple, dependency-less, spec-compliant server-side events implementation for Node, written in TypeScript.
 
 This package aims to be the easiest to use, most compliant and most streamlined solution to server-side events with Node that is framework agnostic and feature rich.
@@ -7,6 +11,8 @@ This package aims to be the easiest to use, most compliant and most streamlined 
 [See the WHATWG standards section for server-sent events.](https://html.spec.whatwg.org/multipage/server-sent-events.html)
 
 [See the MDN guide to server-sent events.](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
+
+Consider starring the project [on GitHub ⭐](https://github.com/MatthewWid/better-sse).
 
 # Installation
 
@@ -45,6 +51,10 @@ sse.addEventListener("speak", ({data}) => {
 ```
 
 Check the API documentation for information on getting more fine-tuned control over your data such as managing event IDs, data serialization, streams, dispatch controls and more!
+
+# Documentation
+
+API documentation, getting started guides and usage with other frameworks is [available on GitHub](https://github.com/MatthewWid/better-sse/tree/master/docs).
 
 # License
 
