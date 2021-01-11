@@ -111,9 +111,9 @@ balanced-match@^1.0.0:
   integrity sha1-ibTRmasr7kneFk6gK4nORi1xt2c=
 
 better-sse@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/better-sse/-/better-sse-0.1.0.tgz#3f6525320db9277909e0dd8c0700366f344f70ce"
-  integrity sha512-MigGJSSDoKmV9k5oLab3SRyHPLVAis2gcLPgMXvFl/9x+q2j0yshSf6u9b9MWn7tQ47UdRwHT2wtyL+t8VyvZA==
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/better-sse/-/better-sse-0.1.1.tgz#79d504d6cfe3eaa7781e1a4a06041aaf699aa195"
+  integrity sha512-o1qZoUvytONbjaW9tGjxBf29V7VZogVwhzdvGEuA03bZE4lUo2Mipa1hNm0Lv3GwWZICoMBwiDLjQ+TBpqwaDQ==
 
 binary-extensions@^2.0.0:
   version "2.2.0"

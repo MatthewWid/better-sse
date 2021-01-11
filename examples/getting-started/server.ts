@@ -7,7 +7,7 @@ const app = express();
 app.use(express.static(path.resolve(__dirname, "./public")));
 
 app.get("/sse", sse(), (req, res) => {
-	res.sse.push("ping", "Hello world!");
+	res.push("ping", "Hello world!");
 });
 
 const PORT = process.env.PORT ?? 8080;
