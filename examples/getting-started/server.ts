@@ -4,9 +4,7 @@ import sse from "better-sse";
 
 const app = express();
 
-const BASEDIR = path.resolve(__dirname);
-
-app.use(express.static(path.join(BASEDIR, "./public")));
+app.use(express.static(path.resolve(__dirname, "./public")));
 
 app.get("/sse", sse(), (req, res) => {
 	res.sse.push("ping", "Hello world!");
