@@ -1,0 +1,9 @@
+{
+	"compilerOptions": {
+		"target": "ES2020",
+		"strict": true,
+		"outDir": "./build",
+		"moduleResolution": "node",
+		"esModuleInterop": true
+	}
+}
