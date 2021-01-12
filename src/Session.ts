@@ -13,7 +13,7 @@ export interface SessionOptions {
 	 */
 	serializer?: SerializerFunction;
 	/**
-	 * Sanitize values so as to not prematurely dispatch events when writing fields whose text inadvertantly contains newlines.
+	 * Sanitize values so as to not prematurely dispatch events when writing fields whose text inadvertently contains newlines.
 	 *
 	 * By default, CR, LF and CRLF characters are replaced with a single LF character (`\n`) and then any trailing LF characters are stripped so as to prevent a blank line being written and accidentally dispatching the event before `.dispatch()` is called.
 	 */
@@ -27,7 +27,7 @@ export interface SessionOptions {
 	 */
 	trustClientEventId?: boolean;
 	/**
-	 * Time in milliseconds for the client to wait before attempting to reconnect if the connection is closed. This is a request to the client browser, and does not guaruntee that the client will actually respect the given time.
+	 * Time in milliseconds for the client to wait before attempting to reconnect if the connection is closed. This is a request to the client browser, and does not guarantee that the client will actually respect the given time.
 	 *
 	 * This is equivalent to immediately calling `.retry().dispatch()` after a connection is made.
 	 *
@@ -54,7 +54,7 @@ export interface StreamOptions {
  *
  * It is a general implementation that is then extended by adapters that implement the logic needed to interface with any given framework.
  *
- * Once extended via an adapter, a middleware can call upon the subclassed Session which then performs the program logic that is made compatible with the framework.
+ * Once extended via an adapter, a middleware can call upon the sub-classed Session which then performs the program logic that is made compatible with the framework.
  */
 abstract class Session {
 	/**
