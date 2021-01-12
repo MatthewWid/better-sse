@@ -1,6 +1,6 @@
 import path from "path";
 import express from "express";
-import sse from "../..";
+import sse from "better-sse";
 import {Readable} from "stream";
 
 const app = express();
