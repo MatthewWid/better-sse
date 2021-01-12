@@ -230,7 +230,7 @@ abstract class Session {
 		return this;
 	};
 
-	stream = async (s: Readable, opts: StreamOptions): Promise<boolean> => {
+	stream = async (s: Readable, opts: StreamOptions = {}): Promise<boolean> => {
 		const { sseEvent = 'stream' } = opts;
 		return new Promise<boolean>((resolve, reject) => {
 			s.on("data", (chunk) => {

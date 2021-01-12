@@ -46,7 +46,8 @@ app.get("/sse", sse(), (req, res) => {
 // use with streams
 app.get('/sse-stream', sse(), async (req, res) => {
 	try {
-		const done = await res.stream(anyReadableStream)
+		const done = await res.stream(anyReadableStream, {sseEvent: "streamData"})
+		res.push("streamData", "end")
 	} catch(err) {}
 })
 ```
