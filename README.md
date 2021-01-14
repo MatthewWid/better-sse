@@ -42,14 +42,6 @@ import sse from "better-sse";
 app.get("/sse", sse(), (req, res) => {
 	res.push("speak", "Hello, world!");
 });
-
-// use with streams
-app.get('/sse-stream', sse(), async (req, res) => {
-	try {
-		const done = await res.stream(anyReadableStream, {sseEvent: "streamData"})
-		res.push("streamData", "end")
-	} catch(err) {}
-})
 ```
 
 ```javascript
@@ -61,7 +53,7 @@ sse.addEventListener("speak", ({data}) => {
 });
 ```
 
-Check the API documentation for information on getting more fine-tuned control over your data such as managing event IDs, data serialization, streams, dispatch controls and more!
+Check the API documentation and `examples/` directory for information on getting more fine-tuned control over your data such as managing event IDs, data serialization, streams, dispatch controls and more!
 
 # Documentation
 
