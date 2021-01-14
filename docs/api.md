@@ -81,6 +81,13 @@ If no event name is given, the event name (type) is set to `"message"`.
 
 Note that this sets the event ID (and thus the [`lastId` property](#session%23lastid%3A-string)) to a string of eight random characters (`a-z0-9`).
 
+#### `Session#stream`: `(s: Readable, opts: StreamOptions) => Promise<boolean>`
+
+Pipe a readable stream down to the clients.
+
+`StreamOptions` accepts the following parameters: `{ sseEvent?: string; }`
+`sseEvent` is the name of the event that is to be used to send the stream data. Defaults to `stream`
+
 ### middleware
 
 #### express
