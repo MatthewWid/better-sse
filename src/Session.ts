@@ -42,11 +42,11 @@ export interface SessionOptions {
 
 export interface StreamOptions {
 	/**
-	 * SSE Event type to be emitted when stream data is sent to the client.
-	 * 
-	 * Defaults to `stream`
+	 * Event type to be emitted when stream data is sent to the client.
+	 *
+	 * Defaults to `"stream"`.
 	 */
-	sseEvent?: string;
+	event?: string;
 }
 
 /**
@@ -230,21 +230,28 @@ abstract class Session {
 		return this;
 	};
 
-	stream = async (s: Readable, opts: StreamOptions = {}): Promise<boolean> => {
-		const { sseEvent = 'stream' } = opts;
+	stream = async (
+		stream: Readable,
+		options: StreamOptions = {}
+	): Promise<boolean> => {
+		const {event = "stream"} = options;
+
 		return new Promise<boolean>((resolve, reject) => {
-			s.on("data", (chunk) => {
-				let dataString: string;
+			stream.on("data", (chunk) => {
+				let data: string;
+
 				if (Buffer.isBuffer(chunk)) {
-					dataString = chunk.toString("utf-8");
+					data = chunk.toString("utf-8");
 				} else {
-					dataString = chunk;
+					data = chunk;
 				}
-				this.push(sseEvent, dataString)
+
+				this.push(event, data);
 			});
-			s.once("end", () => resolve(true));
-			s.once("close", () => resolve(true));
-			s.once("error", (err) => reject(err));
+
+			stream.once("end", () => resolve(true));
+			stream.once("close", () => resolve(true));
+			stream.once("error", (err) => reject(err));
 		});
 	};
 }
