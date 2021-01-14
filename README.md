@@ -53,7 +53,7 @@ sse.addEventListener("speak", ({data}) => {
 });
 ```
 
-Check the API documentation for information on getting more fine-tuned control over your data such as managing event IDs, data serialization, streams, dispatch controls and more!
+Check the API documentation and `examples/` directory for information on getting more fine-tuned control over your data such as managing event IDs, data serialization, streams, dispatch controls and more!
 
 # Documentation
 

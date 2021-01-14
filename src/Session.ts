@@ -1,4 +1,5 @@
 import {randomBytes} from "crypto";
+import {Readable} from "stream";
 import serialize, {SerializerFunction} from "./lib/serialize";
 import sanitize, {SanitizerFunction} from "./lib/sanitize";
 
@@ -37,6 +38,15 @@ export interface SessionOptions {
 	 * @see https://html.spec.whatwg.org/multipage/server-sent-events.html#concept-event-stream-reconnection-time
 	 */
 	retry?: number | null;
+}
+
+export interface StreamOptions {
+	/**
+	 * SSE Event type to be emitted when stream data is sent to the client.
+	 * 
+	 * Defaults to `stream`
+	 */
+	sseEvent?: string;
 }
 
 /**
@@ -218,6 +228,24 @@ abstract class Session {
 		this.event(eventName).id(nextId).data(rawData).dispatch();
 
 		return this;
+	};
+
+	stream = async (s: Readable, opts: StreamOptions = {}): Promise<boolean> => {
+		const { sseEvent = 'stream' } = opts;
+		return new Promise<boolean>((resolve, reject) => {
+			s.on("data", (chunk) => {
+				let dataString: string;
+				if (Buffer.isBuffer(chunk)) {
+					dataString = chunk.toString("utf-8");
+				} else {
+					dataString = chunk;
+				}
+				this.push(sseEvent, dataString)
+			});
+			s.once("end", () => resolve(true));
+			s.once("close", () => resolve(true));
+			s.once("error", (err) => reject(err));
+		});
 	};
 }
 
