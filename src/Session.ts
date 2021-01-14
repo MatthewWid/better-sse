@@ -230,6 +230,11 @@ abstract class Session {
 		return this;
 	};
 
+	/**
+	 * Pipe readable stream data to the client.
+	 *
+	 * Each data emission by the stream emits a new event that is dispatched to the client.
+	 */
 	stream = async (
 		stream: Readable,
 		options: StreamOptions = {}
