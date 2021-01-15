@@ -6,4 +6,5 @@ Feel free to contribute to this documentation the same way you would for the pac
 
 ## Table of Contents
 
--   [Getting Started](./getting-started.md)
+* [Getting Started](./getting-started.md)
+* [API Documentation](./api.md)

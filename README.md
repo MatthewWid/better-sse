@@ -31,7 +31,7 @@ _Better SSE ships with types built in. No need to install from `@types` for Type
 
 # Basic Usage
 
-Better SSE has compatibility with many different frameworks and libraries, but is commonly used by users implementing an application with the [Express framework](http://expressjs.com/).
+Better SSE has compatibility with many different frameworks and libraries, but is most commonly used by users implementing an application with the [Express framework](http://expressjs.com/).
 
 See the recipes section of the documentation for use with other frameworks and libraries.
 
@@ -53,7 +53,7 @@ sse.addEventListener("speak", ({data}) => {
 });
 ```
 
-Check the API documentation for information on getting more fine-tuned control over your data such as managing event IDs, data serialization, streams, dispatch controls and more!
+Check [the API documentation](https://github.com/MatthewWid/better-sse/blob/master/docs/api.md) and [live examples](https://github.com/MatthewWid/better-sse/tree/master/examples) for information on getting more fine-tuned control over your data such as managing event IDs, data serialization, streams, dispatch controls and more!
 
 # Documentation
 

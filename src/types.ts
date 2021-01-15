@@ -5,6 +5,7 @@ declare global {
 		interface Response {
 			sse: ExpressSession;
 			push: ExpressSession["push"];
+			stream: ExpressSession["stream"];
 		}
 	}
 }

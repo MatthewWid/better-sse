@@ -1,4 +1,5 @@
 import {randomBytes} from "crypto";
+import {Readable} from "stream";
 import serialize, {SerializerFunction} from "./lib/serialize";
 import sanitize, {SanitizerFunction} from "./lib/sanitize";
 
@@ -47,6 +48,15 @@ export interface SessionOptions {
 	 * Defaults to 200.
 	 */
 	statusCode?: number;
+}
+
+export interface StreamOptions {
+	/**
+	 * Event type to be emitted when stream data is sent to the client.
+	 *
+	 * Defaults to `"stream"`.
+	 */
+	event?: string;
 }
 
 /**
@@ -230,6 +240,36 @@ abstract class Session {
 		this.event(eventName).id(nextId).data(rawData).dispatch();
 
 		return this;
+	};
+
+	/**
+	 * Pipe readable stream data to the client.
+	 *
+	 * Each data emission by the stream emits a new event that is dispatched to the client.
+	 */
+	stream = async (
+		stream: Readable,
+		options: StreamOptions = {}
+	): Promise<boolean> => {
+		const {event = "stream"} = options;
+
+		return new Promise<boolean>((resolve, reject) => {
+			stream.on("data", (chunk) => {
+				let data: string;
+
+				if (Buffer.isBuffer(chunk)) {
+					data = chunk.toString("utf-8");
+				} else {
+					data = chunk;
+				}
+
+				this.push(event, data);
+			});
+
+			stream.once("end", () => resolve(true));
+			stream.once("close", () => resolve(true));
+			stream.once("error", (err) => reject(err));
+		});
 	};
 }
 

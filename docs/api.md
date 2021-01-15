@@ -81,6 +81,16 @@ If no event name is given, the event name (type) is set to `"message"`.
 
 Note that this sets the event ID (and thus the [`lastId` property](#session%23lastid%3A-string)) to a string of eight random characters (`a-z0-9`).
 
+#### `Session#stream`: `(stream: Readable[, options]) => Promise<boolean>`
+
+Pipe readable stream data to the client.
+
+Each data emission by the stream emits a new event that is dispatched to the client.
+
+|`options.`|Type|Default|Description|
+|-|-|-|-|
+|`event`|`string`|`"stream"`|Event name/type to use when dispatching a data event from the stream to the client.|
+
 ### middleware
 
 #### express
@@ -89,4 +99,4 @@ Note that this sets the event ID (and thus the [`lastId` property](#session%23la
 
 Create and return an Express middleware that attaches the [SSE session object](#session) to the `sse` property of the `res` object.
 
-Additionally, it directly modifies the `res` object to add the `push` method that is an alias to [Session#push](#session%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-this-%7C-(data%3A-any)-%3D>-this).
+Additionally, it directly modifies the `res` object to add the `push` method that is an alias to [Session#push](#session%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-this-%7C-(data%3A-any)-%3D>-this), and the `stream` method that is an alias to.
