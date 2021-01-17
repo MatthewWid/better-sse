@@ -15,8 +15,11 @@ class ExpressAdapter extends Session {
 		super(options);
 	}
 
-	writeAndFlushHeaders = (headers: {[name: string]: string}): void => {
-		this.res.status(this.statusCode);
+	writeAndFlushHeaders = (
+		statusCode: number,
+		headers: {[name: string]: string}
+	): void => {
+		this.res.status(statusCode);
 
 		Object.entries<string>(headers).forEach(([name, value]) => {
 			this.res.setHeader(name, value);

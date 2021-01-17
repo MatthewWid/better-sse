@@ -78,29 +78,32 @@ abstract class Session {
 	 * This is initialized to the last event ID given by the user, and otherwise is equal to the last number given to the `.id` method.
 	 */
 	lastId = "";
-	statusCode: number;
 
 	private serialize: SerializerFunction;
 	private sanitize: SanitizerFunction;
 	private trustClientEventId: boolean;
 	private initialRetry: number | null;
+	private statusCode: number;
 	private headers: Record<string, string>;
 
 	constructor(options: SessionOptions = {}) {
 		this.serialize = options.serializer ?? serialize;
 		this.sanitize = options.sanitizer ?? sanitize;
-		this.statusCode = options.statusCode ?? 200;
 		this.trustClientEventId = options.trustClientEventId ?? true;
 		this.initialRetry = options.retry ?? 2000;
+		this.statusCode = options.statusCode ?? 200;
 		this.headers = options.headers ?? {};
 	}
 
 	/**
 	 * Write 200 OK and all given headers to the response WITHOUT ending the response.
 	 */
-	protected abstract writeAndFlushHeaders(headers: {
-		[header: string]: string;
-	}): void;
+	protected abstract writeAndFlushHeaders(
+		statusCode: number,
+		headers: {
+			[header: string]: string;
+		}
+	): void;
 
 	/**
 	 * Retrieve the value of any arbitrary request header. If no such header exists on the request payload, return an empty string.
@@ -122,7 +125,7 @@ abstract class Session {
 			this.lastId = this.readHeader("Last-Event-ID");
 		}
 
-		this.writeAndFlushHeaders({
+		this.writeAndFlushHeaders(this.statusCode, {
 			"Content-Type": "text/event-stream",
 			"Cache-Control": "no-cache, no-transform",
 			Connection: "keep-alive",
