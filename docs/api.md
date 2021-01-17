@@ -34,7 +34,8 @@ This is a general implementation that is then extended by adapters that implemen
 |`sanitizer`|`function`||Sanitize values so as to not prematurely dispatch events when writing fields whose text inadvertently contains newlines.<br><br>By default, CR, LF and CRLF characters are replaced with a single LF character (`\n`) and then any trailing LF characters are stripped so as to prevent a blank line being written and accidentally dispatching the event before `.dispatch()` is called.|
 |`trustClientEventId`|`boolean`|`true`|Whether to trust the last event ID given by the client in the `Last-Event-ID` request header.<br><br>When set to `false`, the `lastId` property will always be initialized to an empty string.|
 |`retry`|`number` \| `null`|`2000`|Time in milliseconds for the client to wait before attempting to reconnect if the connection is closed.<br><br>This is equivalent to immediately calling `.retry().dispatch()` after a connection is made.<br><br>Give as `null` to avoid sending an explicit reconnection time and allow the client browser to decide itself.|
-
+|`statusCode`|`number`|`200`|Status code to be sent to the client. Event stream requests can be redirected using HTTP 301 and 307 redirects. Make sure to set `Location` header when using these status codes(301/307) using the `headers` property. A client can be told to stop reconnecting by using 204 status code.|
+|`headers`|`Record<string, string>`|`{}`|Headers to be sent along with the initial response. Refer to the [example](#custom-headers-and-status-code-example) below for custom headers|
 #### `Session#lastId`: `string`
 
 The last ID sent to the client.
@@ -100,3 +101,14 @@ Each data emission by the stream emits a new event that is dispatched to the cli
 Create and return an Express middleware that attaches the [SSE session object](#session) to the `sse` property of the `res` object.
 
 Additionally, it directly modifies the `res` object to add the `push` method that is an alias to [Session#push](#session%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-this-%7C-(data%3A-any)-%3D>-this), and the `stream` method that is an alias to.
+
+### Custom Headers and Status Code Example
+```javascript
+app.get("/sse", sse({ headers: { Location: '/sse2' }, statusCode: 307 }), (req, res) => {
+	// temporary redirect to /sse2
+});
+
+app.get('/sse2', sse(), (req, res) => {
+	res.push("ping", "hello")
+})
+```
