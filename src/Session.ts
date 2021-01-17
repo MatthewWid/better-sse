@@ -40,18 +40,18 @@ export interface SessionOptions {
 	retry?: number | null;
 	/**
 	 * Status code to be sent to the client.
-	 * 
-	 * Event stream requests can be redirected using HTTP 301 and 307 redirects.
+	 *
+	 * Event stream requests can be redirected using HTTP 301 and 307 status codes.
+	 *
 	 * Make sure to set `Location` header when using these status codes using the `headers` property.
-	 * 
-	 * A client can be told to stop reconnecting by using 204 status code.
-	 * 
-	 * Defaults to 200.
+	 *
+	 * A client can be asked to stop reconnecting by using 204 status code.
+	 *
+	 * Defaults to `200`.
 	 */
 	statusCode?: number;
-
 	/**
-	 * Custom headers to be sent along with the initial response.
+	 * Additional headers to be sent along with the response.
 	 */
 	headers?: Record<string, string>;
 }
@@ -126,7 +126,7 @@ abstract class Session {
 			"Content-Type": "text/event-stream",
 			"Cache-Control": "no-cache, no-transform",
 			Connection: "keep-alive",
-			...this.headers
+			...this.headers,
 		});
 
 		if (this.initialRetry !== null) {
