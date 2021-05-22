@@ -8,7 +8,7 @@ const app = express();
 app.use(express.static(path.resolve(__dirname, "./public")));
 
 app.get("/sse", sse(), async (req, res) => {
-	const stream = Readable.from("Hello from better-sse!");
+	const stream = Readable.from([1, 2, 3]);
 
 	const done = await res.stream(stream);
 

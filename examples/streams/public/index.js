@@ -1,6 +1,5 @@
 const sse = new EventSource("/sse");
 
-sse.addEventListener("stream", ({type, data}) => {
-	console.log(`Received event of type ${type}`);
-	console.log(data);
+sse.addEventListener("stream", (event) => {
+	console.log(event);
 });
