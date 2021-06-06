@@ -25,6 +25,9 @@ npm install better-sse
 
 # Yarn
 yarn add better-sse
+
+# pnpm
+pnpm add better-sse
 ```
 
 _Better SSE ships with types built in. No need to install from `@types` for TypeScript users!_
