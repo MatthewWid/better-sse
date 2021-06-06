@@ -62,6 +62,35 @@ Check [the API documentation](https://github.com/MatthewWid/better-sse/blob/mast
 
 API documentation, getting started guides and usage with other frameworks is [available on GitHub](https://github.com/MatthewWid/better-sse/tree/master/docs).
 
+# Contributing
+
+This library is always open to contributions, whether it be code, bug reports, documentation or anything else.
+
+Please submit suggestions, bugs and issues to the [GitHub issues page](https://github.com/MatthewWid/better-sse/issues).
+
+For code or documentation changes, [submit a pull request on GitHub](https://github.com/MatthewWid/better-sse/pulls).
+
+## Local Development
+
+Install Node:
+
+```bash
+curl -L https://git.io/n-install | bash
+n auto
+```
+
+Install pnpm:
+
+```bash
+npm i -g pnpm
+```
+
+Install dependencies:
+
+```bash
+pnpm i
+```
+
 # License
 
 This project is licensed under the MIT license.
