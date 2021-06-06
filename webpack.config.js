@@ -2,7 +2,9 @@ const path = require("path");
 
 const config = (env) => ({
 	context: path.resolve(__dirname),
-	entry: "./src/index.ts",
+	entry: {
+		index: "./src/index.ts",
+	},
 	output: {
 		filename: "[name].js",
 		path: path.resolve(__dirname, "build"),
