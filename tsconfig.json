@@ -2,15 +2,11 @@
 	"compilerOptions": {
 		"target": "ES2019",
 		"strict": true,
-		"baseUrl": "./src",
-		"paths": {
-			"~*": ["./*"]
-		},
-		"outDir": "./build",
 		"moduleResolution": "node",
 		"declaration": true,
 		"declarationDir": "./build",
-		"isolatedModules": true
+		"isolatedModules": true,
+		"sourceMap": true
 	},
 	"include": ["./src/**/*"]
 }
