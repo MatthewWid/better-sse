@@ -1,4 +1,6 @@
 import EventEmitter from "events";
+import {randomBytes} from "crypto";
+import {Readable} from "stream";
 import {IncomingMessage, ServerResponse, OutgoingHttpHeaders} from "http";
 import serialize, {SerializerFunction} from "./lib/serialize";
 import sanitize, {SanitizerFunction} from "./lib/sanitize";
@@ -61,7 +63,25 @@ export interface SessionOptions {
 	headers?: OutgoingHttpHeaders;
 }
 
+export interface StreamOptions {
+	/**
+	 * Event type to be emitted when stream data is sent to the client.
+	 *
+	 * Defaults to `"stream"`.
+	 */
+	event?: string;
+}
+
+/**
+ * A Session represents an open connection between the server and a client.
+ */
 class Session extends EventEmitter {
+	/**
+	 * The last ID sent to the client.
+	 * This is initialized to the last event ID given by the user, and otherwise is equal to the last number given to the `.id` method.
+	 */
+	lastId = "";
+
 	private req: IncomingMessage;
 	private res: ServerResponse;
 
@@ -94,16 +114,164 @@ class Session extends EventEmitter {
 	}
 
 	private onConnected = () => {
+		if (this.trustClientEventId) {
+			const lastEventIdValue = this.req.headers["last-event-id"] ?? "";
+
+			this.lastId = Array.isArray(lastEventIdValue)
+				? lastEventIdValue[0]
+				: lastEventIdValue;
+		}
+
 		this.res.setHeader("Content-Type", "text/event-stream");
 		this.res.setHeader("Cache-Control", "no-cache, no-transform");
 		this.res.setHeader("Connection", "keep-alive");
 		this.res.flushHeaders();
+
+		if (this.initialRetry !== null) {
+			this.retry(this.initialRetry).dispatch();
+		}
 
 		this.emit("connected");
 	};
 
 	private onDisconnected = () => {
 		this.emit("disconnected");
+	};
+
+	/**
+	 * Write a line with a field key and value appended with a newline character.
+	 */
+	private writeField = (name: string, value: string): this => {
+		const sanitized = this.sanitize(value);
+
+		const text = `${name}:${sanitized}\n`;
+
+		this.res.write(text);
+
+		return this;
+	};
+
+	/**
+	 * Flush the buffered data to the client by writing an additional newline.
+	 */
+	dispatch = (): this => {
+		this.res.write("\n");
+
+		return this;
+	};
+
+	/**
+	 * Set the event to the given name (also referred to as "type" in the specification).
+	 */
+	event(type: string): this {
+		this.writeField("event", type);
+
+		return this;
+	}
+
+	/**
+	 * Write arbitrary data onto the wire that is automatically serialized to a string using the given `serializer` function option or JSON stringification by default.
+	 */
+	data = (data: unknown): this => {
+		const serialized = this.serialize(data);
+
+		this.writeField("data", serialized);
+
+		return this;
+	};
+
+	/**
+	 * Set the event ID to the given string.
+	 *
+	 * Passing `null` will set the event ID to an empty string value.
+	 */
+	id = (id: string | null): this => {
+		const stringifed = id ? id : "";
+
+		this.writeField("id", stringifed);
+
+		this.lastId = stringifed;
+
+		return this;
+	};
+
+	/**
+	 * Set the suggested reconnection time to the given milliseconds.
+	 */
+	retry = (time: number): this => {
+		const stringifed = time.toString();
+
+		this.writeField("retry", stringifed);
+
+		return this;
+	};
+
+	/**
+	 * Write a comment (an ignored field).
+	 *
+	 * This will not fire an event, but is often used to keep the connection alive.
+	 */
+	comment = (text: string): this => {
+		this.writeField("", text);
+
+		return this;
+	};
+
+	/**
+	 * Create and dispatch an event with the given data all at once.
+	 * This is equivalent to calling `.event()`, `.id()`, `.data()` and `.dispatch()` in that order.
+	 *
+	 * If no event name is given, the event name (type) is set to `"message"`.
+	 *
+	 * Note that this sets the event ID (and thus the `lastId` property) to a string of eight random characters (`a-z0-9`).
+	 */
+	push = (eventOrData: string | unknown, data?: unknown): this => {
+		let eventName;
+		let rawData;
+
+		if (eventOrData && typeof data === "undefined") {
+			eventName = "message";
+			rawData = eventOrData;
+		} else {
+			eventName = (eventOrData as string).toString();
+			rawData = data;
+		}
+
+		const nextId = randomBytes(4).toString("hex");
+
+		this.event(eventName).id(nextId).data(rawData).dispatch();
+
+		return this;
+	};
+
+	/**
+	 * Pipe readable stream data to the client.
+	 *
+	 * Each data emission by the stream emits a new event that is dispatched to the client.
+	 */
+	stream = async (
+		stream: Readable,
+		options: StreamOptions = {}
+	): Promise<boolean> => {
+		const {event = "stream"} = options;
+
+		return new Promise<boolean>((resolve, reject) => {
+			stream.on("data", (chunk) => {
+				let data: string;
+
+				if (Buffer.isBuffer(chunk)) {
+					data = chunk.toString();
+				} else {
+					data = chunk;
+				}
+
+				this.push(event, data);
+			});
+
+			stream.once("end", () => resolve(true));
+			stream.once("close", () => resolve(true));
+			stream.once("error", (err) => reject(err));
+		});
 	};
 }
 
