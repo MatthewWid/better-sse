@@ -108,6 +108,7 @@ describe("connection", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
+				expect(res.statusCode).toBe(200);
 				expect(res.headersSent).toBeTruthy();
 				expect(res.getHeader("Content-Type")).toBe("text/event-stream");
 				expect(res.getHeader("Cache-Control")).toBe(
