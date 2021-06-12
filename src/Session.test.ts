@@ -29,22 +29,22 @@ const closeServer = (server: http.Server) =>
 		}
 	});
 
-describe("initialisation", () => {
-	let server: http.Server;
-	let eventsource: EventSource;
+let server: http.Server;
+let eventsource: EventSource;
 
-	beforeEach(async () => {
-		server = await createServer();
-	});
+beforeEach(async () => {
+	server = await createServer();
+});
 
-	afterEach(async () => {
-		if (eventsource) {
-			eventsource.close();
-		}
+afterEach(async () => {
+	if (eventsource && eventsource.readyState !== 2) {
+		eventsource.close();
+	}
 
-		await closeServer(server);
-	});
+	await closeServer(server);
+});
 
+describe("connection", () => {
 	it("constructs without errors when giving no options", async (done) => {
 		server.on("request", (req, res) => {
 			expect(() => {
@@ -109,12 +109,29 @@ describe("initialisation", () => {
 
 			session.on("connected", () => {
 				expect(res.headersSent).toBeTruthy();
-
 				expect(res.getHeader("Content-Type")).toBe("text/event-stream");
 				expect(res.getHeader("Cache-Control")).toBe(
 					"no-cache, no-transform"
 				);
 				expect(res.getHeader("Connection")).toBe("keep-alive");
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("writes an initial retry field by default", (done) => {
+		server.on("request", (req, res) => {
+			const write = jest.spyOn(res, "write");
+
+			const session = new Session(req, res);
+
+			session.on("connected", () => {
+				expect(write).toHaveBeenCalledTimes(2);
+				expect(write).toHaveBeenCalledWith("retry:2000\n");
+				expect(write).toHaveBeenCalledWith("\n");
 
 				done();
 			});
