@@ -90,7 +90,6 @@ class Session extends EventEmitter {
 		this.headers = options.headers ?? {};
 
 		this.req.on("close", this.onDisconnected);
-		this.res.on("close", this.onDisconnected);
 		setImmediate(this.onConnected);
 	}
 
