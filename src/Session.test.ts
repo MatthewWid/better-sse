@@ -122,6 +122,27 @@ describe("connection", () => {
 
 		eventsource = new EventSource(url);
 	});
+
+	it("adds given headers to the response headers", (done) => {
+		const additionalHeaders = {
+			"x-test-header-1": "123",
+			"x-test-header-2": "456",
+		};
+
+		server.on("request", (req, res) => {
+			const session = new Session(req, res, {
+				headers: additionalHeaders,
+			});
+
+			session.on("connected", () => {
+				expect(res.getHeaders()).toMatchObject(additionalHeaders);
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
 });
 
 describe("retry", () => {

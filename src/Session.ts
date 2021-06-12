@@ -120,6 +120,10 @@ class Session extends EventEmitter {
 			this.lastId = givenLastEventId as string;
 		}
 
+		Object.entries(this.headers).forEach(([name, value]) => {
+			this.res.setHeader(name, value ?? "");
+		});
+
 		this.res.setHeader("Content-Type", "text/event-stream");
 		this.res.setHeader("Cache-Control", "no-cache, no-transform");
 		this.res.setHeader("Connection", "keep-alive");
