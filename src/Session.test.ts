@@ -57,7 +57,7 @@ describe("connection", () => {
 		eventsource = new EventSource(url);
 	});
 
-	it("fires the connection open event non-synchronously after response headers are sent", (done) => {
+	it("fires the connection event non-synchronously after response headers are sent", (done) => {
 		server.on("request", (req, res) => {
 			const session = new Session(req, res);
 
@@ -123,7 +123,7 @@ describe("connection", () => {
 		eventsource = new EventSource(url);
 	});
 
-	it("adds given headers to the response headers", (done) => {
+	it("adds custom headers to the response headers", (done) => {
 		const additionalHeaders = {
 			"x-test-header-1": "123",
 			"x-test-header-2": "456",
@@ -184,7 +184,7 @@ describe("retry", () => {
 		eventsource = new EventSource(url);
 	});
 
-	it("has the ability to modify the initial retry field", (done) => {
+	it("can modify the initial retry field value", (done) => {
 		server.on("request", (req, res) => {
 			const write = jest.spyOn(res, "write");
 
@@ -236,7 +236,7 @@ describe("event ID management", () => {
 		});
 	});
 
-	it("ignores the given last event ID if set in the options", (done) => {
+	it("ignores the given last event ID if set in options", (done) => {
 		server.on("request", (req, res) => {
 			const session = new Session(req, res, {
 				trustClientEventId: false,
@@ -254,7 +254,7 @@ describe("event ID management", () => {
 		});
 	});
 
-	it("imperatively sets the event ID", (done) => {
+	it("can imperatively set the event ID", (done) => {
 		server.on("request", (req, res) => {
 			const write = jest.spyOn(res, "write");
 
@@ -273,7 +273,7 @@ describe("event ID management", () => {
 		eventsource = new EventSource(url);
 	});
 
-	it("sets the event ID to an empty string when passing null", (done) => {
+	it("sets the event ID to an empty string when passed null", (done) => {
 		server.on("request", (req, res) => {
 			const write = jest.spyOn(res, "write");
 
