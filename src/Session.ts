@@ -115,11 +115,9 @@ class Session extends EventEmitter {
 
 	private onConnected = () => {
 		if (this.trustClientEventId) {
-			const lastEventIdValue = this.req.headers["last-event-id"] ?? "";
+			const givenLastEventId = this.req.headers["last-event-id"] ?? "";
 
-			this.lastId = Array.isArray(lastEventIdValue)
-				? lastEventIdValue[0]
-				: lastEventIdValue;
+			this.lastId = givenLastEventId as string;
 		}
 
 		this.res.setHeader("Content-Type", "text/event-stream");

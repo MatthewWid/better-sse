@@ -121,7 +121,9 @@ describe("connection", () => {
 
 		eventsource = new EventSource(url);
 	});
+});
 
+describe("retry", () => {
 	it("writes an initial retry field by default", (done) => {
 		server.on("request", (req, res) => {
 			const write = jest.spyOn(res, "write");
@@ -138,5 +140,57 @@ describe("connection", () => {
 		});
 
 		eventsource = new EventSource(url);
+	});
+
+	it("has the ability to modify the initial retry field", (done) => {
+		server.on("request", (req, res) => {
+			const write = jest.spyOn(res, "write");
+
+			const session = new Session(req, res, {
+				retry: 4000,
+			});
+
+			session.on("connected", () => {
+				expect(write.mock.calls[0][0]).toContain("4000");
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+});
+
+describe("last event ID", () => {
+	it("starts with an empty last ID", (done) => {
+		server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			session.on("connected", () => {
+				expect(session.lastId).toBe("");
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("trusts and stores the given last ID by default", (done) => {
+		const givenLastId = "12345678";
+
+		server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			session.on("connected", () => {
+				expect(session.lastId).toBe(givenLastId);
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url, {
+			headers: {"Last-Event-ID": givenLastId},
+		});
 	});
 });
