@@ -21,6 +21,7 @@
 		"preinstall": "npx only-allow pnpm",
 		"build": "webpack --env production",
 		"dev": "webpack --env development",
+		"test": "jest",
 		"clean": "rimraf ./build",
 		"format": "prettier --write ./src/**/*.ts",
 		"typedefs": "tsc --emitDeclarationOnly",

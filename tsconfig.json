@@ -6,6 +6,7 @@
 		"declaration": true,
 		"declarationDir": "./build",
 		"isolatedModules": true,
+		"allowSyntheticDefaultImports": true,
 		"sourceMap": true
 	},
 	"include": ["./src/**/*"]
