@@ -145,6 +145,26 @@ describe("connection", () => {
 	});
 });
 
+describe("dispatch", () => {
+	it("writes a newline when calling dispatch", (done) => {
+		server.on("request", (req, res) => {
+			const write = jest.spyOn(res, "write");
+
+			const session = new Session(req, res);
+
+			session.on("connected", () => {
+				session.dispatch();
+
+				expect(write).toHaveBeenLastCalledWith("\n");
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+});
+
 describe("retry", () => {
 	it("writes an initial retry field by default", (done) => {
 		server.on("request", (req, res) => {
@@ -183,8 +203,10 @@ describe("retry", () => {
 	});
 });
 
-describe("last event ID", () => {
-	it("starts with an empty last ID", (done) => {
+describe("event ID management", () => {
+	const givenLastId = "12345678";
+
+	it("starts with an empty last event ID", (done) => {
 		server.on("request", (req, res) => {
 			const session = new Session(req, res);
 
@@ -198,9 +220,7 @@ describe("last event ID", () => {
 		eventsource = new EventSource(url);
 	});
 
-	it("trusts and stores the given last ID by default", (done) => {
-		const givenLastId = "12345678";
-
+	it("trusts and stores the given last event ID by default", (done) => {
 		server.on("request", (req, res) => {
 			const session = new Session(req, res);
 
@@ -214,5 +234,61 @@ describe("last event ID", () => {
 		eventsource = new EventSource(url, {
 			headers: {"Last-Event-ID": givenLastId},
 		});
+	});
+
+	it("ignores the given last event ID if set in the options", (done) => {
+		server.on("request", (req, res) => {
+			const session = new Session(req, res, {
+				trustClientEventId: false,
+			});
+
+			session.on("connected", () => {
+				expect(session.lastId).toBe("");
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url, {
+			headers: {"Last-Event-ID": givenLastId},
+		});
+	});
+
+	it("imperatively sets the event ID", (done) => {
+		server.on("request", (req, res) => {
+			const write = jest.spyOn(res, "write");
+
+			const session = new Session(req, res);
+
+			session.on("connected", () => {
+				session.id(givenLastId);
+
+				expect(write).toHaveBeenLastCalledWith(`id:${givenLastId}\n`);
+				expect(session.lastId).toBe(givenLastId);
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("sets the event ID to an empty string when passing null", (done) => {
+		server.on("request", (req, res) => {
+			const write = jest.spyOn(res, "write");
+
+			const session = new Session(req, res);
+
+			session.on("connected", () => {
+				session.id(null);
+
+				expect(write).toHaveBeenLastCalledWith("id:\n");
+				expect(session.lastId).toBe("");
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
 	});
 });
