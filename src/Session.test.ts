@@ -292,3 +292,23 @@ describe("event ID management", () => {
 		eventsource = new EventSource(url);
 	});
 });
+
+describe("event type", () => {
+	it("can imperatively set the event type", (done) => {
+		server.on("request", (req, res) => {
+			const write = jest.spyOn(res, "write");
+
+			const session = new Session(req, res);
+
+			session.on("connected", () => {
+				session.event("test");
+
+				expect(write).toHaveBeenLastCalledWith("event:test\n");
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+});
