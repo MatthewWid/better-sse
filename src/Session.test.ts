@@ -193,7 +193,7 @@ describe("retry", () => {
 			});
 
 			session.on("connected", () => {
-				expect(write.mock.calls[0][0]).toContain("4000");
+				expect(write).toHaveBeenCalledWith("retry:4000\n");
 
 				done();
 			});
@@ -212,6 +212,26 @@ describe("retry", () => {
 
 			session.on("connected", () => {
 				expect(write).not.toHaveBeenCalledWith("retry:2000\n");
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("can imperatively set the retry time", (done) => {
+		server.on("request", (req, res) => {
+			const write = jest.spyOn(res, "write");
+
+			const session = new Session(req, res, {
+				retry: null,
+			});
+
+			session.on("connected", () => {
+				session.retry(8000);
+
+				expect(write).toHaveBeenCalledWith("retry:8000\n");
 
 				done();
 			});
