@@ -88,7 +88,7 @@ class Session extends EventEmitter {
 	private serialize: SerializerFunction;
 	private sanitize: SanitizerFunction;
 	private trustClientEventId: boolean;
-	private initialRetry: number;
+	private initialRetry: number | null;
 	private statusCode: number;
 	private headers: OutgoingHttpHeaders;
 
@@ -105,7 +105,8 @@ class Session extends EventEmitter {
 		this.serialize = options.serializer ?? serialize;
 		this.sanitize = options.sanitizer ?? sanitize;
 		this.trustClientEventId = options.trustClientEventId ?? true;
-		this.initialRetry = options.retry ?? 2000;
+		this.initialRetry =
+			options.retry === null ? null : options.retry ?? 2000;
 		this.statusCode = options.statusCode ?? 200;
 		this.headers = options.headers ?? {};
 

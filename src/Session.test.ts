@@ -201,6 +201,24 @@ describe("retry", () => {
 
 		eventsource = new EventSource(url);
 	});
+
+	it("can prevent the initial retry field from being sent", (done) => {
+		server.on("request", (req, res) => {
+			const write = jest.spyOn(res, "write");
+
+			const session = new Session(req, res, {
+				retry: null,
+			});
+
+			session.on("connected", () => {
+				expect(write).not.toHaveBeenCalledWith("retry:2000\n");
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
 });
 
 describe("event ID management", () => {
