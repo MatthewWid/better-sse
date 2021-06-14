@@ -1,5 +1,6 @@
 import http from "http";
 import EventSource from "eventsource";
+import {Readable} from "stream";
 import Session from "./Session";
 
 const host = "127.0.0.1";
@@ -545,6 +546,106 @@ describe("push", () => {
 				expect(id).toHaveBeenCalledWith(newId);
 
 				expect(newId).not.toBe(oldId);
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+});
+
+describe("streaming", () => {
+	const dataToWrite = [1, 2, 3];
+
+	it("pipes each and every stream data emission as an event", (done) => {
+		const stream = Readable.from(dataToWrite);
+
+		server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			const push = jest.spyOn(session, "push");
+
+			session.on("connected", async () => {
+				await session.stream(stream);
+
+				expect(push).toHaveBeenCalledTimes(3);
+				expect(push).toHaveBeenNthCalledWith(1, "stream", 1);
+				expect(push).toHaveBeenNthCalledWith(2, "stream", 2);
+				expect(push).toHaveBeenNthCalledWith(3, "stream", 3);
+			});
+		});
+
+		eventsource = new EventSource(url);
+
+		let eventCount = 0;
+
+		eventsource.addEventListener("stream", (event: MessageEventInit) => {
+			expect(event.data).toBe(dataToWrite[eventCount].toString());
+
+			eventCount++;
+
+			if (eventCount === dataToWrite.length) {
+				done();
+			}
+		});
+	});
+
+	it("can override the event type in options", (done) => {
+		const eventName = "newEventName";
+		const stream = Readable.from([1]);
+
+		server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			const push = jest.spyOn(session, "push");
+
+			session.on("connected", async () => {
+				await session.stream(stream, {event: eventName});
+
+				expect(push).toHaveBeenCalledWith(eventName, 1);
+			});
+		});
+
+		eventsource = new EventSource(url);
+
+		eventsource.addEventListener(eventName, () => {
+			done();
+		});
+	});
+
+	it("resolves with 'true' when stream finishes and is successful", (done) => {
+		const stream = Readable.from(dataToWrite);
+
+		server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			session.on("connected", async () => {
+				const response = await session.stream(stream);
+
+				expect(response).toBeTruthy();
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("throws with the same error that the stream errors with", (done) => {
+		const error = new Error("Stream failed.");
+
+		const stream = new Readable({
+			read() {
+				this.destroy(error);
+			},
+		});
+
+		server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			session.on("connected", async () => {
+				await expect(session.stream(stream)).rejects.toThrow(error);
 
 				done();
 			});
