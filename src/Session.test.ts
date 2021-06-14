@@ -424,3 +424,132 @@ describe("data writing", () => {
 		);
 	});
 });
+
+describe("comments", () => {
+	it("can imperatively write a field with no field name", (done) => {
+		server.on("request", (req, res) => {
+			const write = jest.spyOn(res, "write");
+
+			const session = new Session(req, res);
+
+			session.on("connected", () => {
+				session.comment("testcomment");
+
+				expect(write).toHaveBeenLastCalledWith(":testcomment\n");
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+});
+
+describe("push", () => {
+	const dataToWrite = "testData";
+	const eventName = "testEvent";
+
+	it("calls all field writing methods", (done) => {
+		server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			const event = jest.spyOn(session, "event");
+			const id = jest.spyOn(session, "id");
+			const data = jest.spyOn(session, "data");
+			const dispatch = jest.spyOn(session, "dispatch");
+
+			session.on("connected", () => {
+				session.push(dataToWrite);
+
+				expect(event).toHaveBeenCalled();
+				expect(id).toHaveBeenCalled();
+				expect(data).toHaveBeenCalled();
+				expect(dispatch).toHaveBeenCalled();
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("sets the event type to a default with no given event type", (done) => {
+		server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			const event = jest.spyOn(session, "event");
+
+			session.on("connected", () => {
+				session.push(dataToWrite);
+
+				expect(event).toHaveBeenCalledWith("message");
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("sets the event type to the given event type", (done) => {
+		server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			const event = jest.spyOn(session, "event");
+
+			session.on("connected", () => {
+				session.push(eventName, dataToWrite);
+
+				expect(event).toHaveBeenCalledWith(eventName);
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("calls data write with the same given data value", (done) => {
+		server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			const data = jest.spyOn(session, "data");
+
+			session.on("connected", () => {
+				session.push(dataToWrite);
+
+				expect(data).toHaveBeenCalledWith(dataToWrite);
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("generates and sets a new event ID", (done) => {
+		const oldId = "1234567890";
+
+		server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			const id = jest.spyOn(session, "id");
+
+			session.on("connected", () => {
+				session.id(oldId);
+
+				session.push(eventName, dataToWrite);
+
+				const newId = session.lastId;
+
+				expect(id).toHaveBeenCalledWith(newId);
+
+				expect(newId).not.toBe(oldId);
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+});
