@@ -304,11 +304,17 @@ describe("event ID management", () => {
 				expect(write).toHaveBeenLastCalledWith(`id:${givenLastId}\n`);
 				expect(session.lastId).toBe(givenLastId);
 
-				done();
+				session.data(0).dispatch();
 			});
 		});
 
 		eventsource = new EventSource(url);
+
+		eventsource.addEventListener("message", (event: MessageEventInit) => {
+			expect(event.lastEventId).toBe(givenLastId);
+
+			done();
+		});
 	});
 
 	it("sets the event ID to an empty string when passed null", (done) => {
@@ -343,10 +349,78 @@ describe("event type", () => {
 
 				expect(write).toHaveBeenLastCalledWith("event:test\n");
 
-				done();
+				session.data(0);
+
+				session.dispatch();
 			});
 		});
 
 		eventsource = new EventSource(url);
+
+		eventsource.addEventListener("test", () => {
+			done();
+		});
+	});
+});
+
+describe("data writing", () => {
+	const dataToWrite = "test";
+
+	it("can imperatively write data", (done) => {
+		server.on("request", (req, res) => {
+			const write = jest.spyOn(res, "write");
+
+			const session = new Session(req, res);
+
+			session.on("connected", () => {
+				session.data(dataToWrite);
+
+				expect(write).toHaveBeenLastCalledWith(
+					`data:"${dataToWrite}"\n`
+				);
+
+				session.dispatch();
+			});
+		});
+
+		eventsource = new EventSource(url);
+
+		eventsource.addEventListener(
+			"message",
+			(event: MessageEventInit<string>) => {
+				expect(event.data).toBe(`"${dataToWrite}"`);
+
+				done();
+			}
+		);
+	});
+
+	it("serializes data written", (done) => {
+		server.on("request", (req, res) => {
+			const write = jest.spyOn(res, "write");
+
+			const session = new Session(req, res);
+
+			session.on("connected", () => {
+				session.data(dataToWrite);
+
+				expect(write).toHaveBeenLastCalledWith(
+					`data:${JSON.stringify(dataToWrite)}\n`
+				);
+
+				session.dispatch();
+			});
+		});
+
+		eventsource = new EventSource(url);
+
+		eventsource.addEventListener(
+			"message",
+			(event: MessageEventInit<string>) => {
+				expect(event.data).toBe(JSON.stringify(dataToWrite));
+
+				done();
+			}
+		);
 	});
 });
