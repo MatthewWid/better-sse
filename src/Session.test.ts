@@ -124,6 +124,20 @@ describe("connection", () => {
 		eventsource = new EventSource(url);
 	});
 
+	it("can set the status code in options", (done) => {
+		server.on("request", (req, res) => {
+			const session = new Session(req, res, {statusCode: 201});
+
+			session.on("connected", () => {
+				expect(res.statusCode).toBe(201);
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
 	it("adds custom headers to the response headers", (done) => {
 		const additionalHeaders = {
 			"x-test-header-1": "123",

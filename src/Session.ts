@@ -125,6 +125,7 @@ class Session extends EventEmitter {
 			this.res.setHeader(name, value ?? "");
 		});
 
+		this.res.statusCode = this.statusCode;
 		this.res.setHeader("Content-Type", "text/event-stream");
 		this.res.setHeader("Cache-Control", "no-cache, no-transform");
 		this.res.setHeader("Connection", "keep-alive");
