@@ -614,6 +614,46 @@ describe("streaming", () => {
 		});
 	});
 
+	it("serializes buffers as strings", (done) => {
+		const buffersToWrite = [
+			Buffer.from([1, 2, 3]),
+			Buffer.from([4, 5, 6]),
+			Buffer.from([7, 8, 9]),
+		];
+
+		const stream = Readable.from(buffersToWrite);
+
+		server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			const push = jest.spyOn(session, "push");
+
+			session.on("connected", async () => {
+				await session.stream(stream);
+
+				expect(push).toHaveBeenNthCalledWith(
+					1,
+					"stream",
+					buffersToWrite[0].toString()
+				);
+				expect(push).toHaveBeenNthCalledWith(
+					2,
+					"stream",
+					buffersToWrite[1].toString()
+				);
+				expect(push).toHaveBeenNthCalledWith(
+					3,
+					"stream",
+					buffersToWrite[2].toString()
+				);
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
 	it("resolves with 'true' when stream finishes and is successful", (done) => {
 		const stream = Readable.from(dataToWrite);
 
