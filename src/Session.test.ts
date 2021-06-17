@@ -158,6 +158,28 @@ describe("connection", () => {
 
 		eventsource = new EventSource(url);
 	});
+
+	it("sets custom headers without values to an empty string", (done) => {
+		const additionalHeaders = {
+			"x-test-header-1": undefined,
+		};
+
+		server.on("request", (req, res) => {
+			const session = new Session(req, res, {
+				headers: additionalHeaders,
+			});
+
+			session.on("connected", () => {
+				expect(res.getHeaders()).toMatchObject({
+					"x-test-header-1": "",
+				});
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
 });
 
 describe("dispatch", () => {
