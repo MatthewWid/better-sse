@@ -1,6 +1,8 @@
 import http from "http";
 import EventSource from "eventsource";
 import {Readable} from "stream";
+import serialize, {SerializerFunction} from "./lib/serialize";
+import type {SanitizerFunction} from "./lib/sanitize";
 import Session from "./Session";
 
 const host = "127.0.0.1";
@@ -136,6 +138,57 @@ describe("connection", () => {
 		});
 
 		eventsource = new EventSource(url);
+	});
+
+	it("can override the serializer function", (done) => {
+		const serializer = jest.fn(
+			(value: string) => `123${JSON.stringify(value)}123`
+		) as jest.Mocked<SerializerFunction>;
+
+		server.on("request", (req, res) => {
+			const session = new Session(req, res, {serializer});
+
+			session.on("connected", () => {
+				session.push("Hello world");
+
+				expect(serializer).toHaveBeenCalledWith("Hello world");
+			});
+		});
+
+		eventsource = new EventSource(url);
+
+		eventsource.addEventListener("message", (event: MessageEventInit) => {
+			expect(event.data).toBe('123"Hello world"123');
+
+			done();
+		});
+	});
+
+	it("can override the sanitizer function", (done) => {
+		const sanitizer = jest.fn((value: string) =>
+			value === serialize("Hello world") ? "sanitized" : value
+		) as jest.Mocked<SanitizerFunction>;
+
+		server.on("request", (req, res) => {
+			const session = new Session(req, res, {sanitizer});
+
+			session.on("connected", () => {
+				session.push("Hello world");
+
+				expect(sanitizer).toHaveBeenCalled();
+				expect(sanitizer).toHaveBeenCalledWith(
+					serialize("Hello world")
+				);
+			});
+		});
+
+		eventsource = new EventSource(url);
+
+		eventsource.addEventListener("message", (event: MessageEventInit) => {
+			expect(event.data).toBe("sanitized");
+
+			done();
+		});
 	});
 
 	it("adds custom headers to the response headers", (done) => {
