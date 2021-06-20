@@ -92,6 +92,12 @@ Install dependencies:
 pnpm i
 ```
 
+Run tests:
+
+```bash
+pnpm t
+```
+
 # License
 
 This project is licensed under the MIT license.
