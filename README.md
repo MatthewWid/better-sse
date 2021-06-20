@@ -36,7 +36,7 @@ _Better SSE ships with types built in. No need to install from `@types` for Type
 
 The following example shows usage with [Express](http://expressjs.com/), but Better SSE works with any web-server framework (that uses the underlying Node [HTTP module](https://nodejs.org/api/http.html)).
 
-See the recipes section of the documentation for use with other frameworks and libraries.
+See the Recipes section of the documentation for use with other frameworks and libraries.
 
 ```javascript
 // Server
