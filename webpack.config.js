@@ -8,6 +8,9 @@ const config = (env) => ({
 	output: {
 		filename: "[name].js",
 		path: path.resolve(__dirname, "build"),
+		library: {
+			type: "umd",
+		},
 	},
 	module: {
 		rules: [
