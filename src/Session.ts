@@ -75,6 +75,11 @@ export interface StreamOptions {
 /**
  * A Session represents an open connection between the server and a client.
  *
+ * It extends from the {@link https://nodejs.org/api/events.html#events_class_eventemitter | EventEmitter} class.
+ *
+ * It emits the `connected` event after it has connected and flushed all headers to the client, and the
+ * `disconnected` event after client connection has been closed.
+ *
  * @param req - The Node HTTP {@link https://nodejs.org/api/http.html#http_class_http_incomingmessage | ServerResponse} object.
  * @param res - The Node HTTP {@link https://nodejs.org/api/http.html#http_class_http_serverresponse | IncomingMessage} object.
  * @param options - Options given to the session instance.
