@@ -1,55 +1,136 @@
 # Getting Started
 
-This section will cover basic usage of the Better SSE package for its most common use case - [Express applications](https://expressjs.com/).
+This section will cover basic usage of the Better SSE package and use the [Express web-server](https://expressjs.com/) in its code examples.
 
-If you need to use server-sent events for another framework or use case please see the recipes section.
+Note that Better SSE works with any web-server framework (that uses the underlying Node [HTTP module](https://nodejs.org/api/http.html)). For example usage with other popular frameworks, see the Recipes section.
 
 ## Guide
 
+[Server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events) (SSE) are a technology that allows web-servers to push data (characterized as _events_) to a client without the client having to request it immediately before.
+
+It works on the HTTP 1 protocol and thus does not require a connection upgrade first like [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) and [HTTP/2](https://developer.mozilla.org/en-US/docs/Glossary/HTTP_2) do (but can also be used with HTTP/2!).
+
+SSE can be used for things for things such as live notifications, news tickers, chat rooms, shout-boxes, progress bars, etc.
+
 ### Install
 
-Install as an npm package:
+Better SSE is [shipped as package on npm](https://www.npmjs.com/package/better-sse). You can install it with any Node package manager.
+
+With [npm](https://www.npmjs.com/get-npm):
 
 ```bash
-# npm
 npm install better-sse
+```
 
-# Yarn
+With [yarn](https://yarnpkg.com/):
+
+```bash
 yarn add better-sse
 ```
 
-### Import
+With [pnpm](https://pnpm.io/):
+
+```bash
+pnpm add better-sse
+```
+
+## Create a new session
+
+"Sessions" simply represent an open connection between a client and a server. The client will first make a request to the server, and the server will open a session that it will push data to the client with.
+
+The recommended setup is to create the session and make it available in a [middleware](https://expressjs.com/en/guide/using-middleware.html) for your next consecutive request handlers to use.
+
+First import the module:
 
 ```javascript
 // ESModules / TypeScript
-import sse from "better-sse";
+import {createSession} from "better-sse";
 
 // CommonJS
-const sse = require("better-sse").default;
+const {createSession} = require("better-sse");
 ```
 
-### Add as middleware
-
-Add the SSE middleware under a specific GET route in your Express application server (`/sse` in this example).
-
-After adding the middleware, add your own request handler to push some data to the client. In this case, we dispatch the `ping` event with the text data `Hello world!` attached.
+Then open a session when the client makes a request on the specified route, and make it available to the middlewares after it:
 
 ```javascript
-app.get("/sse", sse(), (req, res) => {
-	res.push("ping", "Hello world!");
+app.get("/sse", async (req, res, next) => {
+	const session = await createSession(req, res);
+
+	res.sse = session;
+
+	next();
 });
 ```
 
-### Connect to the server
+<details>
+    <summary>Note for TypeScript users</summary>
 
-Create an event source that points to the `/sse` endpoint we just created and log "ping" events sent by the server.
+If you are using Express, to make TypeScript recognize the new property on the response object you must [add it to the global module declaration](https://stackoverflow.com/a/55718334/2954591) via [declaration merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html).
+
+First import the raw `Session` class:
 
 ```javascript
-const sse = new EventSource("/sse");
-
-sse.addEventListener("ping", ({data}) => console.log(data));
+import {Session} from "better-sse";
 ```
 
-Open in your browser and you should see the sent message logged to the console. Easy!
+And then add it to the `Response` interface:
 
-Check the API documentation for information on getting more fine-tuned control over your data such as managing event IDs, data serialization, streams, dispatch controls and more.
+```javascript
+declare module "express-serve-static-core" {
+	interface Response {
+		sse: Session;
+	}
+}
+```
+
+You should now be able to access `res.sse` without TypeScript showing errors.
+
+</details>
+
+## Push an event with some data
+
+Now that we have an open session, we can use it to push data to the client. Access the session on the `res.sse` property and start dispatching events:
+
+```javascript
+app.get(
+	"/sse",
+	/* Create the session */
+	(req, res) => {
+		res.sse.push("ping", "Hello world!");
+	}
+);
+```
+
+This will push an event named `ping` (but this can be any string) and the event data as the string `Hello world!`.
+
+## Connect from the client
+
+From your client-side code you can now connect to the server at the given path (`GET /sse` in this example).
+
+It is highly recommended you use the [EventSource polyfill](https://www.npmjs.com/package/eventsource) that allows for backwards compatibility with older browsers as well as giving you extra features such as request header modification and better error handling.
+
+First we will open a connection to the server to begin receiving events from it:
+
+```javascript
+const eventSource = new EventSource("/sse");
+```
+
+Then we can attach a listener to listen for the event our server will send:
+
+```javascript
+eventSource.addEventListener("ping", (event) => {
+	console.log(event.data);
+});
+```
+
+If you check your browser console you will see `"Hello world!"` logged to the console. Easy!
+
+Note that data is [serialized as JSON](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify) by default. You can use `JSON.parse(event.data)` to get the real value of the event data.
+
+You can also find a reference to the received event object interface under the [MessageEvent page on MDN](https://developer.mozilla.org/en-US/docs/Web/API/MessageEvent).
+
+## Keep going...
+
+Check the [API documentation](./api.md) for information on getting more fine-tuned control over your data such as managing event IDs, data serialization, streams, dispatch controls and more.
+
+You can also see the full example from this guide in [the examples directory](../examples).

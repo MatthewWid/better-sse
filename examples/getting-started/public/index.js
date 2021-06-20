@@ -1,8 +1,11 @@
-const sse = new EventSource("/sse");
+const eventSource = new EventSource("/sse");
 
-sse.addEventListener("ping", ({type, data: text}) => {
+eventSource.addEventListener("ping", (event) => {
+	const {type, data} = event;
+
 	const element = document.createElement("pre");
-	element.innerText = `Got '${type}' event: ${text}.`;
+
+	element.innerText = `Got '${type}' event: ${data}.`;
 
 	document.body.appendChild(element);
 });

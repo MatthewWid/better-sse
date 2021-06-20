@@ -4,38 +4,35 @@
 
 ### Exports
 
-* [default](#middleware.express)
-* [middleware](#middleware)
-	* [express](#express)
-
-### Classes
-
 * [Session](#session)
-
-### Middlewares
-
-* express
+* [createServer]()
 
 ## Documentation
 
-### Session
+### `Session`
 
-*Abstract class*
+*Extends from [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter)*
 
 A Session represents an open connection between the server and the client.
 
-This is a general implementation that is then extended by adapters that implement the logic needed to interface with any given framework. Once extended via an adapter, a middleware can call upon the sub-classed Session which then performs the program logic that is made compatible with the framework.
+It emits the `connected` event after it has connected and flushed all headers to the client, and the `disconnected` event after client connection has been closed.
 
-#### `new Session([options])`
+#### `new Session(req: IncomingMessage, res: ServerResponse, [options] = {})`
 
-|`options.`|Type|Default|Description|
+`req` is an instance of [IncomingMessage](https://nodejs.org/api/http.html#http_class_http_incomingmessage).
+
+`res` is an instance of [ServerResponse](https://nodejs.org/api/http.html#http_class_http_serverresponse).
+
+`options` is an object with the following properties:
+
+|Property|Type|Default|Description|
 |-|-|-|-|
 |`serializer`|`function`|`JSON.stringify`|Serialize data to a string that can be written over the wire.<br><br>Note that only values written with `.data()` or `.push()` are serialized, as everything else is assumed to already be a string.|
 |`sanitizer`|`function`||Sanitize values so as to not prematurely dispatch events when writing fields whose text inadvertently contains newlines.<br><br>By default, CR, LF and CRLF characters are replaced with a single LF character (`\n`) and then any trailing LF characters are stripped so as to prevent a blank line being written and accidentally dispatching the event before `.dispatch()` is called.|
 |`trustClientEventId`|`boolean`|`true`|Whether to trust the last event ID given by the client in the `Last-Event-ID` request header.<br><br>When set to `false`, the `lastId` property will always be initialized to an empty string.|
 |`retry`|`number` \| `null`|`2000`|Time in milliseconds for the client to wait before attempting to reconnect if the connection is closed.<br><br>This is equivalent to immediately calling `.retry().dispatch()` after a connection is made.<br><br>Give as `null` to avoid sending an explicit reconnection time and allow the client browser to decide itself.|
 |`statusCode`|`number`|`200`|Status code to be sent to the client. Event stream requests can be redirected using HTTP 301 and 307 status codes.<br><br>Make sure to set `Location` header when using these status codes (301/307) using the `headers` property.<br><br>A client can be asked to stop reconnecting by send a 204 status code.|
-|`headers`|`Record<string, string>`|`{}`|Additional headers to be sent along with the response.|
+|`headers`|`object`|`{}`|Additional headers to be sent along with the response.|
 
 #### `Session#lastId`: `string`
 
@@ -93,14 +90,8 @@ Each data emission by the stream emits a new event that is dispatched to the cli
 |-|-|-|-|
 |`event`|`string`|`"stream"`|Event name/type to use when dispatching a data event from the stream to the client.|
 
-### `middleware`
+### `createServer: (ConstructorParameters<typeof Session>) => Promise<Session>`
 
-#### `express`: `([options]) => RequestHandler`
+`createServer` creates and returns a promise that resolves to an instance of the [Session class](#session) once it has connected.
 
-*Express middleware factory function*
-
-See the [Session constructor options](#new-session(%5Boptions%5D)) for options you may pass here.
-
-Create and return an Express middleware that attaches the [SSE session object](#session) to the `sse` property of the `res` object.
-
-Additionally, the `res` object is modified to add the `push` method that is an alias to [Session#push](#session%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-this-%7C-(data%3A-any)-%3D>-this), and the `stream` method that is an alias to [Session#stream](#session%23stream%3A-(stream%3A-readable%5B%2C-options%5D)-%3D>-promise<boolean>).
+It takes the [same arguments as the Session class constructor](#new-session(req%3A-incomingmessage%2C-res%3A-serverresponse%2C-%5Boptions%5D-%3D-%7B%7D)).
