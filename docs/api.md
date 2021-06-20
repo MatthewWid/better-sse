@@ -32,7 +32,7 @@ It emits the `connected` event after it has connected and flushed all headers to
 |`trustClientEventId`|`boolean`|`true`|Whether to trust the last event ID given by the client in the `Last-Event-ID` request header.<br><br>When set to `false`, the `lastId` property will always be initialized to an empty string.|
 |`retry`|`number` \| `null`|`2000`|Time in milliseconds for the client to wait before attempting to reconnect if the connection is closed.<br><br>This is equivalent to immediately calling `.retry().dispatch()` after a connection is made.<br><br>Give as `null` to avoid sending an explicit reconnection time and allow the client browser to decide itself.|
 |`statusCode`|`number`|`200`|Status code to be sent to the client. Event stream requests can be redirected using HTTP 301 and 307 status codes.<br><br>Make sure to set `Location` header when using these status codes (301/307) using the `headers` property.<br><br>A client can be asked to stop reconnecting by send a 204 status code.|
-|`headers`|`Record<string, string>`|`{}`|Additional headers to be sent along with the response.|
+|`headers`|`object`|`{}`|Additional headers to be sent along with the response.|
 
 #### `Session#lastId`: `string`
 
