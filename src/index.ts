@@ -1,2 +1,2 @@
-export * as middleware from "./middlewares";
-export {default} from "./middlewares/express";
+export {default as Session} from "./Session";
+export {default as createSession} from "./createSession";
