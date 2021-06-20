@@ -2,35 +2,9 @@ import http from "http";
 import EventSource from "eventsource";
 import {Readable} from "stream";
 import serialize, {SerializerFunction} from "./lib/serialize";
-import type {SanitizerFunction} from "./lib/sanitize";
+import {SanitizerFunction} from "./lib/sanitize";
+import {url, createServer, closeServer} from "./lib/testUtils";
 import Session from "./Session";
-
-const host = "127.0.0.1";
-const port = 8080;
-const url = `http://${host}:${port}/`;
-
-const createServer = () =>
-	new Promise<http.Server>((resolve, reject) => {
-		const server = http.createServer().listen(port, host);
-
-		server.on("listening", () => resolve(server));
-		server.on("error", reject);
-	});
-
-const closeServer = (server: http.Server) =>
-	new Promise<void>((resolve, reject) => {
-		if (server.listening) {
-			server.close((error) => {
-				if (error) {
-					reject(error);
-				} else {
-					resolve();
-				}
-			});
-		} else {
-			resolve();
-		}
-	});
 
 let server: http.Server;
 let eventsource: EventSource;
