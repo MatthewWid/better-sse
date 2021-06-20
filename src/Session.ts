@@ -65,7 +65,7 @@ export interface SessionOptions {
 
 export interface StreamOptions {
 	/**
-	 * Event type to be emitted when stream data is sent to the client.
+	 * Event name/type to be emitted when stream data is sent to the client.
 	 *
 	 * Defaults to `"stream"`.
 	 */
@@ -74,6 +74,10 @@ export interface StreamOptions {
 
 /**
  * A Session represents an open connection between the server and a client.
+ *
+ * @param req - The Node HTTP {@link https://nodejs.org/api/http.html#http_class_http_incomingmessage | ServerResponse} object.
+ * @param res - The Node HTTP {@link https://nodejs.org/api/http.html#http_class_http_serverresponse | IncomingMessage} object.
+ * @param options - Options given to the session instance.
  */
 class Session extends EventEmitter {
 	/**
@@ -166,6 +170,8 @@ class Session extends EventEmitter {
 
 	/**
 	 * Set the event to the given name (also referred to as "type" in the specification).
+	 *
+	 * @param type - Event name/type.
 	 */
 	event(type: string): this {
 		this.writeField("event", type);
@@ -175,6 +181,8 @@ class Session extends EventEmitter {
 
 	/**
 	 * Write arbitrary data onto the wire that is automatically serialized to a string using the given `serializer` function option or JSON stringification by default.
+	 *
+	 * @param data - Data to serialize and write.
 	 */
 	data = (data: unknown): this => {
 		const serialized = this.serialize(data);
@@ -188,6 +196,8 @@ class Session extends EventEmitter {
 	 * Set the event ID to the given string.
 	 *
 	 * Passing `null` will set the event ID to an empty string value.
+	 *
+	 * @param id - Identification string to write.
 	 */
 	id = (id: string | null): this => {
 		const stringifed = id ? id : "";
@@ -201,6 +211,8 @@ class Session extends EventEmitter {
 
 	/**
 	 * Set the suggested reconnection time to the given milliseconds.
+	 *
+	 * @param time - Time in milliseconds to retry.
 	 */
 	retry = (time: number): this => {
 		const stringifed = time.toString();
@@ -214,6 +226,8 @@ class Session extends EventEmitter {
 	 * Write a comment (an ignored field).
 	 *
 	 * This will not fire an event, but is often used to keep the connection alive.
+	 *
+	 * @param text - Field value of the comment.
 	 */
 	comment = (text: string): this => {
 		this.writeField("", text);
@@ -228,6 +242,9 @@ class Session extends EventEmitter {
 	 * If no event name is given, the event name (type) is set to `"message"`.
 	 *
 	 * Note that this sets the event ID (and thus the `lastId` property) to a string of eight random characters (`a-z0-9`).
+	 *
+	 * @param eventOrData - Event name or data to write.
+	 * @param data - Data to write if `eventOrData` was an event name.
 	 */
 	push = (eventOrData: string | unknown, data?: unknown): this => {
 		let eventName;
@@ -252,6 +269,14 @@ class Session extends EventEmitter {
 	 * Pipe readable stream data to the client.
 	 *
 	 * Each data emission by the stream emits a new event that is dispatched to the client.
+	 * This uses the `push` method under the hood.
+	 *
+	 * If no event name is given in the options object, the event name (type) is to `"stream"`.
+	 *
+	 * @param stream - Readable stream to consume from.
+	 * @param options - Options to alter how the stream is flushed to the client.
+	 *
+	 * @returns A promise that resolves or rejects based on the success of the stream write finishing.
 	 */
 	stream = async (
 		stream: Readable,
