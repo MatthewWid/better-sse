@@ -34,16 +34,17 @@ _Better SSE ships with types built in. No need to install from `@types` for Type
 
 # Basic Usage
 
-Better SSE has compatibility with many different frameworks and libraries, but is most commonly used by users implementing an application with the [Express framework](http://expressjs.com/).
+The following example shows usage with [Express](http://expressjs.com/), but Better SSE works with any web-server framework (that uses the underlying Node [HTTP module](https://nodejs.org/api/http.html)).
 
 See the recipes section of the documentation for use with other frameworks and libraries.
 
 ```javascript
 // Server
-import sse from "better-sse";
+import {createSession} from "better-sse";
 
-app.get("/sse", sse(), (req, res) => {
-	res.push("speak", "Hello, world!");
+app.get("/sse", async (req, res) => {
+	const session = await createSession(req, res);
+	session.push("Hello world!");
 });
 ```
 
@@ -51,8 +52,8 @@ app.get("/sse", sse(), (req, res) => {
 // Client
 const sse = new EventSource("/sse");
 
-sse.addEventListener("speak", ({data}) => {
-	console.log(data);
+sse.addEventListener("message", (event) => {
+	console.log(event.data);
 });
 ```
 
