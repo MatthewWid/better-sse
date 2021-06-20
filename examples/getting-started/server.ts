@@ -7,7 +7,7 @@ const app = express();
 app.use(express.static(path.resolve(__dirname, "./public")));
 
 /**
- * Needed to make TypeScript recognize the Session object on the response object.
+ * Needed to make TypeScript recognize the Session object attached to the response object.
  */
 declare module "express-serve-static-core" {
 	interface Response {
@@ -28,7 +28,7 @@ app.get(
 		next();
 	},
 	/**
-	 * Push an event 'ping' to the client.
+	 * Push an event named 'ping' to the client.
 	 */
 	(_, res) => {
 		res.sse.push("ping", "Hello world!");
