@@ -1,13 +1,15 @@
 import path from "path";
 import express from "express";
-import sse from "better-sse";
+import {createSession} from "better-sse";
 
 const app = express();
 
 app.use(express.static(path.resolve(__dirname, "./public")));
 
-app.get("/sse", sse(), (req, res) => {
-	res.push("ping", "Hello world!");
+app.get("/sse", async (req, res) => {
+	const session = await createSession(req, res);
+
+	session.push("ping", "Hello world!");
 });
 
 const PORT = process.env.PORT ?? 8080;

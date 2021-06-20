@@ -1,18 +1,20 @@
 import path from "path";
 import express from "express";
-import sse from "../..";
+import {createSession} from "better-sse";
 import {Readable} from "stream";
 
 const app = express();
 
 app.use(express.static(path.resolve(__dirname, "./public")));
 
-app.get("/sse", sse(), async (req, res) => {
+app.get("/sse", async (req, res) => {
+	const session = await createSession(req, res);
+
 	const stream = Readable.from([1, 2, 3]);
 
-	const done = await res.stream(stream);
+	const done = await session.stream(stream);
 
-	res.push("stream", {done});
+	session.push("stream", {done});
 });
 
 const PORT = process.env.PORT ?? 8080;
