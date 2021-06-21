@@ -232,10 +232,10 @@ class Session extends EventEmitter {
 	 *
 	 * This will not fire an event, but is often used to keep the connection alive.
 	 *
-	 * @param text - Field value of the comment.
+	 * @param text - Text of the comment. Otherwise writes an empty field value.
 	 */
-	comment = (text: string): this => {
-		this.writeField("", text);
+	comment = (text?: string): this => {
+		this.writeField("", text ?? "");
 
 		return this;
 	};

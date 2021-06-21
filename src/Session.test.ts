@@ -507,6 +507,24 @@ describe("comments", () => {
 
 		eventsource = new EventSource(url);
 	});
+
+	it("can write a comment with no field value", (done) => {
+		server.on("request", (req, res) => {
+			const write = jest.spyOn(res, "write");
+
+			const session = new Session(req, res);
+
+			session.on("connected", () => {
+				session.comment();
+
+				expect(write).toHaveBeenLastCalledWith(":\n");
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
 });
 
 describe("push", () => {
