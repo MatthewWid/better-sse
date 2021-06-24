@@ -5,7 +5,7 @@
 ### Exports
 
 * [Session](#session)
-* [createServer]()
+* [createSession]()
 
 ## Documentation
 
@@ -90,8 +90,8 @@ Each data emission by the stream emits a new event that is dispatched to the cli
 |-|-|-|-|
 |`event`|`string`|`"stream"`|Event name/type to use when dispatching a data event from the stream to the client.|
 
-### `createServer: (ConstructorParameters<typeof Session>) => Promise<Session>`
+### `createSession: (ConstructorParameters<typeof Session>) => Promise<Session>`
 
-`createServer` creates and returns a promise that resolves to an instance of the [Session class](#session) once it has connected.
+`createSession` creates and returns a promise that resolves to an instance of the [Session class](#session) once it has connected.
 
 It takes the [same arguments as the Session class constructor](#new-session(req%3A-incomingmessage%2C-res%3A-serverresponse%2C-%5Boptions%5D-%3D-%7B%7D)).
