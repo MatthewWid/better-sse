@@ -14,6 +14,8 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
+	jest.useRealTimers();
+
 	if (eventsource && eventsource.readyState !== 2) {
 		eventsource.close();
 	}
@@ -318,6 +320,24 @@ describe("retry", () => {
 				session.retry(8000);
 
 				expect(write).toHaveBeenCalledWith("retry:8000\n");
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+});
+
+describe("keep-alive", () => {
+	it("starts a keep-alive timer given no options", (done) => {
+		jest.useFakeTimers();
+
+		server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			session.on("connected", () => {
+				expect(setInterval).toHaveBeenCalledTimes(1);
 
 				done();
 			});

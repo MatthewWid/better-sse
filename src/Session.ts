@@ -45,6 +45,15 @@ export interface SessionOptions {
 	retry?: number | null;
 
 	/**
+	 * Time in milliseconds interval for the session to send a comment to keep the connection alive.
+	 *
+	 * Give as `null` to disable the connection keep-alive mechanism.
+	 *
+	 * Defaults to `10000` milliseconds (`10` seconds).
+	 */
+	keepAlive?: number | null;
+
+	/**
 	 * Status code to be sent to the client.
 	 *
 	 * Event stream requests can be redirected using HTTP 301 and 307 status codes.
@@ -98,6 +107,8 @@ class Session extends EventEmitter {
 	private sanitize: SanitizerFunction;
 	private trustClientEventId: boolean;
 	private initialRetry: number | null;
+	private keepAliveInterval: number | null;
+	private keepAliveTimer?: ReturnType<typeof setInterval>;
 	private statusCode: number;
 	private headers: OutgoingHttpHeaders;
 
@@ -118,6 +129,8 @@ class Session extends EventEmitter {
 		this.trustClientEventId = options.trustClientEventId ?? true;
 		this.initialRetry =
 			options.retry === null ? null : options.retry ?? 2000;
+		this.keepAliveInterval =
+			options.keepAlive === null ? null : options.keepAlive ?? 10000;
 		this.statusCode = options.statusCode ?? 200;
 		this.headers = options.headers ?? {};
 
@@ -146,12 +159,23 @@ class Session extends EventEmitter {
 			this.retry(this.initialRetry).dispatch();
 		}
 
+		if (this.keepAliveInterval !== null) {
+			this.keepAliveTimer = setInterval(
+				this.keepAlive,
+				this.keepAliveInterval
+			);
+		}
+
 		this.isConnected = true;
 
 		this.emit("connected");
 	};
 
 	private onDisconnected = () => {
+		if (this.keepAliveTimer) {
+			clearInterval(this.keepAliveTimer);
+		}
+
 		this.isConnected = false;
 
 		this.emit("disconnected");
@@ -168,6 +192,10 @@ class Session extends EventEmitter {
 		this.res.write(text);
 
 		return this;
+	};
+
+	private keepAlive = () => {
+		this.comment().dispatch();
 	};
 
 	/**
