@@ -101,6 +101,8 @@ class Session extends EventEmitter {
 	private statusCode: number;
 	private headers: OutgoingHttpHeaders;
 
+	isConnected = false;
+
 	constructor(
 		req: IncomingMessage,
 		res: ServerResponse,
@@ -144,10 +146,14 @@ class Session extends EventEmitter {
 			this.retry(this.initialRetry).dispatch();
 		}
 
+		this.isConnected = true;
+
 		this.emit("connected");
 	};
 
 	private onDisconnected = () => {
+		this.isConnected = false;
+
 		this.emit("disconnected");
 	};
 

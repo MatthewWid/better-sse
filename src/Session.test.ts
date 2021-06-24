@@ -80,6 +80,28 @@ describe("connection", () => {
 		eventsource = new EventSource(url);
 	});
 
+	it("sets the isConnected boolean based on whether the session is open or not", (done) => {
+		server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			expect(session.isConnected).toBeFalsy();
+
+			session.on("disconnected", () => {
+				expect(session.isConnected).toBeFalsy();
+
+				done();
+			});
+
+			session.on("connected", () => {
+				expect(session.isConnected).toBeTruthy();
+
+				res.end();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
 	it("returns the correct response status code and headers", (done) => {
 		server.on("request", (req, res) => {
 			const session = new Session(req, res);

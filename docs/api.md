@@ -40,6 +40,10 @@ The last ID sent to the client.
 
 This is initialized to the last event ID given by the user (in the `Last-Event-ID` header), and otherwise is equal to the last number given to the `.id` method.
 
+#### `Session#isConnected`: `boolean`
+
+Indicates whether the session and connection is open or not.
+
 #### `Session#dispatch`: `() => this`
 
 Flush the buffered data to the client by writing an additional newline.
