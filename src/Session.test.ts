@@ -338,6 +338,45 @@ describe("keep-alive", () => {
 
 			session.on("connected", () => {
 				expect(setInterval).toHaveBeenCalledTimes(1);
+				expect(setInterval).toHaveBeenCalledWith(
+					expect.any(Function),
+					10000
+				);
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("can set the keep-alive interval in options", (done) => {
+		jest.useFakeTimers();
+
+		server.on("request", (req, res) => {
+			const session = new Session(req, res, {keepAlive: 1000});
+
+			session.on("connected", () => {
+				expect(setInterval).toHaveBeenCalledWith(
+					expect.any(Function),
+					1000
+				);
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("can disable the keep-alive mechanism in options", (done) => {
+		jest.useFakeTimers();
+
+		server.on("request", (req, res) => {
+			const session = new Session(req, res, {keepAlive: null});
+
+			session.on("connected", () => {
+				expect(setInterval).not.toHaveBeenCalled();
 
 				done();
 			});
