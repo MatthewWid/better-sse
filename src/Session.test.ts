@@ -330,9 +330,11 @@ describe("retry", () => {
 });
 
 describe("keep-alive", () => {
-	it("starts a keep-alive timer given no options", (done) => {
+	beforeEach(() => {
 		jest.useFakeTimers();
+	});
 
+	it("starts a keep-alive timer given no options", (done) => {
 		server.on("request", (req, res) => {
 			const session = new Session(req, res);
 
@@ -351,8 +353,6 @@ describe("keep-alive", () => {
 	});
 
 	it("can set the keep-alive interval in options", (done) => {
-		jest.useFakeTimers();
-
 		server.on("request", (req, res) => {
 			const session = new Session(req, res, {keepAlive: 1000});
 
@@ -370,8 +370,6 @@ describe("keep-alive", () => {
 	});
 
 	it("can disable the keep-alive mechanism in options", (done) => {
-		jest.useFakeTimers();
-
 		server.on("request", (req, res) => {
 			const session = new Session(req, res, {keepAlive: null});
 
@@ -380,6 +378,29 @@ describe("keep-alive", () => {
 
 				done();
 			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("sends a comment in intervals", (done) => {
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			const comment = jest.spyOn(session, "comment");
+			const dispatch = jest.spyOn(session, "dispatch");
+
+			await new Promise((resolve) => session.on("connected", resolve));
+
+			const lastDispatchCalls = dispatch.mock.calls.length;
+
+			jest.runOnlyPendingTimers();
+
+			expect(comment).toHaveBeenCalledWith();
+			expect(comment).toHaveBeenCalledTimes(1);
+			expect(dispatch).toHaveBeenCalledTimes(lastDispatchCalls + 1);
+
+			done();
 		});
 
 		eventsource = new EventSource(url);
