@@ -14,6 +14,8 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
+	jest.useRealTimers();
+
 	if (eventsource && eventsource.readyState !== 2) {
 		eventsource.close();
 	}
@@ -73,6 +75,28 @@ describe("connection", () => {
 			});
 
 			session.on("connected", () => {
+				res.end();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("sets the isConnected boolean based on whether the session is open or not", (done) => {
+		server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			expect(session.isConnected).toBeFalsy();
+
+			session.on("disconnected", () => {
+				expect(session.isConnected).toBeFalsy();
+
+				done();
+			});
+
+			session.on("connected", () => {
+				expect(session.isConnected).toBeTruthy();
+
 				res.end();
 			});
 		});
@@ -305,6 +329,84 @@ describe("retry", () => {
 	});
 });
 
+describe("keep-alive", () => {
+	beforeEach(() => {
+		jest.useFakeTimers();
+	});
+
+	it("starts a keep-alive timer given no options", (done) => {
+		server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			session.on("connected", () => {
+				expect(setInterval).toHaveBeenCalledTimes(1);
+				expect(setInterval).toHaveBeenCalledWith(
+					expect.any(Function),
+					10000
+				);
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("can set the keep-alive interval in options", (done) => {
+		server.on("request", (req, res) => {
+			const session = new Session(req, res, {keepAlive: 1000});
+
+			session.on("connected", () => {
+				expect(setInterval).toHaveBeenCalledWith(
+					expect.any(Function),
+					1000
+				);
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("can disable the keep-alive mechanism in options", (done) => {
+		server.on("request", (req, res) => {
+			const session = new Session(req, res, {keepAlive: null});
+
+			session.on("connected", () => {
+				expect(setInterval).not.toHaveBeenCalled();
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("sends a comment in intervals", (done) => {
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			const comment = jest.spyOn(session, "comment");
+			const dispatch = jest.spyOn(session, "dispatch");
+
+			await new Promise((resolve) => session.on("connected", resolve));
+
+			const lastDispatchCalls = dispatch.mock.calls.length;
+
+			jest.runOnlyPendingTimers();
+
+			expect(comment).toHaveBeenCalledWith();
+			expect(comment).toHaveBeenCalledTimes(1);
+			expect(dispatch).toHaveBeenCalledTimes(lastDispatchCalls + 1);
+
+			done();
+		});
+
+		eventsource = new EventSource(url);
+	});
+});
+
 describe("event ID management", () => {
 	const givenLastId = "12345678";
 
@@ -500,6 +602,24 @@ describe("comments", () => {
 				session.comment("testcomment");
 
 				expect(write).toHaveBeenLastCalledWith(":testcomment\n");
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("can write a comment with no field value", (done) => {
+		server.on("request", (req, res) => {
+			const write = jest.spyOn(res, "write");
+
+			const session = new Session(req, res);
+
+			session.on("connected", () => {
+				session.comment();
+
+				expect(write).toHaveBeenLastCalledWith(":\n");
 
 				done();
 			});

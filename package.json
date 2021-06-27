@@ -18,7 +18,6 @@
 		"events"
 	],
 	"scripts": {
-		"preinstall": "npx only-allow pnpm",
 		"build": "webpack --env production",
 		"dev": "webpack --env development",
 		"test": "jest",

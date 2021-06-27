@@ -5,7 +5,7 @@
 ### Exports
 
 * [Session](#session)
-* [createServer]()
+* [createSession]()
 
 ## Documentation
 
@@ -39,6 +39,10 @@ It emits the `connected` event after it has connected and flushed all headers to
 The last ID sent to the client.
 
 This is initialized to the last event ID given by the user (in the `Last-Event-ID` header), and otherwise is equal to the last number given to the `.id` method.
+
+#### `Session#isConnected`: `boolean`
+
+Indicates whether the session and connection is open or not.
 
 #### `Session#dispatch`: `() => this`
 
@@ -90,8 +94,8 @@ Each data emission by the stream emits a new event that is dispatched to the cli
 |-|-|-|-|
 |`event`|`string`|`"stream"`|Event name/type to use when dispatching a data event from the stream to the client.|
 
-### `createServer: (ConstructorParameters<typeof Session>) => Promise<Session>`
+### `createSession: (ConstructorParameters<typeof Session>) => Promise<Session>`
 
-`createServer` creates and returns a promise that resolves to an instance of the [Session class](#session) once it has connected.
+`createSession` creates and returns a promise that resolves to an instance of the [Session class](#session) once it has connected.
 
 It takes the [same arguments as the Session class constructor](#new-session(req%3A-incomingmessage%2C-res%3A-serverresponse%2C-%5Boptions%5D-%3D-%7B%7D)).
