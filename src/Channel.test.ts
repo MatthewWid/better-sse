@@ -65,4 +65,56 @@ describe("registering", () => {
 
 		eventsource = new EventSource(url);
 	});
+
+	it("removes a session from the active sessions after deregistering it", (done) => {
+		server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			session.on("connected", () => {
+				const channel = new Channel();
+
+				channel.register(session);
+
+				expect(channel.activeSessions).toContain(session);
+				expect(channel.sessionCount).toBe(1);
+
+				channel.deregister(session);
+
+				expect(channel.activeSessions).not.toContain(session);
+				expect(channel.sessionCount).toBe(0);
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("automatically deregisters a session once it disconnects", (done) => {
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			await new Promise((resolve) => session.on("connected", resolve));
+
+			const channel = new Channel();
+
+			channel.register(session);
+
+			const deregister = jest.spyOn(channel, "deregister");
+
+			await new Promise((resolve) => session.on("disconnected", resolve));
+
+			expect(deregister).toHaveBeenCalledWith(session);
+			expect(channel.activeSessions).not.toContain(session);
+			expect(channel.sessionCount).toBe(0);
+
+			done();
+		});
+
+		eventsource = new EventSource(url);
+
+		eventsource.addEventListener("open", () => {
+			eventsource.close();
+		});
+	});
 });

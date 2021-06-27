@@ -33,6 +33,10 @@ class Channel extends EventEmitter {
 			throw new Error("Cannot register a non-active session.");
 		}
 
+		session.once("disconnected", () => {
+			this.deregister(session);
+		});
+
 		this.sessions.push(session);
 	}
 
