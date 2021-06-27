@@ -118,3 +118,28 @@ describe("registering", () => {
 		});
 	});
 });
+
+describe("write method forwarding", () => {
+	it("calls push on all sessions with the same arguments", (done) => {
+		const args: [string, string] = ["custom", "data"];
+		const channel = new Channel();
+
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			const push = jest.spyOn(session, "push");
+
+			await new Promise((resolve) => session.on("connected", resolve));
+
+			channel.register(session);
+
+			channel.push(...args);
+
+			expect(push).toHaveBeenCalledWith(...args);
+
+			done();
+		});
+
+		eventsource = new EventSource(url);
+	});
+});
