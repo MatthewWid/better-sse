@@ -53,6 +53,8 @@ app.get(
 		res.sse.push("Hello world!");
 	}
 );
+
+app.listen(8080);
 ```
 
 ## [Koa](https://koajs.com/)
@@ -83,4 +85,6 @@ router.get(
 );
 
 app.use(router.routes());
+
+app.listen(8080);
 ```
