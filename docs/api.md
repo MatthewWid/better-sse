@@ -31,6 +31,7 @@ It emits the `connected` event after it has connected and flushed all headers to
 |`sanitizer`|`function`||Sanitize values so as to not prematurely dispatch events when writing fields whose text inadvertently contains newlines.<br><br>By default, CR, LF and CRLF characters are replaced with a single LF character (`\n`) and then any trailing LF characters are stripped so as to prevent a blank line being written and accidentally dispatching the event before `.dispatch()` is called.|
 |`trustClientEventId`|`boolean`|`true`|Whether to trust the last event ID given by the client in the `Last-Event-ID` request header.<br><br>When set to `false`, the `lastId` property will always be initialized to an empty string.|
 |`retry`|`number` \| `null`|`2000`|Time in milliseconds for the client to wait before attempting to reconnect if the connection is closed.<br><br>This is equivalent to immediately calling `.retry().dispatch()` after a connection is made.<br><br>Give as `null` to avoid sending an explicit reconnection time and allow the client browser to decide itself.|
+|`keepAlive`|`number` \| `null`|`10000`|Time in milliseconds interval for the session to send a comment to keep the connection alive.<br><br>Give as `null` to disable the keep-alive mechanism.|
 |`statusCode`|`number`|`200`|Status code to be sent to the client. Event stream requests can be redirected using HTTP 301 and 307 status codes.<br><br>Make sure to set `Location` header when using these status codes (301/307) using the `headers` property.<br><br>A client can be asked to stop reconnecting by send a 204 status code.|
 |`headers`|`object`|`{}`|Additional headers to be sent along with the response.|
 
@@ -56,7 +57,7 @@ Set the event to the given name (also referred to as "type" in the specification
 
 Write arbitrary data onto the wire.
 
-The given value is automatically serialized to a string using the `serializer` function, and other defaults to [JSON stringification](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
+The given value is automatically serialized to a string using the `serializer` function which defaults to [JSON stringification](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
 
 #### `Session#id`: `(id: string | null) => this`
 
@@ -92,7 +93,7 @@ Each data emission by the stream emits a new event that is dispatched to the cli
 
 |`options.`|Type|Default|Description|
 |-|-|-|-|
-|`event`|`string`|`"stream"`|Event name/type to use when dispatching a data event from the stream to the client.|
+|`event`|`string`|`"stream"`|Event name to use when dispatching a data event from the stream to the client.|
 
 ### `createSession: (ConstructorParameters<typeof Session>) => Promise<Session>`
 

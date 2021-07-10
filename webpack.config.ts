@@ -1,6 +1,12 @@
-const path = require("path");
+import path from "path";
+import {Configuration} from "webpack";
 
-const config = (env) => ({
+interface Environment {
+	production: boolean;
+	development: boolean;
+}
+
+const config = (env: Environment): Configuration => ({
 	context: path.resolve(__dirname),
 	entry: {
 		index: "./src/index.ts",

@@ -8,3 +8,4 @@ Feel free to contribute to this documentation the same way you would for the pac
 
 * [Getting Started](./getting-started.md)
 * [API Documentation](./api.md)
+* [Recipes](./recipes.md)
