@@ -57,7 +57,7 @@ Set the event to the given name (also referred to as "type" in the specification
 
 Write arbitrary data onto the wire.
 
-The given value is automatically serialized to a string using the `serializer` function, and other defaults to [JSON stringification](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
+The given value is automatically serialized to a string using the `serializer` function which defaults to [JSON stringification](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
 
 #### `Session#id`: `(id: string | null) => this`
 
@@ -93,7 +93,7 @@ Each data emission by the stream emits a new event that is dispatched to the cli
 
 |`options.`|Type|Default|Description|
 |-|-|-|-|
-|`event`|`string`|`"stream"`|Event name/type to use when dispatching a data event from the stream to the client.|
+|`event`|`string`|`"stream"`|Event name to use when dispatching a data event from the stream to the client.|
 
 ### `createSession: (ConstructorParameters<typeof Session>) => Promise<Session>`
 

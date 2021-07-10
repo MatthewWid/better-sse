@@ -26,6 +26,7 @@ Please consider starring the project [on GitHub ⭐](https://github.com/MatthewW
 * Configurable reconnection time.
 * Configurable message serialization and data sanitization (but with good defaults).
 * Trust or ignore the client-given last event ID.
+* Automatically send keep-alive pings to keep connections open.
 * Add or override the response status code and headers.
 * Fine-grained control by either sending [individual fields](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#fields) of events or sending full events with simple helpers.
 * Pipe [streams](https://nodejs.org/api/stream.html#stream_readable_streams) directly from the server to the client as a stream of events.
