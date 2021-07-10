@@ -12,12 +12,20 @@ Feel free to submit a PR with a minimal example for more frameworks!
 
 ```javascript
 import {createServer} from "http";
+import {createSession} from "better-sse";
 
 const server = createServer(async (req, res) => {
-	if (req.url === "/sse") {
-		const sse = await createSession(req, res);
+	switch (req.url) {
+		case "/sse": {
+			const sse = await createSession(req, res);
 
-		sse.push("Hello world!");
+			sse.push("Hello world!");
+
+			break;
+		}
+		default: {
+			res.writeHead(404).end();
+		}
 	}
 });
 
