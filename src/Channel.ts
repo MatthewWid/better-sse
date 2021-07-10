@@ -12,7 +12,7 @@ class Channel extends EventEmitter {
 	/**
 	 * List of the currently active sessions subscribed to this channel.
 	 */
-	get activeSessions(): Session[] {
+	get activeSessions(): ReadonlyArray<Session> {
 		return this.sessions;
 	}
 
