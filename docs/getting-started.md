@@ -2,7 +2,7 @@
 
 This section will cover basic usage of the Better SSE package and use the [Express web-server](https://expressjs.com/) in its code examples.
 
-Note that Better SSE works with any web-server framework (that uses the underlying [Node HTTP module](https://nodejs.org/api/http.html)). For example usage with other popular frameworks, see the Recipes section.
+Note that Better SSE works with any web-server framework (that uses the underlying [Node HTTP module](https://nodejs.org/api/http.html)). For example usage with other popular frameworks, see the [Recipes](./recipes.md) section.
 
 ## Guide
 
