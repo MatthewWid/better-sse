@@ -28,7 +28,7 @@
 		"prepublishOnly": "npm-run-all clean format test build typedefs"
 	},
 	"files": [
-		"build/",
+		"build",
 		"!build/**/*.map"
 	],
 	"engines": {
