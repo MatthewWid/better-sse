@@ -1,12 +1,9 @@
 import http from "http";
-
-const host = "127.0.0.1";
-const port = 8080;
-const url = `http://${host}:${port}/`;
+import {AddressInfo} from "net";
 
 const createServer = (): Promise<http.Server> =>
 	new Promise<http.Server>((resolve, reject) => {
-		const server = http.createServer().listen(port, host);
+		const server = http.createServer().listen();
 
 		server.on("listening", () => resolve(server));
 		server.on("error", reject);
@@ -27,4 +24,7 @@ const closeServer = (server: http.Server): Promise<void> =>
 		}
 	});
 
-export {host, port, url, createServer, closeServer};
+const getUrl = (server: http.Server): string =>
+	`http://localhost:${(server.address() as AddressInfo).port}`;
+
+export {createServer, closeServer, getUrl};

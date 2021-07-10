@@ -3,20 +3,23 @@ import EventSource from "eventsource";
 import {Readable} from "stream";
 import serialize, {SerializerFunction} from "./lib/serialize";
 import {SanitizerFunction} from "./lib/sanitize";
-import {url, createServer, closeServer} from "./lib/testUtils";
+import {createServer, closeServer, getUrl} from "./lib/testUtils";
 import Session from "./Session";
 
 let server: http.Server;
+let url: string;
 let eventsource: EventSource;
 
 beforeEach(async () => {
 	server = await createServer();
+
+	url = getUrl(server);
 });
 
 afterEach(async () => {
 	jest.useRealTimers();
 
-	if (eventsource && eventsource.readyState !== 2) {
+	if (eventsource) {
 		eventsource.close();
 	}
 

@@ -1,14 +1,17 @@
 import http from "http";
 import EventSource from "eventsource";
-import {url, createServer, closeServer} from "./lib/testUtils";
+import {createServer, closeServer, getUrl} from "./lib/testUtils";
 import Session from "./Session";
 import createSession from "./createSession";
 
 let server: http.Server;
+let url: string;
 let eventsource: EventSource;
 
 beforeEach(async () => {
 	server = await createServer();
+
+	url = getUrl(server);
 });
 
 afterEach(async () => {
