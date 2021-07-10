@@ -28,7 +28,7 @@ class Channel extends EventEmitter {
 	 *
 	 * @param session - Session to register.
 	 */
-	register(session: Session): void {
+	register(session: Session): this {
 		if (!session.isConnected) {
 			throw new Error("Cannot register a non-active session.");
 		}
@@ -38,6 +38,8 @@ class Channel extends EventEmitter {
 		});
 
 		this.sessions.push(session);
+
+		return this;
 	}
 
 	/**
@@ -45,8 +47,10 @@ class Channel extends EventEmitter {
 	 *
 	 * @param session - Session to deregister.
 	 */
-	deregister(session: Session): void {
+	deregister(session: Session): this {
 		this.sessions = this.sessions.filter((current) => current !== session);
+
+		return this;
 	}
 
 	/**
@@ -54,10 +58,12 @@ class Channel extends EventEmitter {
 	 *
 	 * Takes the same arguments as the `Session#push` method.
 	 */
-	push(...args: Parameters<Session["push"]>): void {
+	push(...args: Parameters<Session["push"]>): this {
 		for (const session of this.sessions) {
 			session.push(...args);
 		}
+
+		return this;
 	}
 }
 
