@@ -35,9 +35,13 @@ class Channel extends EventEmitter {
 
 		session.once("disconnected", () => {
 			this.deregister(session);
+
+			this.emit("session-disconnected", session);
 		});
 
 		this.sessions.push(session);
+
+		this.emit("session-registered", session);
 
 		return this;
 	}
@@ -49,6 +53,8 @@ class Channel extends EventEmitter {
 	 */
 	deregister(session: Session): this {
 		this.sessions = this.sessions.filter((current) => current !== session);
+
+		this.emit("session-deregistered", session);
 
 		return this;
 	}
@@ -62,6 +68,8 @@ class Channel extends EventEmitter {
 		for (const session of this.sessions) {
 			session.push(...args);
 		}
+
+		this.emit("broadcast", ...args);
 
 		return this;
 	}

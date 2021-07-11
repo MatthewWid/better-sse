@@ -70,6 +70,28 @@ describe("registering", () => {
 		eventsource = new EventSource(url);
 	});
 
+	it("emits a session registration event", (done) => {
+		const channel = new Channel();
+
+		const callback = jest.fn();
+
+		channel.on("session-registered", callback);
+
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			await new Promise((resolve) => session.on("connected", resolve));
+
+			channel.register(session);
+
+			expect(callback).toHaveBeenCalledWith(session);
+
+			done();
+		});
+
+		eventsource = new EventSource(url);
+	});
+
 	it("removes a session from the active sessions after deregistering it", (done) => {
 		const channel = new Channel();
 
@@ -89,6 +111,31 @@ describe("registering", () => {
 
 				done();
 			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("emits a session deregistration event and not a session disconnection event when deregistering", (done) => {
+		const channel = new Channel();
+
+		const deregisterCallback = jest.fn();
+		const disconnectedCallback = jest.fn();
+
+		channel.on("session-deregistered", deregisterCallback);
+		channel.on("session-disconnectedCallback", disconnectedCallback);
+
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			await new Promise((resolve) => session.on("connected", resolve));
+
+			channel.register(session).deregister(session);
+
+			expect(deregisterCallback).toHaveBeenCalledWith(session);
+			expect(disconnectedCallback).not.toHaveBeenCalled();
+
+			done();
 		});
 
 		eventsource = new EventSource(url);
@@ -121,6 +168,34 @@ describe("registering", () => {
 			eventsource.close();
 		});
 	});
+
+	it("emits a session disconnected event", (done) => {
+		const channel = new Channel();
+
+		const callback = jest.fn();
+
+		channel.on("session-disconnected", callback);
+
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			await new Promise((resolve) => session.on("connected", resolve));
+
+			channel.register(session);
+
+			await new Promise((resolve) => session.on("disconnected", resolve));
+
+			expect(callback).toHaveBeenCalledWith(session);
+
+			done();
+		});
+
+		eventsource = new EventSource(url);
+
+		eventsource.addEventListener("open", () => {
+			eventsource.close();
+		});
+	});
 });
 
 describe("write method forwarding", () => {
@@ -141,6 +216,32 @@ describe("write method forwarding", () => {
 			channel.push(...args);
 
 			expect(push).toHaveBeenCalledWith(...args);
+
+			done();
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("emits a broadcast event with the same arguments when pushing to all sessions", (done) => {
+		const channel = new Channel();
+
+		const callback = jest.fn();
+
+		channel.on("broadcast", callback);
+
+		const args: [string, string] = ["custom", "data"];
+
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			await new Promise((resolve) => session.on("connected", resolve));
+
+			channel.register(session);
+
+			channel.push(...args);
+
+			expect(callback).toHaveBeenCalledWith(...args);
 
 			done();
 		});
