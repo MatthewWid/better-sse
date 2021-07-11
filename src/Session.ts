@@ -97,8 +97,17 @@ class Session extends EventEmitter {
 	/**
 	 * The last ID sent to the client.
 	 * This is initialized to the last event ID given by the user, and otherwise is equal to the last number given to the `.id` method.
+	 *
+	 * @readonly
 	 */
 	lastId = "";
+
+	/**
+	 * Indicates whether the session and connection is open or not.
+	 *
+	 * @readonly
+	 */
+	isConnected = false;
 
 	private req: IncomingMessage;
 	private res: ServerResponse;
@@ -111,8 +120,6 @@ class Session extends EventEmitter {
 	private keepAliveTimer?: ReturnType<typeof setInterval>;
 	private statusCode: number;
 	private headers: OutgoingHttpHeaders;
-
-	isConnected = false;
 
 	constructor(
 		req: IncomingMessage,
