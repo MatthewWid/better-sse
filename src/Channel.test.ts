@@ -213,7 +213,7 @@ describe("write method forwarding", () => {
 
 			channel.register(session);
 
-			channel.push(...args);
+			channel.broadcast(...args);
 
 			expect(push).toHaveBeenCalledWith(...args);
 
@@ -239,7 +239,7 @@ describe("write method forwarding", () => {
 
 			channel.register(session);
 
-			channel.push(...args);
+			channel.broadcast(...args);
 
 			expect(callback).toHaveBeenCalledWith(...args);
 

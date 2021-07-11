@@ -68,12 +68,12 @@ class Channel extends EventEmitter {
 	 *
 	 * Takes the same arguments as the `Session#push` method.
 	 */
-	push(...args: Parameters<Session["push"]>): this {
+	broadcast(eventName: string, data: unknown): this {
 		for (const session of this.sessions) {
-			session.push(...args);
+			session.push(eventName, data);
 		}
 
-		this.emit("broadcast", ...args);
+		this.emit("broadcast", eventName, data);
 
 		return this;
 	}
