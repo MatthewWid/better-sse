@@ -102,6 +102,13 @@ class Session extends EventEmitter {
 	 */
 	lastId = "";
 
+	/**
+	 * Indicates whether the session and connection is open or not.
+	 *
+	 * @readonly
+	 */
+	isConnected = false;
+
 	private req: IncomingMessage;
 	private res: ServerResponse;
 
@@ -113,8 +120,6 @@ class Session extends EventEmitter {
 	private keepAliveTimer?: ReturnType<typeof setInterval>;
 	private statusCode: number;
 	private headers: OutgoingHttpHeaders;
-
-	isConnected = false;
 
 	constructor(
 		req: IncomingMessage,
