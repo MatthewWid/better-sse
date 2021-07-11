@@ -11,4 +11,5 @@ This directory showcases some simple examples of using Better SSE.
 ## Table of Contents
 
 * [Getting Started](./getting-started)
+* [Channels](./channels)
 * [Streams](./streams)
