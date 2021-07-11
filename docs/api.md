@@ -5,13 +5,15 @@
 ### Exports
 
 * [Session](#session)
-* [createSession]()
+* [createSession](#createsession%3A-(constructorparameters<typeof-session>)-%3D>-promise<session>)
+* [Channel](#channel)
+* [createChannel](#createchannel%3A-(...args%3A-constructorparameters<typeof-channel>)-%3D>-channel)
 
 ## Documentation
 
 ### `Session`
 
-*Extends from [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter)*
+*Extends from [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter)*.
 
 A Session represents an open connection between the server and the client.
 
@@ -82,7 +84,6 @@ Create and dispatch an event with the given data all at once.
 This is equivalent to calling `.event()`, `.id()`, `.data()` and `.dispatch()` in that order.
 
 If no event name is given, the event name (type) is set to `"message"`.
-
 Note that this sets the event ID (and thus the [`lastId` property](#session%23lastid%3A-string)) to a string of eight random characters (`a-z0-9`).
 
 #### `Session#stream`: `(stream: Readable[, options]) => Promise<boolean>`
@@ -95,8 +96,60 @@ Each data emission by the stream emits a new event that is dispatched to the cli
 |-|-|-|-|
 |`event`|`string`|`"stream"`|Event name to use when dispatching a data event from the stream to the client.|
 
-### `createSession: (ConstructorParameters<typeof Session>) => Promise<Session>`
+### `createSession`: `(ConstructorParameters<typeof Session>) => Promise<Session>`
 
-`createSession` creates and returns a promise that resolves to an instance of the [Session class](#session) once it has connected.
+Creates and returns a promise that resolves to an instance of a [Session](#session) once it has connected.
 
 It takes the [same arguments as the Session class constructor](#new-session(req%3A-incomingmessage%2C-res%3A-serverresponse%2C-%5Boptions%5D-%3D-%7B%7D)).
+
+### `Channel`
+
+*Extends from [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter)*.
+
+A Channel is used to broadcast events to many sessions at once.
+
+#### `new Channel()`
+
+#### `Channel#activeSessions`: `ReadonlyArray<Session>`
+
+List of the currently active sessions subscribed to this channel.
+
+You should not mutate the contents of this array.
+
+#### `Channel#sessionCount`: `number`
+
+Number of sessions subscribed to this channel.
+
+Equivalent to `channel.activeSessions.length`.
+
+#### `Channel#register`: `(session: Session) => this`
+
+Register a session so that it will start receiving events from this channel.
+
+Note that a session must be [connected](#session%23isconnected%3A-boolean) before it can be registered to a channel.
+
+Fires the `session-registered` event with the registered session as its first argument.
+
+#### `Channel#deregister`: `(session: Session) => this`
+
+Deregister a session so that it no longer receives events from this channel.
+
+Note that sessions are automatically deregistered when they are disconnected.
+
+Fires the `session-deregistered` event with the session as its first argument.
+
+If the session was disconnected the channel will also fire the `session-disconnected` event with the disconnected session as its first argument beforehand.
+
+#### `Channel#broadcast`: `(eventName: string, data: any) => this`
+
+Broadcasts an event with the given name and data to every active session subscribed to the channel.
+
+Under the hood this calls the [`push`](#session%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-this-%7C-(data%3A-any)-%3D>-this) method on every active session.
+
+Fires the `broadcast` event with the given event name and data in their respective order.
+
+### `createChannel`: `(...args: ConstructorParameters<typeof Channel>) => Channel`
+
+Creates and returns an instance of a [Channel](#channel).
+
+It takes the [same arguments as the Channel class](#new-channel()).
