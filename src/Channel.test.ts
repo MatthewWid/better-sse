@@ -24,9 +24,10 @@ afterEach(async () => {
 
 describe("construction", () => {
 	it("constructs without errors", () => {
-		expect(() => {
-			new Channel();
-		}).not.toThrow();
+		const channel = new Channel();
+
+		expect(channel.activeSessions).toEqual([]);
+		expect(channel.sessionCount).toBe(0);
 	});
 });
 
@@ -54,10 +55,10 @@ describe("registering", () => {
 	});
 
 	it("throws when registering a disconnected session", (done) => {
+		const channel = new Channel();
+
 		server.on("request", (req, res) => {
 			const session = new Session(req, res);
-
-			const channel = new Channel();
 
 			expect(() => {
 				channel.register(session);
@@ -70,12 +71,12 @@ describe("registering", () => {
 	});
 
 	it("removes a session from the active sessions after deregistering it", (done) => {
+		const channel = new Channel();
+
 		server.on("request", (req, res) => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				const channel = new Channel();
-
 				channel.register(session);
 
 				expect(channel.activeSessions).toContain(session);
@@ -94,12 +95,12 @@ describe("registering", () => {
 	});
 
 	it("automatically deregisters a session once it disconnects", (done) => {
+		const channel = new Channel();
+
 		server.on("request", async (req, res) => {
 			const session = new Session(req, res);
 
 			await new Promise((resolve) => session.on("connected", resolve));
-
-			const channel = new Channel();
 
 			channel.register(session);
 
@@ -124,8 +125,9 @@ describe("registering", () => {
 
 describe("write method forwarding", () => {
 	it("calls push on all sessions with the same arguments", (done) => {
-		const args: [string, string] = ["custom", "data"];
 		const channel = new Channel();
+
+		const args: [string, string] = ["custom", "data"];
 
 		server.on("request", async (req, res) => {
 			const session = new Session(req, res);
