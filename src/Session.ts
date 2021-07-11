@@ -97,6 +97,8 @@ class Session extends EventEmitter {
 	/**
 	 * The last ID sent to the client.
 	 * This is initialized to the last event ID given by the user, and otherwise is equal to the last number given to the `.id` method.
+	 *
+	 * @readonly
 	 */
 	lastId = "";
 
