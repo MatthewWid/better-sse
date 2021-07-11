@@ -9,6 +9,10 @@ import Session from "./Session";
 class Channel extends EventEmitter {
 	private sessions: Session[] = [];
 
+	constructor() {
+		super();
+	}
+
 	/**
 	 * List of the currently active sessions subscribed to this channel.
 	 */
