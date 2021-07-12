@@ -24,7 +24,8 @@ const broadcastSessionCount = () => {
 	ticker.broadcast("session-count", ticker.sessionCount);
 };
 
-ticker.on("session-registered", broadcastSessionCount);
-ticker.on("session-deregistered", broadcastSessionCount);
+ticker
+	.on("session-registered", broadcastSessionCount)
+	.on("session-deregistered", broadcastSessionCount);
 
 export default ticker;
