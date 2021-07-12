@@ -98,7 +98,7 @@ We then broadcast the value of `count` on the `ticker` channel every interval un
 On our client-side let's write a handler that updates some text with the received value:
 
 ```javascript
-// client.js
+// public/client.js
 const countElement = document.createElement("pre");
 document.body.appendChild(countElement);
 
@@ -144,7 +144,7 @@ We then listen on both the events `session-registered` and `session-deregistered
 Back on our client lets add another listener that displays the session count:
 
 ```javascript
-// client.js
+// public/client.js
 const sessionsElement = document.createElement("pre");
 document.body.appendChild(sessionsElement);
 
@@ -161,6 +161,74 @@ We do a similar thing to our previous example:
 2. Listen for the `session-count` event and, when received, set the text in `sessionsElement` to display the received value, corresponding the to the number of active sessions connected.
 
 Once again open the page in your browser ([or run the example project](../examples)) and you will now see the new text element with a real-time updating display of the active sessions. Open and close more tabs on the same page and observe how the count changes to stay in sync. Amazing!
+
+Your finished code should look like the following:
+
+```javascript
+// server.ts
+import path from "path";
+import express from "express";
+import {createSession} from "better-sse";
+import tickerChannel from "./channels/ticker";
+
+const app = express();
+
+app.use(express.static(path.resolve(__dirname, "./public")));
+
+app.get("/sse", async (req, res) => {
+	const session = await createSession(req, res);
+
+	tickerChannel.register(session);
+});
+
+const PORT = process.env.PORT ?? 8080;
+
+app.listen(PORT, () => {
+	console.log(`Listening on http://localhost:${PORT}.`);
+});
+```
+
+```javascript
+// channels/ticker.ts
+import {createChannel} from "better-sse";
+
+const ticker = createChannel();
+
+let count = 0;
+
+setInterval(() => {
+	ticker.broadcast("tick", count++);
+}, 1000);
+
+const broadcastSessionCount = () => {
+	ticker.broadcast("session-count", ticker.sessionCount);
+};
+
+ticker
+	.on("session-registered", broadcastSessionCount)
+	.on("session-deregistered", broadcastSessionCount);
+
+export default ticker;
+```
+
+```javascript
+// public/client.js
+const eventSource = new EventSource("/sse");
+
+const sessionsElement = document.createElement("pre");
+document.body.appendChild(sessionsElement);
+
+eventSource.addEventListener("tick", ({data}) => {
+	countElement.innerText = `The clock has ticked! The count is now ${data}.`;
+});
+
+const countElement = document.createElement("pre");
+document.body.appendChild(countElement);
+
+eventSource.addEventListener("session-count", ({data}) => {
+	sessionsElement.innerText = `There are ${data} person(s) here right now!`;
+});
+```
 
 ## Keep going...
 
