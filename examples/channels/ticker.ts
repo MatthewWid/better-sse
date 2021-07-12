@@ -20,14 +20,11 @@ setInterval(() => {
  * inform existing clients of the count every time a session
  * is registered and deregistered.
  */
-let activeSessions = 0;
+const broadcastSessionCount = () => {
+	ticker.broadcast("session-count", ticker.sessionCount);
+};
 
-ticker.on("session-registered", () => {
-	ticker.broadcast("session-count", ++activeSessions);
-});
-
-ticker.on("session-deregistered", () => {
-	ticker.broadcast("session-count", --activeSessions);
-});
+ticker.on("session-registered", broadcastSessionCount);
+ticker.on("session-deregistered", broadcastSessionCount);
 
 export default ticker;
