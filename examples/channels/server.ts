@@ -1,7 +1,7 @@
 import path from "path";
 import express from "express";
 import {createSession} from "better-sse";
-import tickerChannel from "./ticker";
+import tickerChannel from "./channels/ticker";
 
 const app = express();
 
