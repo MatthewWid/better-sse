@@ -880,3 +880,89 @@ describe("streaming", () => {
 		eventsource = new EventSource(url);
 	});
 });
+
+describe("polyfill support", () => {
+	const lastEventId = "123456";
+
+	it("can retrieve the last event ID from 'event-source-polyfill' URL query", (done) => {
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			await new Promise((resolve) => session.on("connected", resolve));
+
+			expect(session.lastId).toBe(lastEventId);
+
+			done();
+		});
+
+		eventsource = new EventSource(`${url}/?lastEventId=${lastEventId}`);
+	});
+
+	it("writes a preamble comment when indicated to by the 'event-source-polyfill' URL query", (done) => {
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			const comment = jest.spyOn(session, "comment");
+			const dispatch = jest.spyOn(session, "dispatch");
+
+			await new Promise((resolve) => session.on("connected", resolve));
+
+			expect(comment).toHaveBeenLastCalledWith(" ".repeat(2049));
+			expect(dispatch).toHaveBeenCalled();
+
+			done();
+		});
+
+		eventsource = new EventSource(`${url}/?padding=true`);
+	});
+
+	it("can retrieve the last event ID from 'eventsource-polyfill' URL query", (done) => {
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			await new Promise((resolve) => session.on("connected", resolve));
+
+			expect(session.lastId).toBe(lastEventId);
+
+			done();
+		});
+
+		eventsource = new EventSource(
+			`${url}/?evs_last_event_id=${lastEventId}`
+		);
+	});
+
+	it("writes a preamble comment when indicated to by the 'eventsource-polyfill' URL query", (done) => {
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			const comment = jest.spyOn(session, "comment");
+			const dispatch = jest.spyOn(session, "dispatch");
+
+			await new Promise((resolve) => session.on("connected", resolve));
+
+			expect(comment).toHaveBeenLastCalledWith(" ".repeat(2056));
+			expect(dispatch).toHaveBeenCalled();
+
+			done();
+		});
+
+		eventsource = new EventSource(`${url}/?evs_preamble`);
+	});
+
+	it("does not write a preamble when not indicated to do so", (done) => {
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			const comment = jest.spyOn(session, "comment");
+
+			await new Promise((resolve) => session.on("connected", resolve));
+
+			expect(comment).not.toHaveBeenCalled();
+
+			done();
+		});
+
+		eventsource = new EventSource(url);
+	});
+});
