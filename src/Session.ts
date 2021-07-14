@@ -147,7 +147,14 @@ class Session extends EventEmitter {
 
 	private onConnected = () => {
 		if (this.trustClientEventId) {
-			const givenLastEventId = this.req.headers["last-event-id"] ?? "";
+			const url = `http://${this.req.headers.host}${this.req.url}`;
+			const params = new URL(url).searchParams;
+
+			const givenLastEventId =
+				this.req.headers["last-event-id"] ??
+				params.get("lastEventId") ??
+				params.get("evs_last_event_id") ??
+				"";
 
 			this.lastId = givenLastEventId as string;
 		}

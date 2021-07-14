@@ -880,3 +880,37 @@ describe("streaming", () => {
 		eventsource = new EventSource(url);
 	});
 });
+
+describe("polyfill support", () => {
+	const lastEventId = "123456";
+
+	it("can retrieve the last event ID from 'eventsource-polyfill' URL query", (done) => {
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			await new Promise((resolve) => session.on("connected", resolve));
+
+			expect(session.lastId).toBe(lastEventId);
+
+			done();
+		});
+
+		eventsource = new EventSource(
+			`${url}/?evs_last_event_id=${lastEventId}`
+		);
+	});
+
+	it("can retrieve the last event ID from 'event-source-polyfill' URL query", (done) => {
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			await new Promise((resolve) => session.on("connected", resolve));
+
+			expect(session.lastId).toBe(lastEventId);
+
+			done();
+		});
+
+		eventsource = new EventSource(`${url}/?lastEventId=${lastEventId}`);
+	});
+});
