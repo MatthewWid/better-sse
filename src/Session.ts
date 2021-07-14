@@ -146,10 +146,10 @@ class Session extends EventEmitter {
 	}
 
 	private onConnected = () => {
-		if (this.trustClientEventId) {
-			const url = `http://${this.req.headers.host}${this.req.url}`;
-			const params = new URL(url).searchParams;
+		const url = `http://${this.req.headers.host}${this.req.url}`;
+		const params = new URL(url).searchParams;
 
+		if (this.trustClientEventId) {
 			const givenLastEventId =
 				this.req.headers["last-event-id"] ??
 				params.get("lastEventId") ??
@@ -168,6 +168,14 @@ class Session extends EventEmitter {
 		this.res.setHeader("Cache-Control", "no-cache, no-transform");
 		this.res.setHeader("Connection", "keep-alive");
 		this.res.flushHeaders();
+
+		if (params.has("padding")) {
+			this.comment(" ".repeat(2049)).dispatch();
+		}
+
+		if (params.has("evs_preamble")) {
+			this.comment(" ".repeat(2056)).dispatch();
+		}
 
 		if (this.initialRetry !== null) {
 			this.retry(this.initialRetry).dispatch();
