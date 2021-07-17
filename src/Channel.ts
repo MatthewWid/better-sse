@@ -5,7 +5,7 @@ interface BroadcastOptions {
 	/**
 	 * Filter sessions that should receive the event.
 	 *
-	 * Will be called with each session and should return a truthy value to allow the event to be sent, otherwise return a falsy value to prevent the session from receiving the event.
+	 * Called with each session and should return a truthy value to allow the event to be sent, otherwise return a falsy value to prevent the session from receiving the event.
 	 */
 	filter?: (session: Session) => unknown;
 }

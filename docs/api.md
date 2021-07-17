@@ -19,7 +19,7 @@ A Session represents an open connection between the server and the client.
 
 It emits the `connected` event after it has connected and flushed all headers to the client, and the `disconnected` event after client connection has been closed.
 
-#### `new Session(req: IncomingMessage, res: ServerResponse, [options] = {})`
+#### `new Session(req: IncomingMessage, res: ServerResponse[, options = {}])`
 
 `req` is an instance of [IncomingMessage](https://nodejs.org/api/http.html#http_class_http_incomingmessage).
 
@@ -46,6 +46,12 @@ This is initialized to the last event ID given by the user (in the `Last-Event-I
 #### `Session#isConnected`: `boolean`
 
 Indicates whether the session and connection is open or not.
+
+#### `Session#state`: `{}`
+
+Custom state for this session.
+
+Use this object to safely store information related to the session and user.
 
 #### `Session#dispatch`: `() => this`
 
@@ -140,13 +146,17 @@ Fires the `session-deregistered` event with the session as its first argument.
 
 If the session was disconnected the channel will also fire the `session-disconnected` event with the disconnected session as its first argument beforehand.
 
-#### `Channel#broadcast`: `(eventName: string, data: any) => this`
+#### `Channel#broadcast`: `(eventName: string, data: any[, options = {}]) => this`
 
 Broadcasts an event with the given name and data to every active session subscribed to the channel.
 
 Under the hood this calls the [`push`](#session%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-this-%7C-(data%3A-any)-%3D>-this) method on every active session.
 
 Fires the `broadcast` event with the given event name and data in their respective order.
+
+|`options.`|Type|Default|Description|
+|-|-|-|-|
+|`filter`|`(session: Session) => unknown`||Filter sessions that should receive the event.<br><br>Called with each session and should return a truthy value to allow the event to be sent, otherwise return a falsy value to prevent the session from receiving the event.|
 
 ### `createChannel`: `(...args: ConstructorParameters<typeof Channel>) => Channel`
 
