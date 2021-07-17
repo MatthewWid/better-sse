@@ -5,7 +5,7 @@ import {IncomingMessage, ServerResponse, OutgoingHttpHeaders} from "http";
 import serialize, {SerializerFunction} from "./lib/serialize";
 import sanitize, {SanitizerFunction} from "./lib/sanitize";
 
-export interface SessionOptions {
+interface SessionOptions {
 	/**
 	 * Serialize data to a string that can be written.
 	 *
@@ -72,7 +72,7 @@ export interface SessionOptions {
 	headers?: OutgoingHttpHeaders;
 }
 
-export interface StreamOptions {
+interface StreamOptions {
 	/**
 	 * Event name/type to be emitted when stream data is sent to the client.
 	 *
@@ -108,6 +108,12 @@ class Session extends EventEmitter {
 	 * @readonly
 	 */
 	isConnected = false;
+
+	/**
+	 * Custom state for this session.
+	 * Use this object to safely store information related to the session and user.
+	 */
+	state: Record<string, unknown> = {};
 
 	private req: IncomingMessage;
 	private res: ServerResponse;
@@ -365,4 +371,5 @@ class Session extends EventEmitter {
 	};
 }
 
+export type {SessionOptions};
 export default Session;

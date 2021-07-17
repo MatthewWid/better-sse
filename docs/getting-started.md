@@ -135,6 +135,8 @@ You can also find a reference to the received event object interface under the [
 
 ## Keep going...
 
-Check the [API documentation](./api.md) for information on getting more fine-tuned control over your data such as managing event IDs, data serialization, streams, dispatch controls and more.
+Move on to [learning about channels](./channels.md) which allow you to broadcast events to multiple sessions at once.
 
-You can also see the full example from this guide in [the examples directory](../examples).
+Check the [API documentation](./api.md) for information on getting fine-tuned control over your data such as managing event IDs, data serialization, streams, dispatch controls, channels and more.
+
+You can also see the full example from this guide [in the examples directory](../examples).

@@ -23,6 +23,7 @@ Please consider starring the project [on GitHub ⭐](https://github.com/MatthewW
 * Fully written in TypeScript (+ ships with types directly).
 * [Thoroughly tested](./src/Session.test.ts) (+ 100% code coverage!).
 * [Comprehensively documented](./docs) with guides and API documentation.
+* [Channels](./docs/channels.md) allow you to broadcast events to many clients at once.
 * Configurable reconnection time.
 * Configurable message serialization and data sanitization (but with good defaults).
 * Trust or ignore the client-given last event ID.
