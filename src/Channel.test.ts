@@ -198,11 +198,11 @@ describe("registering", () => {
 	});
 });
 
-describe("write method forwarding", () => {
+describe("broadcasting", () => {
+	const args: [string, string] = ["custom", "data"];
+
 	it("calls push on all sessions with the same arguments", (done) => {
 		const channel = new Channel();
-
-		const args: [string, string] = ["custom", "data"];
 
 		server.on("request", async (req, res) => {
 			const session = new Session(req, res);
@@ -223,14 +223,12 @@ describe("write method forwarding", () => {
 		eventsource = new EventSource(url);
 	});
 
-	it("emits a broadcast event with the same arguments when pushing to all sessions", (done) => {
+	it("emits a broadcast event with the same arguments", (done) => {
 		const channel = new Channel();
 
 		const callback = jest.fn();
 
 		channel.on("broadcast", callback);
-
-		const args: [string, string] = ["custom", "data"];
 
 		server.on("request", async (req, res) => {
 			const session = new Session(req, res);
@@ -247,5 +245,47 @@ describe("write method forwarding", () => {
 		});
 
 		eventsource = new EventSource(url);
+	});
+
+	it("can filter sessions when broadcasting", async (done) => {
+		const channel = new Channel();
+
+		const sessionPushMocks: jest.SpyInstance[] = [];
+
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			await new Promise((resolve) => session.on("connected", resolve));
+
+			sessionPushMocks.push(jest.spyOn(session, "push"));
+
+			channel.register(session);
+		});
+
+		channel.on("session-registered", (session: Session) => {
+			if (channel.sessionCount !== 3) {
+				return;
+			}
+
+			session.state.isTrusted = true;
+
+			channel.broadcast(...args, {
+				filter: (session) => session.state.isTrusted,
+			});
+
+			expect(sessionPushMocks[0]).not.toHaveBeenCalled();
+			expect(sessionPushMocks[1]).not.toHaveBeenCalled();
+			expect(sessionPushMocks[2]).toHaveBeenCalled();
+
+			eventSource1.close();
+			eventSource2.close();
+			eventSource3.close();
+
+			done();
+		});
+
+		const eventSource1 = new EventSource(url);
+		const eventSource2 = new EventSource(url);
+		const eventSource3 = new EventSource(url);
 	});
 });

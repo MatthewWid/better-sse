@@ -1,6 +1,15 @@
 import EventEmitter from "events";
 import Session from "./Session";
 
+interface BroadcastOptions {
+	/**
+	 * Filter sessions that should receive the event.
+	 *
+	 * Will be called with each session and should return a truthy value to allow the event to be sent, otherwise return a falsy value to prevent the session from receiving the event.
+	 */
+	filter?: (session: Session) => unknown;
+}
+
 /**
  * A Channel is used to broadcast events to many sessions at once.
  *
@@ -68,8 +77,16 @@ class Channel extends EventEmitter {
 	 *
 	 * Takes the same arguments as the `Session#push` method.
 	 */
-	broadcast(eventName: string, data: unknown): this {
+	broadcast(
+		eventName: string,
+		data: unknown,
+		options: BroadcastOptions = {}
+	): this {
 		for (const session of this.sessions) {
+			if (options.filter && !options.filter(session)) {
+				continue;
+			}
+
 			session.push(eventName, data);
 		}
 
@@ -79,4 +96,5 @@ class Channel extends EventEmitter {
 	}
 }
 
+export type {BroadcastOptions};
 export default Channel;
