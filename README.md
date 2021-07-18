@@ -33,6 +33,8 @@ Please consider starring the project [on GitHub ⭐](https://github.com/MatthewW
 * Pipe [streams](https://nodejs.org/api/stream.html#stream_readable_streams) directly from the server to the client as a stream of events.
 * Support for popular EventStream polyfills [`event-source-polyfill`](https://www.npmjs.com/package/event-source-polyfill) and [`eventsource-polyfill`](https://www.npmjs.com/package/eventsource-polyfill).
 
+[See a comparison with other Node server-sent events libraries in the documentation.](./docs/comparison.md)
+
 # Installation
 
 ```bash
