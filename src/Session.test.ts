@@ -881,6 +881,78 @@ describe("streaming", () => {
 	});
 });
 
+describe("iterables", () => {
+	const dataToWrite = [1, 2, 3];
+
+	function* syncIterator() {
+		for (let i = 0; i < dataToWrite.length; i++) {
+			yield dataToWrite[i];
+		}
+	}
+
+	async function* asyncIterator() {
+		for (let i = 0; i < dataToWrite.length; i++) {
+			yield dataToWrite[i];
+		}
+	}
+
+	it("sends each and every yielded value as an event for synchronous generators", async () => {
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			const push = jest.spyOn(session, "push");
+
+			await new Promise((resolve) => session.on("connected", resolve));
+
+			await session.iterate<number>(syncIterator());
+
+			expect(push).toHaveBeenCalledTimes(3);
+			expect(push).toHaveBeenNthCalledWith(0, dataToWrite[0]);
+			expect(push).toHaveBeenNthCalledWith(1, dataToWrite[1]);
+			expect(push).toHaveBeenNthCalledWith(2, dataToWrite[2]);
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("sends each and every yielded value as an event for async generators", async () => {
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			const push = jest.spyOn(session, "push");
+
+			await new Promise((resolve) => session.on("connected", resolve));
+
+			await session.iterate<number>(asyncIterator());
+
+			expect(push).toHaveBeenCalledTimes(3);
+			expect(push).toHaveBeenNthCalledWith(0, dataToWrite[0]);
+			expect(push).toHaveBeenNthCalledWith(1, dataToWrite[1]);
+			expect(push).toHaveBeenNthCalledWith(2, dataToWrite[2]);
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("can override the event type in options", async () => {
+		const eventName = "custom-name";
+
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			const push = jest.spyOn(session, "push");
+
+			await new Promise((resolve) => session.on("connected", resolve));
+
+			await session.iterate<number>(asyncIterator(), {eventName});
+
+			expect(push).toHaveBeenCalledWith(eventName);
+		});
+
+		eventsource = new EventSource(url);
+	});
+});
+
 describe("polyfill support", () => {
 	const lastEventId = "123456";
 

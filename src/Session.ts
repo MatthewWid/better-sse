@@ -81,6 +81,15 @@ interface StreamOptions {
 	event?: string;
 }
 
+interface IterateOptions {
+	/**
+	 * Event name/type to be emitted when iterable data is sent to the client.
+	 *
+	 * Defaults to `"iteration"`.
+	 */
+	eventName?: string;
+}
+
 /**
  * A Session represents an open connection between the server and a client.
  *
@@ -338,7 +347,7 @@ class Session extends EventEmitter {
 	 * Each data emission by the stream emits a new event that is dispatched to the client.
 	 * This uses the `push` method under the hood.
 	 *
-	 * If no event name is given in the options object, the event name (type) is to `"stream"`.
+	 * If no event name is given in the options object, the event name (type) is set to `"stream"`.
 	 *
 	 * @param stream - Readable stream to consume from.
 	 * @param options - Options to alter how the stream is flushed to the client.
@@ -368,6 +377,29 @@ class Session extends EventEmitter {
 			stream.once("close", () => resolve(true));
 			stream.once("error", (err) => reject(err));
 		});
+	};
+
+	/**
+	 * Iterate over an iterable and send yielded values as data to the client.
+	 *
+	 * Each yield emits a new event that is dispatched to the client.
+	 * This uses the `push` method under the hood.
+	 *
+	 * If no event name is given in the options object, the event name (type) is set to `"iteration"`.
+	 *
+	 * @param iterable - Iterable to consume data from.
+	 *
+	 * @returns A promise that resolves once all the data has been yielded from the iterable.
+	 */
+	iterate = async <DataType = unknown>(
+		iterable: Iterable<DataType> | AsyncIterable<DataType>,
+		options: IterateOptions = {}
+	): Promise<void> => {
+		const {eventName = "iteration"} = options;
+
+		for await (const data of iterable) {
+			this.push(eventName, data);
+		}
 	};
 }
 
