@@ -78,7 +78,7 @@ interface StreamOptions {
 	 *
 	 * Defaults to `"stream"`.
 	 */
-	event?: string;
+	eventName?: string;
 }
 
 interface IterateOptions {
@@ -358,7 +358,7 @@ class Session extends EventEmitter {
 		stream: Readable,
 		options: StreamOptions = {}
 	): Promise<boolean> => {
-		const {event = "stream"} = options;
+		const {eventName = "stream"} = options;
 
 		return new Promise<boolean>((resolve, reject) => {
 			stream.on("data", (chunk) => {
@@ -370,7 +370,7 @@ class Session extends EventEmitter {
 					data = chunk;
 				}
 
-				this.push(event, data);
+				this.push(eventName, data);
 			});
 
 			stream.once("end", () => resolve(true));

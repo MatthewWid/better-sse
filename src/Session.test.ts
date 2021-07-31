@@ -787,7 +787,7 @@ describe("streaming", () => {
 			const push = jest.spyOn(session, "push");
 
 			session.on("connected", async () => {
-				await session.stream(stream, {event: eventName});
+				await session.stream(stream, {eventName});
 
 				expect(push).toHaveBeenCalledWith(eventName, 1);
 			});

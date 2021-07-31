@@ -102,7 +102,7 @@ This uses the [`push`](#session%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-
 
 |`options.`|Type|Default|Description|
 |-|-|-|-|
-|`event`|`string`|`"stream"`|Event name to use when dispatching a data event from the stream to the client.|
+|`eventName`|`string`|`"stream"`|Event name to use when dispatching a data event from the stream to the client.|
 
 #### `Session#iterate`: `(iterable: Iterable | AsyncIterable[, options]) => Promise<void>`
 
