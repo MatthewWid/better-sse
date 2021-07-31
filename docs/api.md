@@ -98,9 +98,23 @@ Pipe readable stream data to the client.
 
 Each data emission by the stream emits a new event that is dispatched to the client.
 
+This uses the [`push`](#session%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-this-%7C-(data%3A-any)-%3D>-this) method under the hood.
+
 |`options.`|Type|Default|Description|
 |-|-|-|-|
-|`event`|`string`|`"stream"`|Event name to use when dispatching a data event from the stream to the client.|
+|`eventName`|`string`|`"stream"`|Event name to use when dispatching a data event from the stream to the client.|
+
+#### `Session#iterate`: `(iterable: Iterable | AsyncIterable[, options]) => Promise<void>`
+
+Iterate over an iterable and send yielded values as data to the client.
+
+Each yield emits a new event that is dispatched to the client.
+
+This uses the [`push`](#session%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-this-%7C-(data%3A-any)-%3D>-this) method under the hood.
+
+|`options.`|Type|Default|Description|
+|-|-|-|-|
+|`eventName`|`string`|`"iteration"`|Event name to use when dispatching a data event from the yielded value to the client.|
 
 ### `createSession`: `(ConstructorParameters<typeof Session>) => Promise<Session>`
 
