@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+* Added the [`Session#iterate`](./docs/api.md#sessioniterate-iterable-iterable--asynciterable-options--promisevoid) method that allows processing iterables and sending yielded values to the client as events.
+
+### Changed
+
+* Rename the [`Session#stream`](./docs/api.md#sessionstream-stream-readable-options--promiseboolean) `event` option to `eventName`.
+
 ## 0.5.0 - 2021-07-17
 
 ### Added
