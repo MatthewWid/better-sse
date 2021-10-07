@@ -11,11 +11,19 @@ A dead simple, dependency-less, spec-compliant server-side events implementation
 
 This package aims to be the easiest to use, most compliant and most streamlined solution to server-side events with Node that is framework agnostic and feature rich.
 
-[See the WHATWG standards section for server-sent events.](https://html.spec.whatwg.org/multipage/server-sent-events.html)
-
-[See the MDN guide to server-sent events.](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
-
 Please consider starring the project [on GitHub ⭐](https://github.com/MatthewWid/better-sse).
+
+## Why use Server-sent Events?
+
+Server-sent events (SSE) is a standardised protocol that allows web-servers to push data to clients without the need for alternative mechanisms such as pinging or long-polling.
+
+Using SSE can allow for significant savings in bandwidth and battery life on portable devices, and will work with your existing infrastructure as it operates directly over the HTTP protocol without the need for the connection upgrade that [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) require.
+
+Compared to WebSockets it has comparable performance and bandwidth usage, especially over HTTP/2, and natively includes event ID generation and automatic reconnection when clients are disconnected.
+
+* [Comparison: Server-sent Events vs WebSockets vs Polling](https://medium.com/dailyjs/a-comparison-between-websockets-server-sent-events-and-polling-7a27c98cb1e3)
+* [WHATWG standards section for server-sent events](https://html.spec.whatwg.org/multipage/server-sent-events.html)
+* [MDN guide to server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
 
 ## Highlights
 
@@ -32,7 +40,7 @@ Please consider starring the project [on GitHub ⭐](https://github.com/MatthewW
 * Pipe [streams](https://nodejs.org/api/stream.html#stream_readable_streams) and [iterables](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators) directly from the server to the client as a stream of events.
 * Support for popular EventStream polyfills [`event-source-polyfill`](https://www.npmjs.com/package/event-source-polyfill) and [`eventsource-polyfill`](https://www.npmjs.com/package/eventsource-polyfill).
 
-[See a comparison with other Node server-sent events libraries in the documentation.](./docs/comparison.md)
+[See a comparison with other Node SSE libraries in the documentation.](./docs/comparison.md)
 
 # Installation
 
