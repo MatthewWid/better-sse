@@ -3,11 +3,13 @@ import Session from "./Session";
 /**
  * Create a new session and return the session instance once it has connected.
  */
-const createSession = (
+const createSession = <
+	State extends Record<string, unknown> = Record<string, unknown>
+>(
 	...args: ConstructorParameters<typeof Session>
-): Promise<Session> =>
+): Promise<Session<State>> =>
 	new Promise((resolve) => {
-		const session = new Session(...args);
+		const session = new Session<State>(...args);
 
 		session.once("connected", () => {
 			resolve(session);

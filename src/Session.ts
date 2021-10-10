@@ -102,7 +102,9 @@ interface IterateOptions {
  * @param res - The Node HTTP {@link https://nodejs.org/api/http.html#http_class_http_serverresponse | IncomingMessage} object.
  * @param options - Options given to the session instance.
  */
-class Session extends EventEmitter {
+class Session<
+	State extends Record<string, unknown> = Record<string, unknown>
+> extends EventEmitter {
 	/**
 	 * The last ID sent to the client.
 	 * This is initialized to the last event ID given by the user, and otherwise is equal to the last number given to the `.id` method.
@@ -122,7 +124,7 @@ class Session extends EventEmitter {
 	 * Custom state for this session.
 	 * Use this object to safely store information related to the session and user.
 	 */
-	state: Record<string, unknown> = {};
+	state = {} as State;
 
 	private req: IncomingMessage;
 	private res: ServerResponse;
