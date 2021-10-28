@@ -1,4 +1,4 @@
-import EventEmitter from "events";
+import {TypedEmitter, EventMap} from "./lib/TypedEmitter";
 import Session from "./Session";
 
 interface BroadcastOptions {
@@ -10,12 +10,19 @@ interface BroadcastOptions {
 	filter?: (session: Session) => unknown;
 }
 
+interface Events extends EventMap {
+	"session-registered": (session: Session) => void;
+	"session-deregistered": (session: Session) => void;
+	"session-disconnected": (session: Session) => void;
+	broadcast: (eventName: string, data: unknown) => void;
+}
+
 /**
  * A Channel is used to broadcast events to many sessions at once.
  *
  * It extends from the {@link https://nodejs.org/api/events.html#events_class_eventemitter | EventEmitter} class.
  */
-class Channel extends EventEmitter {
+class Channel extends TypedEmitter<Events> {
 	private sessions: Session[] = [];
 
 	constructor() {

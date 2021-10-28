@@ -1,7 +1,7 @@
-import EventEmitter from "events";
 import {randomBytes} from "crypto";
 import {Readable} from "stream";
 import {IncomingMessage, ServerResponse, OutgoingHttpHeaders} from "http";
+import {TypedEmitter, EventMap} from "./lib/TypedEmitter";
 import serialize, {SerializerFunction} from "./lib/serialize";
 import sanitize, {SanitizerFunction} from "./lib/sanitize";
 
@@ -90,6 +90,11 @@ interface IterateOptions {
 	eventName?: string;
 }
 
+interface Events extends EventMap {
+	connected: () => void;
+	disconnected: () => void;
+}
+
 /**
  * A Session represents an open connection between the server and a client.
  *
@@ -104,7 +109,7 @@ interface IterateOptions {
  */
 class Session<
 	State extends Record<string, unknown> = Record<string, unknown>
-> extends EventEmitter {
+> extends TypedEmitter<Events> {
 	/**
 	 * The last ID sent to the client.
 	 * This is initialized to the last event ID given by the user, and otherwise is equal to the last number given to the `.id` method.
