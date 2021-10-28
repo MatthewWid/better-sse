@@ -80,7 +80,7 @@ describe("registering", () => {
 		server.on("request", async (req, res) => {
 			const session = new Session(req, res);
 
-			await new Promise((resolve) => session.on("connected", resolve));
+			await new Promise<void>((resolve) => session.on("connected", resolve));
 
 			channel.register(session);
 
@@ -128,7 +128,7 @@ describe("registering", () => {
 		server.on("request", async (req, res) => {
 			const session = new Session(req, res);
 
-			await new Promise((resolve) => session.on("connected", resolve));
+			await new Promise<void>((resolve) => session.on("connected", resolve));
 
 			channel.register(session).deregister(session);
 
@@ -147,13 +147,13 @@ describe("registering", () => {
 		server.on("request", async (req, res) => {
 			const session = new Session(req, res);
 
-			await new Promise((resolve) => session.on("connected", resolve));
+			await new Promise<void>((resolve) => session.on("connected", resolve));
 
 			channel.register(session);
 
 			const deregister = jest.spyOn(channel, "deregister");
 
-			await new Promise((resolve) => session.on("disconnected", resolve));
+			await new Promise<void>((resolve) => session.on("disconnected", resolve));
 
 			expect(deregister).toHaveBeenCalledWith(session);
 			expect(channel.activeSessions).not.toContain(session);
@@ -179,11 +179,11 @@ describe("registering", () => {
 		server.on("request", async (req, res) => {
 			const session = new Session(req, res);
 
-			await new Promise((resolve) => session.on("connected", resolve));
+			await new Promise<void>((resolve) => session.on("connected", resolve));
 
 			channel.register(session);
 
-			await new Promise((resolve) => session.on("disconnected", resolve));
+			await new Promise<void>((resolve) => session.on("disconnected", resolve));
 
 			expect(callback).toHaveBeenCalledWith(session);
 
@@ -209,7 +209,7 @@ describe("broadcasting", () => {
 
 			const push = jest.spyOn(session, "push");
 
-			await new Promise((resolve) => session.on("connected", resolve));
+			await new Promise<void>((resolve) => session.on("connected", resolve));
 
 			channel.register(session);
 
@@ -233,7 +233,7 @@ describe("broadcasting", () => {
 		server.on("request", async (req, res) => {
 			const session = new Session(req, res);
 
-			await new Promise((resolve) => session.on("connected", resolve));
+			await new Promise<void>((resolve) => session.on("connected", resolve));
 
 			channel.register(session);
 
@@ -247,7 +247,7 @@ describe("broadcasting", () => {
 		eventsource = new EventSource(url);
 	});
 
-	it("can filter sessions when broadcasting", async (done) => {
+	it("can filter sessions when broadcasting", (done) => {
 		const channel = new Channel();
 
 		const sessionPushMocks: jest.SpyInstance[] = [];
@@ -255,7 +255,7 @@ describe("broadcasting", () => {
 		server.on("request", async (req, res) => {
 			const session = new Session(req, res);
 
-			await new Promise((resolve) => session.on("connected", resolve));
+			await new Promise<void>((resolve) => session.on("connected", resolve));
 
 			sessionPushMocks.push(jest.spyOn(session, "push"));
 
