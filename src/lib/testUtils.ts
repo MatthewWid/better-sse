@@ -1,5 +1,6 @@
 import http from "http";
 import {AddressInfo} from "net";
+import Session from "../Session";
 
 const createServer = (): Promise<http.Server> =>
 	new Promise<http.Server>((resolve, reject) => {
@@ -26,5 +27,8 @@ const closeServer = (server: http.Server): Promise<void> =>
 
 const getUrl = (server: http.Server): string =>
 	`http://localhost:${(server.address() as AddressInfo).port}`;
+
+export const waitForConnect = (session: Session): Promise<void> =>
+	new Promise((resolve) => session.on("connected", resolve));
 
 export {createServer, closeServer, getUrl};

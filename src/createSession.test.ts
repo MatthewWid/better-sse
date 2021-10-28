@@ -22,7 +22,7 @@ afterEach(async () => {
 	await closeServer(server);
 });
 
-it("resolves with an instance of a session", async (done) => {
+it("resolves with an instance of a session", (done) => {
 	server.on("request", async (req, res) => {
 		const session = await createSession(req, res);
 

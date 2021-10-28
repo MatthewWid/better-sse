@@ -3,7 +3,12 @@ import EventSource from "eventsource";
 import {Readable} from "stream";
 import serialize, {SerializerFunction} from "./lib/serialize";
 import {SanitizerFunction} from "./lib/sanitize";
-import {createServer, closeServer, getUrl} from "./lib/testUtils";
+import {
+	createServer,
+	closeServer,
+	getUrl,
+	waitForConnect,
+} from "./lib/testUtils";
 import Session from "./Session";
 
 let server: http.Server;
@@ -27,7 +32,7 @@ afterEach(async () => {
 });
 
 describe("connection", () => {
-	it("constructs without errors when giving no options", async (done) => {
+	it("constructs without errors when giving no options", (done) => {
 		server.on("request", (req, res) => {
 			expect(() => {
 				new Session(req, res);
@@ -393,7 +398,7 @@ describe("keep-alive", () => {
 			const comment = jest.spyOn(session, "comment");
 			const dispatch = jest.spyOn(session, "dispatch");
 
-			await new Promise((resolve) => session.on("connected", resolve));
+			await waitForConnect(session);
 
 			const lastDispatchCalls = dispatch.mock.calls.length;
 
@@ -902,7 +907,7 @@ describe("iterables", () => {
 
 			const push = jest.spyOn(session, "push");
 
-			await new Promise((resolve) => session.on("connected", resolve));
+			await waitForConnect(session);
 
 			await session.iterate<number>(syncIterator());
 
@@ -921,7 +926,7 @@ describe("iterables", () => {
 
 			const push = jest.spyOn(session, "push");
 
-			await new Promise((resolve) => session.on("connected", resolve));
+			await waitForConnect(session);
 
 			await session.iterate<number>(asyncIterator());
 
@@ -942,7 +947,7 @@ describe("iterables", () => {
 
 			const push = jest.spyOn(session, "push");
 
-			await new Promise((resolve) => session.on("connected", resolve));
+			await waitForConnect(session);
 
 			await session.iterate<number>(asyncIterator(), {eventName});
 
@@ -960,7 +965,7 @@ describe("polyfill support", () => {
 		server.on("request", async (req, res) => {
 			const session = new Session(req, res);
 
-			await new Promise((resolve) => session.on("connected", resolve));
+			await waitForConnect(session);
 
 			expect(session.lastId).toBe(lastEventId);
 
@@ -977,7 +982,7 @@ describe("polyfill support", () => {
 			const comment = jest.spyOn(session, "comment");
 			const dispatch = jest.spyOn(session, "dispatch");
 
-			await new Promise((resolve) => session.on("connected", resolve));
+			await waitForConnect(session);
 
 			expect(comment).toHaveBeenLastCalledWith(" ".repeat(2049));
 			expect(dispatch).toHaveBeenCalled();
@@ -992,7 +997,7 @@ describe("polyfill support", () => {
 		server.on("request", async (req, res) => {
 			const session = new Session(req, res);
 
-			await new Promise((resolve) => session.on("connected", resolve));
+			await waitForConnect(session);
 
 			expect(session.lastId).toBe(lastEventId);
 
@@ -1011,7 +1016,7 @@ describe("polyfill support", () => {
 			const comment = jest.spyOn(session, "comment");
 			const dispatch = jest.spyOn(session, "dispatch");
 
-			await new Promise((resolve) => session.on("connected", resolve));
+			await waitForConnect(session);
 
 			expect(comment).toHaveBeenLastCalledWith(" ".repeat(2056));
 			expect(dispatch).toHaveBeenCalled();
@@ -1028,7 +1033,7 @@ describe("polyfill support", () => {
 
 			const comment = jest.spyOn(session, "comment");
 
-			await new Promise((resolve) => session.on("connected", resolve));
+			await waitForConnect(session);
 
 			expect(comment).not.toHaveBeenCalled();
 

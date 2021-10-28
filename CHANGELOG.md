@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 * Added the [`Session#iterate`](./docs/api.md#sessioniterate-iterable-iterable--asynciterable-options--promisevoid) method that allows processing iterables and sending yielded values to the client as events.
+* Added types for `Session` and `Channel` event listener callback function arguments.
+* Added the ability to type `Session#state` using an optional generic argument for `createSession` and the `Session` constructor.
 
 ### Changed
 
