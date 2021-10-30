@@ -28,4 +28,4 @@ ticker
 	.on("session-registered", broadcastSessionCount)
 	.on("session-deregistered", broadcastSessionCount);
 
-export default ticker;
+export {ticker};

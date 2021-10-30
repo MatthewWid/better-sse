@@ -1,4 +1,4 @@
-export interface SanitizerFunction {
+interface SanitizerFunction {
 	(text: string): string;
 }
 
@@ -14,4 +14,5 @@ const sanitize: SanitizerFunction = (text) => {
 	return sanitized;
 };
 
-export default sanitize;
+export type {SanitizerFunction};
+export {sanitize};

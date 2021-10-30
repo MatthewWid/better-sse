@@ -53,22 +53,22 @@ Let's create a channel called *ticker* in a new file and export it:
 // channels/ticker.ts
 import {createChannel} from "better-sse";
 
-const tickerChannel = createChannel();
+const ticker = createChannel();
 
-export default tickerChannel;
+export {ticker};
 ```
 
 Then import the channel to where your route handler is located:
 
 ```javascript
 // server.ts
-import tickerChannel from "./channels/ticker";
+import {ticker} from "./channels/ticker";
 ```
 
 You then need to *register* the session with your new channel so that it can start receiving events. Inside your route handler add the following just after you create your session:
 
 ```javascript
-tickerChannel.register(session);
+ticker.register(session);
 ```
 
 New sessions will now be subscribed to your channel and will start receiving its events!
@@ -89,7 +89,7 @@ let count = 0;
 setInterval(() => {
 	count = count + 1;
 
-	tickerChannel.broadcast("tick", count);
+	ticker.broadcast("tick", count);
 }, 1000);
 ```
 
@@ -168,7 +168,7 @@ Your finished code should look like the following:
 // server.ts
 import express from "express";
 import {createSession} from "better-sse";
-import tickerChannel from "./channels/ticker";
+import {ticker} from "./channels/ticker";
 
 const app = express();
 
@@ -177,13 +177,13 @@ app.use(express.static("./public"));
 app.get("/sse", async (req, res) => {
 	const session = await createSession(req, res);
 
-	tickerChannel.register(session);
+	ticker.register(session);
 });
 
 app.listen(8080);
 ```
 
-```javascript
+```typescript
 // channels/ticker.ts
 import {createChannel} from "better-sse";
 
@@ -203,7 +203,7 @@ ticker
 	.on("session-registered", broadcastSessionCount)
 	.on("session-deregistered", broadcastSessionCount);
 
-export default ticker;
+export {ticker};
 ```
 
 ```javascript

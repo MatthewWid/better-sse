@@ -1,7 +1,7 @@
 import path from "path";
 import express from "express";
 import {createSession} from "better-sse";
-import tickerChannel from "./channels/ticker";
+import {ticker} from "./channels/ticker";
 
 const app = express();
 
@@ -13,7 +13,7 @@ app.get("/sse", async (req, res) => {
 	/**
 	 * Subscribe the session to all events broadcasted on the ticker channel.
 	 */
-	tickerChannel.register(session);
+	ticker.register(session);
 });
 
 const PORT = process.env.PORT ?? 8080;

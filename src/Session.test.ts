@@ -9,7 +9,7 @@ import {
 	getUrl,
 	waitForConnect,
 } from "./lib/testUtils";
-import Session from "./Session";
+import {Session} from "./Session";
 
 let server: http.Server;
 let url: string;

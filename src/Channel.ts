@@ -1,5 +1,5 @@
 import {TypedEmitter, EventMap} from "./lib/TypedEmitter";
-import Session from "./Session";
+import {Session} from "./Session";
 
 interface BroadcastOptions {
 	/**
@@ -104,4 +104,4 @@ class Channel extends TypedEmitter<Events> {
 }
 
 export type {BroadcastOptions};
-export default Channel;
+export {Channel};

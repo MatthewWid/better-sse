@@ -37,4 +37,4 @@ const broadcastNetStats = async () => {
 
 broadcastNetStats();
 
-export default resource;
+export {resource};

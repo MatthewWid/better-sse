@@ -6,8 +6,8 @@ import {
 	getUrl,
 	waitForConnect,
 } from "./lib/testUtils";
-import Session from "./Session";
-import Channel from "./Channel";
+import {Session} from "./Session";
+import {Channel} from "./Channel";
 
 let server: http.Server;
 let url: string;

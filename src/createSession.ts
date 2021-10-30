@@ -1,4 +1,4 @@
-import Session from "./Session";
+import {Session} from "./Session";
 
 /**
  * Create a new session and return the session instance once it has connected.
@@ -16,4 +16,4 @@ const createSession = <
 		});
 	});
 
-export default createSession;
+export {createSession};

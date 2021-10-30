@@ -2,8 +2,8 @@ import {randomBytes} from "crypto";
 import {Readable} from "stream";
 import {IncomingMessage, ServerResponse, OutgoingHttpHeaders} from "http";
 import {TypedEmitter, EventMap} from "./lib/TypedEmitter";
-import serialize, {SerializerFunction} from "./lib/serialize";
-import sanitize, {SanitizerFunction} from "./lib/sanitize";
+import {serialize, SerializerFunction} from "./lib/serialize";
+import {sanitize, SanitizerFunction} from "./lib/sanitize";
 
 interface SessionOptions {
 	/**
@@ -410,5 +410,5 @@ class Session<
 	};
 }
 
-export type {SessionOptions};
-export default Session;
+export type {SessionOptions, StreamOptions, IterateOptions};
+export {Session};

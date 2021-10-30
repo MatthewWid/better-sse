@@ -1,5 +1,5 @@
-export {default as Session} from "./Session";
-export {default as createSession} from "./createSession";
+export * from "./Session";
+export * from "./createSession";
 
-export {default as Channel} from "./Channel";
-export {default as createChannel} from "./createChannel";
+export * from "./Channel";
+export * from "./createChannel";

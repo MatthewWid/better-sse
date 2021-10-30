@@ -1,4 +1,4 @@
-import sanitize from "./sanitize";
+import {sanitize} from "./sanitize";
 
 describe("newline standarization", () => {
 	it("leaves newlines as-is", () => {

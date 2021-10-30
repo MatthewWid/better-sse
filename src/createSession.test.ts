@@ -1,8 +1,8 @@
 import http from "http";
 import EventSource from "eventsource";
 import {createServer, closeServer, getUrl} from "./lib/testUtils";
-import Session from "./Session";
-import createSession from "./createSession";
+import {Session} from "./Session";
+import {createSession} from "./createSession";
 
 let server: http.Server;
 let url: string;

@@ -1,4 +1,4 @@
-import serialize from "./serialize";
+import {serialize} from "./serialize";
 
 it("JSON-stringifies input", () => {
 	expect(
