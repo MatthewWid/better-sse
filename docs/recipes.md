@@ -7,6 +7,7 @@ Feel free to submit a PR with a minimal example for more frameworks!
 * [HTTP](#http)
 * [Express](#express)
 * [Koa](#koa)
+* [Nest](#nest)
 
 ## [HTTP](https://nodejs.org/api/http.html)
 
@@ -88,3 +89,25 @@ app.use(router.routes());
 
 app.listen(8080);
 ```
+
+## [Nest](https://nestjs.com/)
+
+Assuming you are using [`@nestjs/platform-express`](https://www.npmjs.com/package/@nestjs/platform-express) (the default).
+
+```typescript
+import { Controller, Get, Req, Res } from "@nestjs/common";
+import { Request, Response } from "express";
+import { createSession } from "better-sse";
+
+@Controller()
+export class SseController {
+  @Get("sse")
+  async sse(@Req() req: Request, @Res() res: Response) {
+    const sse = await createSession(req, res);
+
+    sse.push("Hello world!");
+  }
+}
+```
+
+### 
