@@ -128,7 +128,7 @@ describe("registering", () => {
 		const disconnectedCallback = jest.fn();
 
 		channel.on("session-deregistered", deregisterCallback);
-		channel.on("session-disconnectedCallback", disconnectedCallback);
+		channel.on("session-disconnected", disconnectedCallback);
 
 		server.on("request", async (req, res) => {
 			const session = new Session(req, res);
