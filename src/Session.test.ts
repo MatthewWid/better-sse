@@ -1,7 +1,7 @@
 import http from "http";
 import EventSource from "eventsource";
 import {Readable} from "stream";
-import serialize, {SerializerFunction} from "./lib/serialize";
+import {serialize, SerializerFunction} from "./lib/serialize";
 import {SanitizerFunction} from "./lib/sanitize";
 import {
 	createServer,
