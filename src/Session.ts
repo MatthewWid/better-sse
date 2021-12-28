@@ -163,6 +163,8 @@ class Session<
 		this.statusCode = options.statusCode ?? 200;
 		this.headers = options.headers ?? {};
 
+		this.push = this.push.bind(this);
+
 		this.req.on("close", this.onDisconnected);
 		setImmediate(this.onConnected);
 	}
@@ -329,21 +331,14 @@ class Session<
 	 * @param eventOrData - Event name or data to write.
 	 * @param data - Data to write if `eventOrData` was an event name.
 	 */
-	push = (eventOrData: string | unknown, data?: unknown): this => {
-		let eventName;
-		let rawData;
-
-		if (eventOrData && typeof data === "undefined") {
+	push = (data: unknown, eventName?: string): this => {
+		if (!eventName) {
 			eventName = "message";
-			rawData = eventOrData;
-		} else {
-			eventName = (eventOrData as string).toString();
-			rawData = data;
 		}
 
 		const nextId = randomBytes(4).toString("hex");
 
-		this.event(eventName).id(nextId).data(rawData).dispatch();
+		this.event(eventName).id(nextId).data(data).dispatch();
 
 		return this;
 	};
@@ -377,7 +372,7 @@ class Session<
 					data = chunk;
 				}
 
-				this.push(eventName, data);
+				this.push(data, eventName);
 			});
 
 			stream.once("end", () => resolve(true));
@@ -405,7 +400,7 @@ class Session<
 		const {eventName = "iteration"} = options;
 
 		for await (const data of iterable) {
-			this.push(eventName, data);
+			this.push(data, eventName);
 		}
 	};
 }

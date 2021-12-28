@@ -208,7 +208,7 @@ describe("registering", () => {
 });
 
 describe("broadcasting", () => {
-	const args: [string, string] = ["custom", "data"];
+	const args: [string, string] = ["data", "eventName"];
 
 	it("calls push on all sessions with the same arguments", (done) => {
 		const channel = new Channel();

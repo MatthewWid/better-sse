@@ -690,7 +690,7 @@ describe("push", () => {
 			const event = jest.spyOn(session, "event");
 
 			session.on("connected", () => {
-				session.push(eventName, dataToWrite);
+				session.push(dataToWrite, eventName);
 
 				expect(event).toHaveBeenCalledWith(eventName);
 
@@ -730,7 +730,7 @@ describe("push", () => {
 			session.on("connected", () => {
 				session.id(oldId);
 
-				session.push(eventName, dataToWrite);
+				session.push(dataToWrite, eventName);
 
 				const newId = session.lastId;
 
@@ -761,9 +761,9 @@ describe("streaming", () => {
 				await session.stream(stream);
 
 				expect(push).toHaveBeenCalledTimes(3);
-				expect(push).toHaveBeenNthCalledWith(1, "stream", 1);
-				expect(push).toHaveBeenNthCalledWith(2, "stream", 2);
-				expect(push).toHaveBeenNthCalledWith(3, "stream", 3);
+				expect(push).toHaveBeenNthCalledWith(1, 1, "stream");
+				expect(push).toHaveBeenNthCalledWith(2, 2, "stream");
+				expect(push).toHaveBeenNthCalledWith(3, 3, "stream");
 			});
 		});
 
@@ -794,7 +794,7 @@ describe("streaming", () => {
 			session.on("connected", async () => {
 				await session.stream(stream, {eventName});
 
-				expect(push).toHaveBeenCalledWith(eventName, 1);
+				expect(push).toHaveBeenCalledWith(1, eventName);
 			});
 		});
 
@@ -824,18 +824,18 @@ describe("streaming", () => {
 
 				expect(push).toHaveBeenNthCalledWith(
 					1,
-					"stream",
-					buffersToWrite[0].toString()
+					buffersToWrite[0].toString(),
+					"stream"
 				);
 				expect(push).toHaveBeenNthCalledWith(
 					2,
-					"stream",
-					buffersToWrite[1].toString()
+					buffersToWrite[1].toString(),
+					"stream"
 				);
 				expect(push).toHaveBeenNthCalledWith(
 					3,
-					"stream",
-					buffersToWrite[2].toString()
+					buffersToWrite[2].toString(),
+					"stream"
 				);
 
 				done();
