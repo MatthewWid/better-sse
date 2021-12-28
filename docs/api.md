@@ -83,14 +83,15 @@ Write a comment (an ignored field).
 
 This will not fire an event, but is often used to keep the connection alive.
 
-#### `Session#push`: `(data: unknown[, eventName: string]) => this`
+#### `Session#push`: `(data: unknown[, eventName: string[, eventId: string]]) => this`
 
 Create and dispatch an event with the given data all at once.
 
 This is equivalent to calling `.event()`, `.id()`, `.data()` and `.dispatch()` in that order.
 
 If no event name is given, the event name (type) is set to `"message"`.
-Note that this sets the event ID (and thus the [`lastId` property](#session%23lastid%3A-string)) to a string of eight random characters (`a-z0-9`).
+
+If no event ID is given, the event ID (and thus the [`lastId` property](#session%23lastid%3A-string)) is set to a string of eight random characters (matching `a-z0-9`).
 
 #### `Session#stream`: `(stream: Readable[, options: object]) => Promise<boolean>`
 

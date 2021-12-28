@@ -640,6 +640,7 @@ describe("comments", () => {
 describe("push", () => {
 	const dataToWrite = "testData";
 	const eventName = "testEvent";
+	const eventId = "123456";
 
 	it("calls all field writing methods", (done) => {
 		server.on("request", (req, res) => {
@@ -719,7 +720,25 @@ describe("push", () => {
 		eventsource = new EventSource(url);
 	});
 
-	it("generates and sets a new event ID", (done) => {
+	it("calls event ID with the given event ID", (done) => {
+		server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			const id = jest.spyOn(session, "id");
+
+			session.on("connected", () => {
+				session.push(dataToWrite, eventName, eventId);
+
+				expect(id).toHaveBeenCalledWith(eventId);
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("generates and sets a new event ID if no custom event ID is given", (done) => {
 		const oldId = "1234567890";
 
 		server.on("request", (req, res) => {

@@ -329,14 +329,16 @@ class Session<
 	 * @param eventOrData - Event name or data to write.
 	 * @param data - Data to write if `eventOrData` was an event name.
 	 */
-	push = (data: unknown, eventName?: string): this => {
+	push = (data: unknown, eventName?: string, eventId?: string): this => {
 		if (!eventName) {
 			eventName = "message";
 		}
 
-		const nextId = randomBytes(4).toString("hex");
+		if (!eventId) {
+			eventId = randomBytes(4).toString("hex");
+		}
 
-		this.event(eventName).id(nextId).data(data).dispatch();
+		this.event(eventName).id(eventId).data(data).dispatch();
 
 		return this;
 	};
