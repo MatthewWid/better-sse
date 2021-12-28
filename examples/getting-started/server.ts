@@ -28,10 +28,10 @@ app.get(
 		next();
 	},
 	/**
-	 * Push an event named 'ping' to the client.
+	 * Push a message with the event name "push".
 	 */
 	(_, res) => {
-		res.sse.push("ping", "Hello world!");
+		res.sse.push("Hello world!", "push");
 	}
 );
 

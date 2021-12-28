@@ -163,8 +163,6 @@ class Session<
 		this.statusCode = options.statusCode ?? 200;
 		this.headers = options.headers ?? {};
 
-		this.push = this.push.bind(this);
-
 		this.req.on("close", this.onDisconnected);
 		setImmediate(this.onConnected);
 	}

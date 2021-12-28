@@ -26,7 +26,7 @@ app.get("/sse", async (req, res) => {
 	/**
 	 * Push a final 'stream' event with the 'done' property.
 	 */
-	session.push("stream", {done});
+	session.push({done}, "stream");
 });
 
 const PORT = process.env.PORT ?? 8080;

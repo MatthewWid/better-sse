@@ -11,10 +11,10 @@ const broadcastSystemStats = async () => {
 	const {totalMemMb, freeMemMb} = await osu.mem.info();
 	const memoryUsage = (freeMemMb / totalMemMb) * 100;
 
-	resource.broadcast("system-stats", {
+	resource.broadcast({
 		cpuUsage,
 		memoryUsage,
-	});
+	}, "system-stats");
 
 	setTimeout(broadcastSystemStats, interval);
 };
@@ -27,10 +27,10 @@ const broadcastNetStats = async () => {
 		total: {inputMb, outputMb},
 	} = netStats as NetStatMetrics;
 
-	resource.broadcast("net-stats", {
+	resource.broadcast({
 		inputMb,
 		outputMb,
-	});
+	}, "net-stats");
 
 	setTimeout(broadcastNetStats, interval);
 };

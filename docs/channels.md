@@ -89,7 +89,7 @@ let count = 0;
 setInterval(() => {
 	count = count + 1;
 
-	ticker.broadcast("tick", count);
+	ticker.broadcast(count, "tick");
 }, 1000);
 ```
 
@@ -131,7 +131,7 @@ In our `ticker.ts` file, after you create your channel, add the following:
 
 ```javascript
 const broadcastSessionCount = () => {
-	ticker.broadcast("session-count", ticker.sessionCount);
+	ticker.broadcast(ticker.sessionCount, "session-count");
 };
 
 ticker
@@ -139,7 +139,7 @@ ticker
 	.on("session-deregistered", broadcastSessionCount);
 ```
 
-Here we create a function `broadcastSessionCount` that broadcasts an event with the name `session-count` and a value with the current total session count exposed to us under the [Channel `sessionCount` property](./api.md#channelsessioncount-number).
+Here we create a function `broadcastSessionCount` that broadcasts a value with the current total session count exposed to us under the [Channel `sessionCount` property](./api.md#channelsessioncount-number) with the event name `session-count`.
 
 We then listen on both the events `session-registered` and `session-deregistered` and set the `broadcastSessionCount` function as a callback for each. This way, every time a session joins or leaves the channel the count is re-broadcasted and updated for all of the existing sessions on the channel.
 
@@ -192,11 +192,11 @@ const ticker = createChannel();
 let count = 0;
 
 setInterval(() => {
-	ticker.broadcast("tick", count++);
+	ticker.broadcast(count++, "tick");
 }, 1000);
 
 const broadcastSessionCount = () => {
-	ticker.broadcast("session-count", ticker.sessionCount);
+	ticker.broadcast(ticker.sessionCount, "session-count");
 };
 
 ticker

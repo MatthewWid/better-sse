@@ -12,7 +12,7 @@ const ticker = createChannel();
 let count = 0;
 
 setInterval(() => {
-	ticker.broadcast("tick", count++);
+	ticker.broadcast(count++, "tick");
 }, 1000);
 
 /**
@@ -21,7 +21,7 @@ setInterval(() => {
  * is registered and deregistered.
  */
 const broadcastSessionCount = () => {
-	ticker.broadcast("session-count", ticker.sessionCount);
+	ticker.broadcast(ticker.sessionCount, "session-count");
 };
 
 ticker
