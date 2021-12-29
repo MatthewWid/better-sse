@@ -232,6 +232,28 @@ describe("broadcasting", () => {
 		eventsource = new EventSource(url);
 	});
 
+	it("calls push with a default event name if none is given", (done) => {
+		const channel = new Channel();
+
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			const push = jest.spyOn(session, "push");
+
+			await waitForConnect(session);
+
+			channel.register(session);
+
+			channel.broadcast("data");
+
+			expect(push).toHaveBeenCalledWith("data", "message");
+
+			done();
+		});
+
+		eventsource = new EventSource(url);
+	});
+
 	it("emits a broadcast event with the same arguments", (done) => {
 		const channel = new Channel();
 
