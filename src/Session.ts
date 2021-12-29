@@ -93,6 +93,7 @@ interface IterateOptions {
 interface Events extends EventMap {
 	connected: () => void;
 	disconnected: () => void;
+	push: (data: unknown, eventName: string, eventId: string) => void;
 }
 
 /**
@@ -326,24 +327,21 @@ class Session<
 	 *
 	 * Note that this sets the event ID (and thus the `lastId` property) to a string of eight random characters (`a-z0-9`).
 	 *
-	 * @param eventOrData - Event name or data to write.
-	 * @param data - Data to write if `eventOrData` was an event name.
+	 * @param data - Data to write.
+	 * @param eventName - Event name to write.
 	 */
-	push = (eventOrData: string | unknown, data?: unknown): this => {
-		let eventName;
-		let rawData;
-
-		if (eventOrData && typeof data === "undefined") {
+	push = (data: unknown, eventName?: string, eventId?: string): this => {
+		if (!eventName) {
 			eventName = "message";
-			rawData = eventOrData;
-		} else {
-			eventName = (eventOrData as string).toString();
-			rawData = data;
 		}
 
-		const nextId = randomBytes(4).toString("hex");
+		if (!eventId) {
+			eventId = randomBytes(4).toString("hex");
+		}
 
-		this.event(eventName).id(nextId).data(rawData).dispatch();
+		this.event(eventName).id(eventId).data(data).dispatch();
+
+		this.emit("push", data, eventName, eventId);
 
 		return this;
 	};
@@ -377,7 +375,7 @@ class Session<
 					data = chunk;
 				}
 
-				this.push(eventName, data);
+				this.push(data, eventName);
 			});
 
 			stream.once("end", () => resolve(true));
@@ -405,7 +403,7 @@ class Session<
 		const {eventName = "iteration"} = options;
 
 		for await (const data of iterable) {
-			this.push(eventName, data);
+			this.push(data, eventName);
 		}
 	};
 }

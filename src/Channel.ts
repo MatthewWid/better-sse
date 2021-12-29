@@ -14,7 +14,7 @@ interface Events extends EventMap {
 	"session-registered": (session: Session) => void;
 	"session-deregistered": (session: Session) => void;
 	"session-disconnected": (session: Session) => void;
-	broadcast: (eventName: string, data: unknown) => void;
+	broadcast: (data: unknown, eventName: string) => void;
 }
 
 /**
@@ -84,23 +84,27 @@ class Channel extends TypedEmitter<Events> {
 	 *
 	 * Takes the same arguments as the `Session#push` method.
 	 */
-	broadcast(
-		eventName: string,
+	broadcast = (
 		data: unknown,
+		eventName?: string,
 		options: BroadcastOptions = {}
-	): this {
+	): this => {
+		if (!eventName) {
+			eventName = "message";
+		}
+
 		for (const session of this.sessions) {
 			if (options.filter && !options.filter(session)) {
 				continue;
 			}
 
-			session.push(eventName, data);
+			session.push(data, eventName);
 		}
 
-		this.emit("broadcast", eventName, data);
+		this.emit("broadcast", data, eventName);
 
 		return this;
-	}
+	};
 }
 
 export type {BroadcastOptions};

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+* Added the ability to the [`Session#push`](./docs/api.md#sessionpush-data-unknown-eventname-string-eventid-string--this) method to set a custom event ID.
+* Added a new Session `push` event that is emitted with the event data, name and ID when the [`Session#push`](./docs/api.md#sessionpush-data-unknown-eventname-string-eventid-string--this) method is called.
+
+### Changed
+
+* Re-order the arguments for the [`Session#push`](./docs/api.md#sessionpush-data-unknown-eventname-string-eventid-string--this) and [`Channel#broadcast`](#channelbroadcast-data-unknown-eventname-string-options-object--this) methods and their corresponding emitted event callbacks to always have the event data first and event name as an optional argument second.
+
 ## 0.6.0 - 2021-10-28
 
 ### Added

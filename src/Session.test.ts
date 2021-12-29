@@ -640,6 +640,7 @@ describe("comments", () => {
 describe("push", () => {
 	const dataToWrite = "testData";
 	const eventName = "testEvent";
+	const eventId = "123456";
 
 	it("calls all field writing methods", (done) => {
 		server.on("request", (req, res) => {
@@ -690,7 +691,7 @@ describe("push", () => {
 			const event = jest.spyOn(session, "event");
 
 			session.on("connected", () => {
-				session.push(eventName, dataToWrite);
+				session.push(dataToWrite, eventName);
 
 				expect(event).toHaveBeenCalledWith(eventName);
 
@@ -719,7 +720,25 @@ describe("push", () => {
 		eventsource = new EventSource(url);
 	});
 
-	it("generates and sets a new event ID", (done) => {
+	it("calls event ID with the given event ID", (done) => {
+		server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			const id = jest.spyOn(session, "id");
+
+			session.on("connected", () => {
+				session.push(dataToWrite, eventName, eventId);
+
+				expect(id).toHaveBeenCalledWith(eventId);
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("generates and sets a new event ID if no custom event ID is given", (done) => {
 		const oldId = "1234567890";
 
 		server.on("request", (req, res) => {
@@ -730,7 +749,7 @@ describe("push", () => {
 			session.on("connected", () => {
 				session.id(oldId);
 
-				session.push(eventName, dataToWrite);
+				session.push(dataToWrite, eventName);
 
 				const newId = session.lastId;
 
@@ -740,6 +759,28 @@ describe("push", () => {
 
 				done();
 			});
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("emits a push event with the same arguments", (done) => {
+		const args: [string, string, string] = ["data", "eventName", "eventId"];
+
+		const callback = jest.fn();
+
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			await waitForConnect(session);
+
+			session.on("push", callback);
+
+			session.push(...args);
+
+			expect(callback).toHaveBeenCalledWith(...args);
+
+			done();
 		});
 
 		eventsource = new EventSource(url);
@@ -761,9 +802,9 @@ describe("streaming", () => {
 				await session.stream(stream);
 
 				expect(push).toHaveBeenCalledTimes(3);
-				expect(push).toHaveBeenNthCalledWith(1, "stream", 1);
-				expect(push).toHaveBeenNthCalledWith(2, "stream", 2);
-				expect(push).toHaveBeenNthCalledWith(3, "stream", 3);
+				expect(push).toHaveBeenNthCalledWith(1, 1, "stream");
+				expect(push).toHaveBeenNthCalledWith(2, 2, "stream");
+				expect(push).toHaveBeenNthCalledWith(3, 3, "stream");
 			});
 		});
 
@@ -794,7 +835,7 @@ describe("streaming", () => {
 			session.on("connected", async () => {
 				await session.stream(stream, {eventName});
 
-				expect(push).toHaveBeenCalledWith(eventName, 1);
+				expect(push).toHaveBeenCalledWith(1, eventName);
 			});
 		});
 
@@ -824,18 +865,18 @@ describe("streaming", () => {
 
 				expect(push).toHaveBeenNthCalledWith(
 					1,
-					"stream",
-					buffersToWrite[0].toString()
+					buffersToWrite[0].toString(),
+					"stream"
 				);
 				expect(push).toHaveBeenNthCalledWith(
 					2,
-					"stream",
-					buffersToWrite[1].toString()
+					buffersToWrite[1].toString(),
+					"stream"
 				);
 				expect(push).toHaveBeenNthCalledWith(
 					3,
-					"stream",
-					buffersToWrite[2].toString()
+					buffersToWrite[2].toString(),
+					"stream"
 				);
 
 				done();

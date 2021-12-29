@@ -208,7 +208,7 @@ describe("registering", () => {
 });
 
 describe("broadcasting", () => {
-	const args: [string, string] = ["custom", "data"];
+	const args: [string, string] = ["data", "eventName"];
 
 	it("calls push on all sessions with the same arguments", (done) => {
 		const channel = new Channel();
@@ -225,6 +225,28 @@ describe("broadcasting", () => {
 			channel.broadcast(...args);
 
 			expect(push).toHaveBeenCalledWith(...args);
+
+			done();
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("calls push with a default event name if none is given", (done) => {
+		const channel = new Channel();
+
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			const push = jest.spyOn(session, "push");
+
+			await waitForConnect(session);
+
+			channel.register(session);
+
+			channel.broadcast("data");
+
+			expect(push).toHaveBeenCalledWith("data", "message");
 
 			done();
 		});

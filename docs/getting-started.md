@@ -98,7 +98,7 @@ app.get(
 	"/sse",
 	/* Create the session */
 	(req, res) => {
-		res.sse.push("ping", "Hello world!");
+		res.sse.push("Hello world!", "ping");
 	}
 );
 ```
