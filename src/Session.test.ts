@@ -765,7 +765,7 @@ describe("push", () => {
 	});
 
 	it("emits a push event with the same arguments", (done) => {
-		const args: [string, string, string] = ["data", "eventName", "eventId"];
+		const args = ["data", "eventName", "eventId"] as const;
 
 		const callback = jest.fn();
 
