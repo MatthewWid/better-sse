@@ -93,6 +93,7 @@ interface IterateOptions {
 interface Events extends EventMap {
 	connected: () => void;
 	disconnected: () => void;
+	push: (data: unknown, eventName: string, eventId: string) => void;
 }
 
 /**
@@ -326,8 +327,8 @@ class Session<
 	 *
 	 * Note that this sets the event ID (and thus the `lastId` property) to a string of eight random characters (`a-z0-9`).
 	 *
-	 * @param eventOrData - Event name or data to write.
-	 * @param data - Data to write if `eventOrData` was an event name.
+	 * @param data - Data to write.
+	 * @param eventName - Event name to write.
 	 */
 	push = (data: unknown, eventName?: string, eventId?: string): this => {
 		if (!eventName) {
@@ -339,6 +340,8 @@ class Session<
 		}
 
 		this.event(eventName).id(eventId).data(data).dispatch();
+
+		this.emit("push", data, eventName, eventId);
 
 		return this;
 	};

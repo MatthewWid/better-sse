@@ -763,6 +763,28 @@ describe("push", () => {
 
 		eventsource = new EventSource(url);
 	});
+
+	it("emits a push event with the same arguments", (done) => {
+		const args: [string, string, string] = ["data", "eventName", "eventId"];
+
+		const callback = jest.fn();
+
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			await waitForConnect(session);
+
+			session.on("push", callback);
+
+			session.push(...args);
+
+			expect(callback).toHaveBeenCalledWith(...args);
+
+			done();
+		});
+
+		eventsource = new EventSource(url);
+	});
 });
 
 describe("streaming", () => {
