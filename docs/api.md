@@ -173,7 +173,7 @@ Emits the `broadcast` event with the given data and event name in that order.
 
 |`options.`|Type|Default|Description|
 |-|-|-|-|
-|`filter`|`(session: Session) => unknown`||Filter sessions that should receive the event.<br><br>Called with each session and should return a truthy value to allow the event to be sent, otherwise return a falsy value to prevent the session from receiving the event.|
+|`filter`|`(session: Session) => boolean`||Filter sessions that should receive the event.<br><br>Called with each session and should return `true` to allow the event to be sent and otherwise return `false` to prevent the session from receiving the event.|
 
 ### `createChannel`: `(...args: ConstructorParameters<typeof Channel>) => Channel`
 

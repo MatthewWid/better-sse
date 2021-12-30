@@ -301,7 +301,8 @@ describe("broadcasting", () => {
 			session.state.isTrusted = true;
 
 			channel.broadcast(...args, {
-				filter: (session) => session.state.isTrusted,
+				filter: (session: Session<{isTrusted: boolean}>) =>
+					session.state.isTrusted,
 			});
 
 			expect(sessionPushMocks[0]).not.toHaveBeenCalled();
