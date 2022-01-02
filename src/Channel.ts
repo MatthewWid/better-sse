@@ -93,11 +93,11 @@ class Channel extends TypedEmitter<Events> {
 			eventName = "message";
 		}
 
-		for (const session of this.sessions) {
-			if (options.filter && !options.filter(session)) {
-				continue;
-			}
+		const sessions = options.filter
+			? this.sessions.filter(options.filter)
+			: this.sessions;
 
+		for (const session of sessions) {
 			session.push(data, eventName);
 		}
 
