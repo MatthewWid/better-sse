@@ -9,6 +9,12 @@ import {
 import {Session} from "./Session";
 import {Channel} from "./Channel";
 
+declare module "./Session" {
+	interface SessionState {
+		isTrusted: boolean;
+	}
+}
+
 let server: http.Server;
 let url: string;
 let eventsource: EventSource;
@@ -293,7 +299,7 @@ describe("broadcasting", () => {
 			channel.register(session);
 		});
 
-		channel.on("session-registered", (session: Session) => {
+		channel.on("session-registered", (session) => {
 			if (channel.sessionCount !== 3) {
 				return;
 			}
@@ -301,8 +307,7 @@ describe("broadcasting", () => {
 			session.state.isTrusted = true;
 
 			channel.broadcast(...args, {
-				filter: (session: Session<{isTrusted: boolean}>) =>
-					session.state.isTrusted,
+				filter: (session) => session.state.isTrusted,
 			});
 
 			expect(sessionPushMocks[0]).not.toHaveBeenCalled();

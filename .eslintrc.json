@@ -1,4 +1,5 @@
 {
+	"$schema": "https://json.schemastore.org/eslintrc.json",
 	"env": {
 		"es2020": true,
 		"node": true
@@ -12,9 +13,10 @@
 	"plugins": ["@typescript-eslint", "eslint-plugin-tsdoc"],
 	"rules": {
 		"tsdoc/syntax": "warn",
-		"no-unused-vars": "off",
-		"@typescript-eslint/no-unused-vars": ["warn"],
 		"no-empty-function": "off",
-		"@typescript-eslint/no-empty-function": ["error"]
+		"no-unused-vars": "off",
+		"@typescript-eslint/no-unused-vars": "warn",
+		"@typescript-eslint/no-empty-function": "error",
+		"@typescript-eslint/no-empty-interface": "off"
 	}
 }
