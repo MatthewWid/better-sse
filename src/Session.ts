@@ -94,7 +94,7 @@ interface SessionState {
 	[key: string]: unknown;
 }
 
-interface Events extends EventMap {
+interface SessionEvents extends EventMap {
 	connected: () => void;
 	disconnected: () => void;
 	push: (data: unknown, eventName: string, eventId: string) => void;
@@ -114,7 +114,7 @@ interface Events extends EventMap {
  */
 class Session<
 	State extends Record<string, unknown> = SessionState
-> extends TypedEmitter<Events> {
+> extends TypedEmitter<SessionEvents> {
 	/**
 	 * The last ID sent to the client.
 	 * This is initialized to the last event ID given by the user, and otherwise is equal to the last number given to the `.id` method.
@@ -412,5 +412,11 @@ class Session<
 	};
 }
 
-export type {SessionOptions, StreamOptions, IterateOptions, SessionState};
+export type {
+	SessionOptions,
+	StreamOptions,
+	IterateOptions,
+	SessionState,
+	SessionEvents,
+};
 export {Session};

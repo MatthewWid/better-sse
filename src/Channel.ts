@@ -10,7 +10,7 @@ interface BroadcastOptions {
 	filter?: (session: Session) => boolean;
 }
 
-interface Events extends EventMap {
+interface ChannelEvents extends EventMap {
 	"session-registered": (session: Session) => void;
 	"session-deregistered": (session: Session) => void;
 	"session-disconnected": (session: Session) => void;
@@ -22,7 +22,7 @@ interface Events extends EventMap {
  *
  * It extends from the {@link https://nodejs.org/api/events.html#events_class_eventemitter | EventEmitter} class.
  */
-class Channel extends TypedEmitter<Events> {
+class Channel extends TypedEmitter<ChannelEvents> {
 	private sessions: Session[] = [];
 
 	constructor() {
@@ -107,5 +107,5 @@ class Channel extends TypedEmitter<Events> {
 	};
 }
 
-export type {BroadcastOptions};
+export type {BroadcastOptions, ChannelEvents};
 export {Channel};
