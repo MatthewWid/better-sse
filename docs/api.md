@@ -47,11 +47,13 @@ This is initialized to the last event ID given by the user (in the `Last-Event-I
 
 Indicates whether the session and connection is open or not.
 
-#### `Session#state`: `{}`
+#### `Session#state`: `SessionState`
 
 Custom state for this session.
 
 Use this object to safely store information related to the session and user.
+
+Use [module augmentation](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation) to safely add new properties to the `SessionState` interface.
 
 #### `Session#dispatch`: `() => this`
 

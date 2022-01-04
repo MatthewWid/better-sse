@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Update the [`Channel#broadcast`](#channelbroadcast-data-unknown-eventname-string-options-object--this) method options TypeScript typings to explicitly mandate a `boolean` return-type instead of allowing any truthy or falsy value.
 * Update the arguments for the [`Session#push`](./docs/api.md#sessionpush-data-unknown-eventname-string-eventid-string--this) and [`Channel#broadcast`](#channelbroadcast-data-unknown-eventname-string-options-object--this) methods and their corresponding emitted event callbacks to always have the event data first and event name as an optional argument second.
+* Update the [`Session#state`](./docs/api.md#sessionstate-) generic argument to default to a new `SessionState` interface that can be augmented via [declaration merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html) to override the session state type for all session objects without explicitly providing a generic argument to each reference to `Session`.
 
 ## 0.6.0 - 2021-10-28
 
