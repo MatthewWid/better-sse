@@ -57,13 +57,17 @@ pnpm add better-sse
 
 _Better SSE ships with types built in. No need to install from `@types` for TypeScript users!_
 
-# Basic Usage
+# Usage
 
 The following example shows usage with [Express](http://expressjs.com/), but Better SSE works with any web-server framework (that uses the underlying Node [HTTP module](https://nodejs.org/api/http.html)).
 
 See the [Recipes](./docs/recipes.md) section of the documentation for use with other frameworks and libraries.
 
-```javascript
+---
+
+Use [sessions](./docs/api.md#session) to push events to clients:
+
+```typescript
 // Server
 import {createSession} from "better-sse";
 
@@ -74,7 +78,7 @@ app.get("/sse", async (req, res) => {
 });
 ```
 
-```javascript
+```typescript
 // Client
 const sse = new EventSource("/sse");
 
@@ -83,7 +87,51 @@ sse.addEventListener("message", ({data}) => {
 });
 ```
 
-Check [the API documentation](./docs/api.md) and [live examples](https://github.com/MatthewWid/better-sse/tree/master/examples) for information on getting more fine-tuned control over your data such as managing event IDs, data serialization, streams, dispatch controls and more!
+---
+
+Use [channels](./docs/channels.md) to send events to many clients at once:
+
+```typescript
+import {createSession, createChannel} from "better-sse";
+
+const channel = createChannel();
+
+app.get("/sse", async (req, res) => {
+	const session = await createSession(req, res);
+
+	channel.register(session);
+
+	channel.broadcast("A user has joined.", "join-notification");
+});
+```
+
+---
+
+Loop over sync and async [iterables](./docs/api.md#sessioniterate-iterable-iterable--asynciterable-options-object--promisevoid) and send each value as an event:
+
+```typescript
+const session = await createSession(req, res);
+
+const list = [1, 2, 3];
+
+await session.iterate(list);
+```
+
+---
+
+Pipe [readable stream](#sessionstream-stream-readable-options-object--promiseboolean) data to the client as a stream of events:
+
+```typescript
+const session = await createSession(req, res);
+
+const stream = Readable.from([1, 2, 3]);
+
+await session.stream(stream);
+```
+
+---
+
+Check the [API documentation](./docs/api.md) and [live examples](https://github.com/MatthewWid/better-sse/tree/master/examples) for information on getting more fine-tuned control over your data such as managing event IDs, data serialization, event filtering, dispatch controls and more!
 
 # Documentation
 
