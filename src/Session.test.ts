@@ -163,7 +163,7 @@ describe("connection", () => {
 
 		eventsource = new EventSource(url);
 
-		eventsource.addEventListener("message", (event: MessageEventInit) => {
+		eventsource.addEventListener("message", (event) => {
 			expect(event.data).toBe('123"Hello world"123');
 
 			done();
@@ -190,7 +190,7 @@ describe("connection", () => {
 
 		eventsource = new EventSource(url);
 
-		eventsource.addEventListener("message", (event: MessageEventInit) => {
+		eventsource.addEventListener("message", (event) => {
 			expect(event.data).toBe("sanitized");
 
 			done();
@@ -484,7 +484,7 @@ describe("event ID management", () => {
 
 		eventsource = new EventSource(url);
 
-		eventsource.addEventListener("message", (event: MessageEventInit) => {
+		eventsource.addEventListener("message", (event) => {
 			expect(event.lastEventId).toBe(givenLastId);
 
 			done();
@@ -561,7 +561,7 @@ describe("data writing", () => {
 
 		eventsource.addEventListener(
 			"message",
-			(event: MessageEventInit<string>) => {
+			(event: MessageEvent<string>) => {
 				expect(event.data).toBe(`"${dataToWrite}"`);
 
 				done();
@@ -590,7 +590,7 @@ describe("data writing", () => {
 
 		eventsource.addEventListener(
 			"message",
-			(event: MessageEventInit<string>) => {
+			(event: MessageEvent<string>) => {
 				expect(event.data).toBe(JSON.stringify(dataToWrite));
 
 				done();
@@ -812,7 +812,7 @@ describe("streaming", () => {
 
 		let eventCount = 0;
 
-		eventsource.addEventListener("stream", (event: MessageEventInit) => {
+		eventsource.addEventListener("stream", (event) => {
 			expect(event.data).toBe(dataToWrite[eventCount].toString());
 
 			eventCount++;
