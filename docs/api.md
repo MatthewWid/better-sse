@@ -19,7 +19,7 @@ A Session represents an open connection between the server and the client.
 
 It emits the `connected` event after it has connected and flushed all headers to the client, and the `disconnected` event after client connection has been closed.
 
-#### `new Session(req: IncomingMessage, res: ServerResponse[, options = {}])`
+#### `new Session<State>(req: IncomingMessage, res: ServerResponse[, options = {}])`
 
 `req` is an instance of [IncomingMessage](https://nodejs.org/api/http.html#http_class_http_incomingmessage).
 
@@ -121,7 +121,7 @@ This uses the [`push`](#session%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-
 |-|-|-|-|
 |`eventName`|`string`|`"iteration"`|Event name to use when dispatching a data event from the yielded value to the client.|
 
-### `createSession`: `(ConstructorParameters<typeof Session>) => Promise<Session>`
+### `createSession`: `<State>(ConstructorParameters<typeof Session>) => Promise<Session>`
 
 Creates and returns a promise that resolves to an instance of a [Session](#session) once it has connected.
 
@@ -133,7 +133,13 @@ It takes the [same arguments as the Session class constructor](#new-session(req%
 
 A Channel is used to broadcast events to many sessions at once.
 
-#### `new Channel()`
+#### `new Channel<State>()`
+
+#### `Channel#state`: `State`
+
+Custom state for this channel.
+
+Use this object to safely store information related to the channel.
 
 #### `Channel#activeSessions`: `ReadonlyArray<Session>`
 
@@ -177,7 +183,7 @@ Emits the `broadcast` event with the given data and event name in that order.
 |-|-|-|-|
 |`filter`|`(session: Session) => boolean`||Filter sessions that should receive the event.<br><br>Called with each session and should return `true` to allow the event to be sent and otherwise return `false` to prevent the session from receiving the event.|
 
-### `createChannel`: `(...args: ConstructorParameters<typeof Channel>) => Channel`
+### `createChannel`: `<State>(...args: ConstructorParameters<typeof Channel>) => Channel`
 
 Creates and returns an instance of a [Channel](#channel).
 

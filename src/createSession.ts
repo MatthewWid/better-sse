@@ -1,11 +1,9 @@
-import {Session} from "./Session";
+import {Session, SessionState} from "./Session";
 
 /**
  * Create a new session and return the session instance once it has connected.
  */
-const createSession = <
-	State extends Record<string, unknown> = Record<string, unknown>
->(
+const createSession = <State extends Record<string, unknown> = SessionState>(
 	...args: ConstructorParameters<typeof Session>
 ): Promise<Session<State>> =>
 	new Promise((resolve) => {

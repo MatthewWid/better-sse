@@ -22,7 +22,15 @@ interface ChannelEvents extends EventMap {
  *
  * It extends from the {@link https://nodejs.org/api/events.html#events_class_eventemitter | EventEmitter} class.
  */
-class Channel extends TypedEmitter<ChannelEvents> {
+class Channel<
+	State extends Record<string, unknown> = Record<string, unknown>
+> extends TypedEmitter<ChannelEvents> {
+	/**
+	 * Custom state for this channel.
+	 * Use this object to safely store information related to the channel.
+	 */
+	state = {} as State;
+
 	private sessions: Session[] = [];
 
 	constructor() {
