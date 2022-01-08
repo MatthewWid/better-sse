@@ -177,6 +177,8 @@ Broadcasts an event with the given name and data to every active session subscri
 
 Under the hood this calls the [`push`](#session%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-this-%7C-(data%3A-any)-%3D>-this) method on every active session.
 
+If no event name is given, the event name (type) is set to `"message"`.
+
 Emits the `broadcast` event with the given data and event name in that order.
 
 |`options.`|Type|Default|Description|

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.7.0 - 2022-01-08
+
 ### Added
 
 * Added the ability to the [`Session#push`](./docs/api.md#sessionpush-data-unknown-eventname-string-eventid-string--this) method to set a custom event ID.
@@ -17,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Update the arguments for the [`Session#push`](./docs/api.md#sessionpush-data-unknown-eventname-string-eventid-string--this) and [`Channel#broadcast`](#channelbroadcast-data-unknown-eventname-string-options-object--this) methods and their corresponding emitted event callbacks to always have the event data first and event name as an optional argument second.
 * Update the [`Channel#broadcast`](#channelbroadcast-data-unknown-eventname-string-options-object--this) method options TypeScript typings to explicitly mandate a `boolean` return-type instead of allowing any truthy or falsy value.
+* Update the [`Channel#broadcast`](#channelbroadcast-data-unknown-eventname-string-options-object--this) method event name argument to be optional and default to `"message"` if not given.
 * Update the [`Session#state`](./docs/api.md#sessionstate-) generic argument to default to a new `SessionState` interface that can be augmented via [declaration merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html) to override the session state type for all session objects without explicitly providing a generic argument to each reference to `Session`.
 * Rename the Session and Channel `Events` interfaces to `SessionEvents` and `ChannelEvents` respectively and export them publicly allowing the user to properly type non-inlined event handler callback functions.
 

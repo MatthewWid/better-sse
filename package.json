@@ -1,7 +1,7 @@
 {
 	"name": "better-sse",
 	"description": "Dead simple, dependency-less, spec-compliant server-side events implementation for Node, written in TypeScript.",
-	"version": "0.6.0",
+	"version": "0.7.0",
 	"main": "./build/index.js",
 	"types": "./build/index.d.ts",
 	"license": "MIT",
