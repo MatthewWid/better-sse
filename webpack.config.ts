@@ -1,13 +1,12 @@
 import path from "path";
 import {Configuration} from "webpack";
+import {Options} from "ts-loader";
 
-interface Environment {
-	production: boolean;
-	development: boolean;
-}
-
-const config = (env: Environment): Configuration => ({
+const config = (): Configuration => ({
 	context: path.resolve(__dirname),
+	target: "node",
+	mode: "production",
+	devtool: "source-map",
 	entry: {
 		index: "./src/index.ts",
 	},
@@ -23,15 +22,15 @@ const config = (env: Environment): Configuration => ({
 			{
 				test: /\.ts$/,
 				loader: "ts-loader",
+				options: {
+					configFile: "tsconfig.build.json",
+				} as Options,
 			},
 		],
 	},
-	target: "node",
 	resolve: {
 		extensions: [".ts"],
 	},
-	mode: env.production ? "production" : "development",
-	devtool: env.production ? "source-map" : "eval",
 });
 
 module.exports = config;

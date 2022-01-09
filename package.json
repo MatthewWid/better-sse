@@ -19,13 +19,11 @@
 	],
 	"scripts": {
 		"build": "webpack --env production",
-		"dev": "webpack --env development",
 		"test": "jest",
 		"clean": "rimraf ./build",
 		"format": "prettier --write ./src/**/*.ts",
-		"typedefs": "tsc --emitDeclarationOnly",
 		"lint": "eslint \"./src/**/*.ts\"",
-		"prepublishOnly": "npm-run-all clean format test build typedefs"
+		"prepublishOnly": "npm-run-all clean format test build"
 	},
 	"files": [
 		"build",
