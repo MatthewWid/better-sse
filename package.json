@@ -7,7 +7,7 @@
 	"license": "MIT",
 	"author": "Matthew W. <matthew.widdi@gmail.com>",
 	"repository": "github:MatthewWid/better-sse",
-	"homepage": "https://github.com/MatthewWid/better-sse/blob/master/README.md",
+	"homepage": "https://github.com/MatthewWid/better-sse",
 	"bugs": "https://github.com/MatthewWid/better-sse/issues",
 	"keywords": [
 		"server-sent-events",
