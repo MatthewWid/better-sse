@@ -1,9 +1,9 @@
-import {randomBytes} from "crypto";
 import {Readable} from "stream";
 import {IncomingMessage, ServerResponse, OutgoingHttpHeaders} from "http";
 import {TypedEmitter, EventMap} from "./lib/TypedEmitter";
 import {serialize, SerializerFunction} from "./lib/serialize";
 import {sanitize, SanitizerFunction} from "./lib/sanitize";
+import {generateId} from "./lib/generateId";
 
 interface SessionOptions {
 	/**
@@ -340,7 +340,7 @@ class Session<
 		}
 
 		if (!eventId) {
-			eventId = randomBytes(4).toString("hex");
+			eventId = generateId();
 		}
 
 		this.event(eventName).id(eventId).data(data).dispatch();

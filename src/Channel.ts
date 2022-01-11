@@ -1,4 +1,5 @@
 import {TypedEmitter, EventMap} from "./lib/TypedEmitter";
+import {generateId} from "./lib/generateId";
 import {Session} from "./Session";
 
 interface BroadcastOptions {
@@ -14,7 +15,7 @@ interface ChannelEvents extends EventMap {
 	"session-registered": (session: Session) => void;
 	"session-deregistered": (session: Session) => void;
 	"session-disconnected": (session: Session) => void;
-	broadcast: (data: unknown, eventName: string) => void;
+	broadcast: (data: unknown, eventName: string, eventId: string) => void;
 }
 
 /**
@@ -101,15 +102,17 @@ class Channel<
 			eventName = "message";
 		}
 
+		const eventId = generateId();
+
 		const sessions = options.filter
 			? this.sessions.filter(options.filter)
 			: this.sessions;
 
 		for (const session of sessions) {
-			session.push(data, eventName);
+			session.push(data, eventName, eventId);
 		}
 
-		this.emit("broadcast", data, eventName);
+		this.emit("broadcast", data, eventName, eventId);
 
 		return this;
 	};
