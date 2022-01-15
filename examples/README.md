@@ -14,3 +14,4 @@ This directory showcases examples of using Better SSE.
 -   [Channels](./channels)
 -   [Streams](./streams)
 -   [System Resource Monitor](./resource-monitor)
+-   [Benchmarks](./benchmarks)

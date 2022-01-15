@@ -4,6 +4,8 @@ This section compares Better SSE with other server-sent events libraries for Nod
 
 Better SSE was designed to be the easiest and most powerful library for using server-sent events, better than all other existing solutions.
 
+## Features
+
 TL/DR: Better SSE supports all\* the features that other competing libraries do and much more. It is TypeScript-first (but obviously can be used with JavaScript), very well tested, easier to scale and much more flexible than others whilst *still* having a simpler programming interface for both simple and complex use cases.
 
 |Feature|[`better-sse`](https://www.npmjs.com/package/better-sse)|[`sse-channel`](https://www.npmjs.com/package/sse-channel)|[`sse`](https://www.npmjs.com/package/sse)|[`express-sse`](https://www.npmjs.com/package/express-sse)|[`server-sent-events`](https://www.npmjs.com/package/server-sent-events)|[`easy-server-sent-events`](https://www.npmjs.com/package/easy-server-sent-events)|[`sse-stream`](https://www.npmjs.com/package/sse-stream)|
@@ -23,3 +25,7 @@ TL/DR: Better SSE supports all\* the features that other competing libraries do 
 |Modify response status code|✔|❌|❌|✔|❌|❌|❌|
 
 \* Except event history maintenance... [Coming soon](https://github.com/MatthewWid/better-sse/issues/16)!
+
+## Performance
+
+You can run benchmarks yourself that compare Better SSE with other libraries in the [`benchmarks` project](../examples) in the `examples` directory.
