@@ -1,30 +1,48 @@
-import {Channel} from "./Channel";
+import {Channel, ChannelEvents} from "./Channel";
 import {Session} from "./Session";
 
-interface Event {
-	data: unknown;
-	name: string;
-	id: string;
-}
+type Event = [unknown, string, string];
 
 class History {
 	private idToEvent = new Map<string, Event>();
 	private idToChannel = new Map<string, Channel>();
 	private channelToIds = new Map<Channel, string[]>();
+	private channelToListener = new Map<Channel, ChannelEvents["broadcast"]>();
 
-	get allEvents(): ReadonlyArray<Event> {
+	private addBroadcastListener = (channel: Channel): void => {
+		const listener: ChannelEvents["broadcast"] = (
+			data,
+			eventName,
+			eventId
+		) => {
+			this.addEvent(data, eventName, eventId);
+			this.idToChannel.set(eventId, channel);
+			this.channelToIds.get(channel)?.push(eventId);
+		};
+
+		channel.on("broadcast", listener);
+
+		this.channelToListener.set(channel, listener);
+	};
+
+	private removeBroadcastListener = (channel: Channel): void => {
+		const listener = this.channelToListener.get(channel);
+
+		if (!listener) {
+			return;
+		}
+
+		channel.removeListener("broadcast", listener);
+
+		this.channelToListener.delete(channel);
+	};
+
+	get events(): ReadonlyArray<Event> {
 		return Array.from(this.idToEvent.values());
 	}
 
-	addEvent = (
-		data: unknown,
-		name: string,
-		id: string,
-		channel: Channel
-	): this => {
-		this.idToEvent.set(id, {data, name, id});
-		this.idToChannel.set(id, channel);
-		this.channelToIds.get(channel)?.push(id);
+	addEvent = (data: unknown, name: string, id: string): this => {
+		this.idToEvent.set(id, [data, name, id]);
 
 		return this;
 	};
@@ -32,15 +50,30 @@ class History {
 	register = (channel: Channel): this => {
 		this.channelToIds.set(channel, []);
 
-		channel.on("broadcast", (data, eventName, eventId) => {
-			this.addEvent(data, eventName, eventId, channel);
-		});
+		this.addBroadcastListener(channel);
+
+		return this;
+	};
+
+	deregister = (channel: Channel): this => {
+		const ids = this.channelToIds.get(channel);
+
+		if (ids) {
+			for (const id of ids) {
+				this.idToEvent.delete(id);
+				this.idToChannel.delete(id);
+			}
+		}
+
+		this.channelToIds.delete(channel);
+
+		this.removeBroadcastListener(channel);
 
 		return this;
 	};
 
 	pushSinceLastId = (session: Session): this => {
-		const {lastId} = session;
+		const {lastId, push} = session;
 
 		if (!this.idToEvent.has(lastId)) {
 			return this;
@@ -56,12 +89,12 @@ class History {
 
 		let hasPassedLastEvent = false;
 
-		for (const {data, name, id} of this.idToEvent.values()) {
+		for (const [data, name, id] of this.idToEvent.values()) {
 			if (hasPassedLastEvent) {
 				if (
 					channelsWithSession.has(this.idToChannel.get(id) as Channel)
 				) {
-					session.push(data, name, id);
+					push(data, name, id);
 				}
 			} else if (id === lastId) {
 				hasPassedLastEvent = true;
