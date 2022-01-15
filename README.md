@@ -131,11 +131,11 @@ await session.stream(stream);
 
 ---
 
-Check the [API documentation](./docs/api.md) and [live examples](https://github.com/MatthewWid/better-sse/tree/master/examples) for information on getting more fine-tuned control over your data such as managing event IDs, data serialization, event filtering, dispatch controls and more!
+Check the [API documentation](./docs/api.md) and [live examples](./examples) for information on getting more fine-tuned control over your data such as managing event IDs, data serialization, event filtering, dispatch controls and more!
 
 # Documentation
 
-API documentation, getting started guides and usage with other frameworks is [available on GitHub](https://github.com/MatthewWid/better-sse/tree/master/docs).
+API documentation, getting started guides and usage with other frameworks is [available on GitHub](./docs).
 
 # Contributing
 

@@ -38,5 +38,7 @@ app.get(
 const PORT = process.env.PORT ?? 8080;
 
 app.listen(PORT, () => {
-	console.log(`Listening on http://localhost:${PORT}.`);
+	console.log(
+		`Server listening. Open http://localhost:${PORT} in your browser.`
+	);
 });

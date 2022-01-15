@@ -7,7 +7,7 @@ Feel free to contribute to this documentation the same way you would for the pac
 ## Table of Contents
 
 * [Getting Started](./getting-started.md)
-* [API Documentation](./api.md)
 * [Using Channels](./channels.md)
+* [API Documentation](./api.md)
 * [Recipes](./recipes.md)
 * [Comparison with Other Tools](./comparison.md)
