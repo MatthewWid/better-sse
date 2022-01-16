@@ -230,7 +230,7 @@ describe("broadcasting", () => {
 
 			channel.broadcast(...args);
 
-			expect(push).toHaveBeenCalledWith(...args);
+			expect(push).toHaveBeenCalledWith(...args, expect.any(String));
 
 			done();
 		});
@@ -252,7 +252,11 @@ describe("broadcasting", () => {
 
 			channel.broadcast("data");
 
-			expect(push).toHaveBeenCalledWith("data", "message");
+			expect(push).toHaveBeenCalledWith(
+				"data",
+				"message",
+				expect.any(String)
+			);
 
 			done();
 		});
@@ -276,7 +280,7 @@ describe("broadcasting", () => {
 
 			channel.broadcast(...args);
 
-			expect(callback).toHaveBeenCalledWith(...args);
+			expect(callback).toHaveBeenCalledWith(...args, expect.any(String));
 
 			done();
 		});
