@@ -91,9 +91,9 @@ Create and dispatch an event with the given data all at once.
 
 This is equivalent to calling `.event()`, `.id()`, `.data()` and `.dispatch()` in that order.
 
-If no event name is given, the event name (type) is set to `"message"`.
+If no event name is given, the event name is set to `"message"`.
 
-If no event ID is given, the event ID (and thus the [`lastId` property](#session%23lastid%3A-string)) is set to a string of eight random characters (matching `a-z0-9`).
+If no event ID is given, the event ID (and thus the [`lastId` property](#session%23lastid%3A-string)) is set to a unique string generated using a cryptographic pseudorandom number generator.
 
 Emits the `push` event with the given data, event name and event ID in that order.
 
@@ -177,7 +177,7 @@ Broadcasts an event with the given name and data to every active session subscri
 
 Under the hood this calls the [`push`](#session%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-this-%7C-(data%3A-any)-%3D>-this) method on every active session.
 
-If no event name is given, the event name (type) is set to `"message"`.
+If no event name is given, the event name is set to `"message"`.
 
 Emits the `broadcast` event with the given data, event name and event ID in that order.
 
