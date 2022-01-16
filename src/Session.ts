@@ -327,12 +327,13 @@ class Session<
 	 * Create and dispatch an event with the given data all at once.
 	 * This is equivalent to calling `.event()`, `.id()`, `.data()` and `.dispatch()` in that order.
 	 *
-	 * If no event name is given, the event name (type) is set to `"message"`.
+	 * If no event name is given, the event name is set to `"message"`.
 	 *
-	 * Note that this sets the event ID (and thus the `lastId` property) to a string of eight random characters (`a-z0-9`).
+	 * If no event ID is given, the event ID (and thus the `lastid` property) is set to a unique string generated using a cryptographic pseudorandom number generator.
 	 *
 	 * @param data - Data to write.
 	 * @param eventName - Event name to write.
+	 * @param eventId - Event ID to write.
 	 */
 	push = (data: unknown, eventName?: string, eventId?: string): this => {
 		if (!eventName) {

@@ -1,5 +1,11 @@
-import {randomBytes} from "crypto";
+import {randomUUID, randomBytes} from "crypto";
 
-const generateId = (): string => randomBytes(4).toString("hex");
+let generateId: () => string;
+
+if (randomUUID) {
+	generateId = () => randomUUID();
+} else {
+	generateId = () => randomBytes(4).toString("hex");
+}
 
 export {generateId};
