@@ -1,7 +1,11 @@
 import {Channel, ChannelEvents} from "./Channel";
 import {Session} from "./Session";
 
-type HistoryEvent = readonly [unknown, string, string];
+interface HistoryEvent {
+	data: unknown;
+	name: string;
+	id: string;
+}
 
 class History {
 	private idToEvent = new Map<string, HistoryEvent>();
@@ -41,7 +45,7 @@ class History {
 		eventId: string,
 		channel?: Channel
 	): this => {
-		this.idToEvent.set(eventId, [data, eventName, eventId]);
+		this.idToEvent.set(eventId, {data, name: eventName, id: eventId});
 
 		if (channel) {
 			if (!this.channelToIds.has(channel)) {
@@ -117,7 +121,7 @@ class History {
 
 		let hasPassedLastEvent = false;
 
-		for (const [data, name, id] of this.idToEvent.values()) {
+		for (const {data, name, id} of this.idToEvent.values()) {
 			if (hasPassedLastEvent) {
 				if (
 					channelsWithSession.has(this.idToChannel.get(id) as Channel)
