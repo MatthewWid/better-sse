@@ -1,12 +1,12 @@
 import {Channel, ChannelEvents} from "./Channel";
 import {Session} from "./Session";
 
-type Event = [unknown, string, string];
+type HistoryEvent = readonly [unknown, string, string];
 
 class History {
-	private idToEvent = new Map<string, Event>();
+	private idToEvent = new Map<string, HistoryEvent>();
 	private idToChannel = new Map<string, Channel>();
-	private channelToIds = new Map<Channel, string[]>();
+	private channelToIds = new Map<Channel, Set<string>>();
 	private channelToListener = new Map<Channel, ChannelEvents["broadcast"]>();
 
 	private addBroadcastListener = (channel: Channel): void => {
@@ -15,9 +15,7 @@ class History {
 			eventName,
 			eventId
 		) => {
-			this.addEvent(data, eventName, eventId);
-			this.idToChannel.set(eventId, channel);
-			this.channelToIds.get(channel)?.push(eventId);
+			this.addEvent(data, eventName, eventId, channel);
 		};
 
 		channel.on("broadcast", listener);
@@ -37,18 +35,48 @@ class History {
 		this.channelToListener.delete(channel);
 	};
 
-	get events(): ReadonlyArray<Event> {
-		return Array.from(this.idToEvent.values());
-	}
+	addEvent = (
+		data: unknown,
+		eventName: string,
+		eventId: string,
+		channel?: Channel
+	): this => {
+		this.idToEvent.set(eventId, [data, eventName, eventId]);
 
-	addEvent = (data: unknown, name: string, id: string): this => {
-		this.idToEvent.set(id, [data, name, id]);
+		if (channel) {
+			if (!this.channelToIds.has(channel)) {
+				this.register(channel);
+			}
+
+			this.idToChannel.set(eventId, channel);
+			(this.channelToIds.get(channel) as Set<string>).add(eventId);
+		}
 
 		return this;
 	};
 
+	removeEvent = (eventId: string): this => {
+		this.idToEvent.delete(eventId);
+
+		const channel = this.idToChannel.get(eventId);
+
+		if (channel) {
+			this.idToChannel.delete(eventId);
+			(this.channelToIds.get(channel) as Set<string>).delete(eventId);
+		}
+
+		return this;
+	};
+
+	get events(): ReadonlyArray<HistoryEvent> {
+		return Array.from(this.idToEvent.values());
+	}
+
+	getEvent = (id: string): HistoryEvent | null =>
+		this.idToEvent.get(id) ?? null;
+
 	register = (channel: Channel): this => {
-		this.channelToIds.set(channel, []);
+		this.channelToIds.set(channel, new Set());
 
 		this.addBroadcastListener(channel);
 
@@ -105,4 +133,5 @@ class History {
 	};
 }
 
+export type {HistoryEvent};
 export {History};
