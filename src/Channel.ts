@@ -32,7 +32,7 @@ class Channel<
 	 */
 	state = {} as State;
 
-	private sessions: Session[] = [];
+	private sessions = new Set<Session>();
 
 	constructor() {
 		super();
@@ -42,14 +42,14 @@ class Channel<
 	 * List of the currently active sessions subscribed to this channel.
 	 */
 	get activeSessions(): ReadonlyArray<Session> {
-		return this.sessions;
+		return Array.from(this.sessions);
 	}
 
 	/**
 	 * Number of sessions subscribed to this channel.
 	 */
 	get sessionCount(): number {
-		return this.sessions.length;
+		return this.sessions.size;
 	}
 
 	/**
@@ -68,7 +68,7 @@ class Channel<
 			this.emit("session-disconnected", session);
 		});
 
-		this.sessions.push(session);
+		this.sessions.add(session);
 
 		this.emit("session-registered", session);
 
@@ -81,7 +81,7 @@ class Channel<
 	 * @param session - Session to deregister.
 	 */
 	deregister(session: Session): this {
-		this.sessions = this.sessions.filter((current) => current !== session);
+		this.sessions.delete(session);
 
 		this.emit("session-deregistered", session);
 
@@ -105,7 +105,7 @@ class Channel<
 		const eventId = generateId();
 
 		const sessions = options.filter
-			? this.sessions.filter(options.filter)
+			? Array.from(this.sessions).filter(options.filter)
 			: this.sessions;
 
 		for (const session of sessions) {
