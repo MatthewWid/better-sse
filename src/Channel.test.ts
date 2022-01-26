@@ -103,6 +103,29 @@ describe("registering", () => {
 		eventsource = new EventSource(url);
 	});
 
+	it("does not emit a registration event if the session is already registered", (done) => {
+		const channel = new Channel();
+
+		const callback = jest.fn();
+
+		channel.on("session-registered", callback);
+
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			await waitForConnect(session);
+
+			channel.register(session);
+			channel.register(session);
+
+			expect(callback).toHaveBeenCalledTimes(1);
+
+			done();
+		});
+
+		eventsource = new EventSource(url);
+	});
+
 	it("removes a session from the active sessions after deregistering it", (done) => {
 		const channel = new Channel();
 
@@ -145,6 +168,28 @@ describe("registering", () => {
 
 			expect(deregisterCallback).toHaveBeenCalledWith(session);
 			expect(disconnectedCallback).not.toHaveBeenCalled();
+
+			done();
+		});
+
+		eventsource = new EventSource(url);
+	});
+
+	it("does not emit a deregistration event if the session was not registered to begin with", (done) => {
+		const channel = new Channel();
+
+		const callback = jest.fn();
+
+		channel.on("session-deregistered", callback);
+
+		server.on("request", async (req, res) => {
+			const session = new Session(req, res);
+
+			await waitForConnect(session);
+
+			channel.deregister(session);
+
+			expect(callback).not.toHaveBeenCalled();
 
 			done();
 		});

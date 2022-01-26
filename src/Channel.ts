@@ -55,9 +55,15 @@ class Channel<
 	/**
 	 * Register a session so that it can start receiving events from this channel.
 	 *
+	 * If the session is already registered this method does nothing.
+	 *
 	 * @param session - Session to register.
 	 */
 	register(session: Session): this {
+		if (this.sessions.has(session)) {
+			return this;
+		}
+
 		if (!session.isConnected) {
 			throw new Error("Cannot register a non-active session.");
 		}
@@ -78,9 +84,15 @@ class Channel<
 	/**
 	 * Deregister a session so that it no longer receives events from this channel.
 	 *
+	 * If the session was not registered to begin with this method does nothing.
+	 *
 	 * @param session - Session to deregister.
 	 */
 	deregister(session: Session): this {
+		if (!this.sessions.has(session)) {
+			return this
+		}
+
 		this.sessions.delete(session);
 
 		this.emit("session-deregistered", session);
