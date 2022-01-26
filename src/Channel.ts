@@ -63,9 +63,9 @@ class Channel<
 		}
 
 		session.once("disconnected", () => {
-			this.deregister(session);
-
 			this.emit("session-disconnected", session);
+
+			this.deregister(session);
 		});
 
 		this.sessions.add(session);

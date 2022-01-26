@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 * Update the [`Channel#broadcast`](#channelbroadcast-data-unknown-eventname-string-options-object--this) method to generate its own custom event ID and thus add it as an additional argument to its `broadcast` event callback function.
+* Update the Channel `session-disconnected` event to be fired *before* the session is deregistered.
 
 ## 0.7.1 - 2022-01-11
 
