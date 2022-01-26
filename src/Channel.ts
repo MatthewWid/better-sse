@@ -32,7 +32,7 @@ class Channel<
 	 */
 	state = {} as State;
 
-	private sessions: Session[] = [];
+	private sessions = new Set<Session>();
 
 	constructor() {
 		super();
@@ -42,33 +42,39 @@ class Channel<
 	 * List of the currently active sessions subscribed to this channel.
 	 */
 	get activeSessions(): ReadonlyArray<Session> {
-		return this.sessions;
+		return Array.from(this.sessions);
 	}
 
 	/**
 	 * Number of sessions subscribed to this channel.
 	 */
 	get sessionCount(): number {
-		return this.sessions.length;
+		return this.sessions.size;
 	}
 
 	/**
 	 * Register a session so that it can start receiving events from this channel.
 	 *
+	 * If the session is already registered this method does nothing.
+	 *
 	 * @param session - Session to register.
 	 */
 	register(session: Session): this {
+		if (this.sessions.has(session)) {
+			return this;
+		}
+
 		if (!session.isConnected) {
 			throw new Error("Cannot register a non-active session.");
 		}
 
 		session.once("disconnected", () => {
-			this.deregister(session);
-
 			this.emit("session-disconnected", session);
+
+			this.deregister(session);
 		});
 
-		this.sessions.push(session);
+		this.sessions.add(session);
 
 		this.emit("session-registered", session);
 
@@ -78,10 +84,16 @@ class Channel<
 	/**
 	 * Deregister a session so that it no longer receives events from this channel.
 	 *
+	 * If the session was not registered to begin with this method does nothing.
+	 *
 	 * @param session - Session to deregister.
 	 */
 	deregister(session: Session): this {
-		this.sessions = this.sessions.filter((current) => current !== session);
+		if (!this.sessions.has(session)) {
+			return this
+		}
+
+		this.sessions.delete(session);
 
 		this.emit("session-deregistered", session);
 
@@ -105,7 +117,7 @@ class Channel<
 		const eventId = generateId();
 
 		const sessions = options.filter
-			? this.sessions.filter(options.filter)
+			? Array.from(this.sessions).filter(options.filter)
 			: this.sessions;
 
 		for (const session of sessions) {

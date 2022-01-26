@@ -161,6 +161,8 @@ Note that a session must be [connected](#session%23isconnected%3A-boolean) befor
 
 Fires the `session-registered` event with the registered session as its first argument.
 
+If the session was already to begin with this method does nothing.
+
 #### `Channel#deregister`: `(session: Session) => this`
 
 Deregister a session so that it no longer receives events from this channel.
@@ -170,6 +172,8 @@ Note that sessions are automatically deregistered when they are disconnected.
 Fires the `session-deregistered` event with the session as its first argument.
 
 If the session was disconnected the channel will also fire the `session-disconnected` event with the disconnected session as its first argument beforehand.
+
+If the session was not registered to begin with this method does nothing.
 
 #### `Channel#broadcast`: `(data: unknown[, eventName: string[, options: object]]) => this`
 
