@@ -1,14 +1,34 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 import express from "express";
 import EventSource from "eventsource";
 import {Suite, Options} from "benchmark";
 import {createSession, createChannel} from "better-sse";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import SseChannel from "sse-channel";
 
-const options: Options = {
-	minSamples: 100,
+const createClientPool = async (port: number): Promise<() => void> => {
+	const sources = new Set<EventSource>();
+	const listeners = new Set<Promise<unknown>>();
+
+	for (let index = 0; index < 10; ++index) {
+		const eventsource = new EventSource(`http://localhost:${port}`);
+		const listener = new Promise((resolve) =>
+			eventsource.addEventListener("open", resolve)
+		);
+
+		sources.add(eventsource);
+		listeners.add(listener);
+	}
+
+	await Promise.all(listeners);
+
+	return () => {
+		sources.forEach((eventsource) => eventsource.close());
+	};
 };
+
+const options: Options = {};
 
 (async () => {
 	const name = "Push events with channels.";
@@ -36,14 +56,6 @@ const options: Options = {
 			const port = 8000;
 			const channel = createChannel();
 
-			suite.add(
-				"better-sse",
-				() => {
-					channel.broadcast(++count);
-				},
-				options
-			);
-
 			server.get("/", async (req, res) => {
 				const session = await createSession(req, res);
 
@@ -52,10 +64,17 @@ const options: Options = {
 
 			await new Promise<void>((resolve) => server.listen(port, resolve));
 
-			new EventSource(`http://localhost:${port}`);
+			const finished = await createClientPool(port);
 
-			await new Promise((resolve) =>
-				channel.once("session-registered", resolve)
+			suite.add(
+				"better-sse",
+				() => {
+					channel.broadcast(++count);
+				},
+				{
+					...options,
+					onComplete: finished,
+				}
 			);
 		})(),
 		(async () => {
@@ -63,6 +82,14 @@ const options: Options = {
 			const server = express();
 			const port = 8010;
 			const channel = new SseChannel({jsonEncode: true});
+
+			server.get("/", (req, res) => {
+				channel.addClient(req, res);
+			});
+
+			await new Promise<void>((resolve) => server.listen(port, resolve));
+
+			const finished = await createClientPool(port);
 
 			suite.add(
 				"sse-channel",
@@ -75,18 +102,11 @@ const options: Options = {
 						id: count,
 					});
 				},
-				options
+				{
+					...options,
+					onComplete: finished,
+				}
 			);
-
-			server.get("/", (req, res) => {
-				channel.addClient(req, res);
-			});
-
-			await new Promise<void>((resolve) => server.listen(port, resolve));
-
-			new EventSource(`http://localhost:${port}`);
-
-			await new Promise((resolve) => channel.once("connect", resolve));
 		})(),
 	]);
 
