@@ -90,7 +90,7 @@ class Channel<
 	 */
 	deregister(session: Session): this {
 		if (!this.sessions.has(session)) {
-			return this
+			return this;
 		}
 
 		this.sessions.delete(session);
@@ -116,9 +116,13 @@ class Channel<
 
 		const eventId = generateId();
 
-		const sessions = options.filter
-			? Array.from(this.sessions).filter(options.filter)
-			: this.sessions;
+		let sessions: Iterable<Session>;
+
+		if (options.filter) {
+			sessions = Array.from(this.sessions).filter(options.filter);
+		} else {
+			sessions = this.sessions;
+		}
 
 		for (const session of sessions) {
 			session.push(data, eventName, eventId);

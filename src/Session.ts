@@ -288,7 +288,7 @@ class Session<
 	 * @param id - Identification string to write.
 	 */
 	id = (id: string | null): this => {
-		const stringifed = id ? id : "";
+		const stringifed = id ?? "";
 
 		this.writeField("id", stringifed);
 
