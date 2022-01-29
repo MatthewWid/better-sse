@@ -2,9 +2,9 @@ import {Channel, ChannelEvents} from "./Channel";
 import {Session} from "./Session";
 
 interface HistoryEvent {
-	data: unknown;
-	name: string;
-	id: string;
+	readonly data: unknown;
+	readonly name: string;
+	readonly id: string;
 }
 
 class History {
@@ -39,6 +39,12 @@ class History {
 		this.channelToListener.delete(channel);
 	};
 
+	getEvents = (): ReadonlyArray<HistoryEvent> =>
+		Array.from(this.idToEvent.values());
+
+	getEvent = (id: string): HistoryEvent | null =>
+		this.idToEvent.get(id) ?? null;
+
 	addEvent = (
 		data: unknown,
 		eventName: string,
@@ -71,13 +77,6 @@ class History {
 
 		return this;
 	};
-
-	get events(): ReadonlyArray<HistoryEvent> {
-		return Array.from(this.idToEvent.values());
-	}
-
-	getEvent = (id: string): HistoryEvent | null =>
-		this.idToEvent.get(id) ?? null;
 
 	register = (channel: Channel): this => {
 		this.channelToIds.set(channel, new Set());
