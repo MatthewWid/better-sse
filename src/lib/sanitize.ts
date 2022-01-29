@@ -2,14 +2,18 @@ interface SanitizerFunction {
 	(text: string): string;
 }
 
+const newlineVariantsRegex = /(\r\n|\r|\n)/g;
+
+const newlineTrailingRegex = /\n+$/g;
+
 const sanitize: SanitizerFunction = (text) => {
 	let sanitized = text;
 
 	// Standardize newlines
-	sanitized = sanitized.replace(/(\r\n|\r|\n)/g, "\n");
+	sanitized = sanitized.replace(newlineVariantsRegex, "\n");
 
 	// Strip trailing newlines
-	sanitized = sanitized.replace(/\n+$/g, "");
+	sanitized = sanitized.replace(newlineTrailingRegex, "");
 
 	return sanitized;
 };
