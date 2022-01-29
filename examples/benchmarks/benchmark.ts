@@ -1,9 +1,14 @@
-import express, {Express} from "express";
+import express from "express";
 import EventSource from "eventsource";
-import {Suite} from "benchmark";
+import {Suite, Options} from "benchmark";
 import {createSession, createChannel} from "better-sse";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import SseChannel from "sse-channel";
+
+const options: Options = {
+	minSamples: 100,
+};
 
 (async () => {
 	const name = "Push events with channels.";
@@ -27,15 +32,17 @@ import SseChannel from "sse-channel";
 	await Promise.all([
 		(async () => {
 			let count = 0;
-			let server: Express;
+			const server = express();
 			const port = 8000;
 			const channel = createChannel();
 
-			suite.add("better-sse", () => {
-				channel.broadcast(++count);
-			});
-
-			server = express();
+			suite.add(
+				"better-sse",
+				() => {
+					channel.broadcast(++count);
+				},
+				options
+			);
 
 			server.get("/", async (req, res) => {
 				const session = await createSession(req, res);
@@ -53,21 +60,23 @@ import SseChannel from "sse-channel";
 		})(),
 		(async () => {
 			let count = 0;
-			let server: Express;
+			const server = express();
 			const port = 8010;
 			const channel = new SseChannel({jsonEncode: true});
 
-			suite.add("sse-channel", () => {
-				++count;
+			suite.add(
+				"sse-channel",
+				() => {
+					++count;
 
-				channel.send({
-					event: "message",
-					data: count,
-					id: count,
-				});
-			});
-
-			server = express();
+					channel.send({
+						event: "message",
+						data: count,
+						id: count,
+					});
+				},
+				options
+			);
 
 			server.get("/", (req, res) => {
 				channel.addClient(req, res);

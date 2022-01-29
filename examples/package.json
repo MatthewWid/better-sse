@@ -5,7 +5,7 @@
 	"license": "MIT",
 	"scripts": {
 		"dev": "ts-node-dev --watch ./index.js --respawn $INIT_CWD/index.ts",
-		"start": "ts-node $INIT_CWD/index.ts"
+		"start": "node -r ts-node/register --max-old-space-size=3059 $INIT_CWD/index.ts"
 	},
 	"dependencies": {
 		"benchmark": "^2.1.4",
