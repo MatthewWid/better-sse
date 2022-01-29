@@ -6,6 +6,8 @@ import {Suite, Options} from "benchmark";
 import {createSession, createChannel} from "better-sse";
 // @ts-ignore
 import SseChannel from "sse-channel";
+// @ts-ignore
+import EasySse from "easy-server-sent-events";
 
 const createClientPool = async (port: number): Promise<() => void> => {
 	const sources = new Set<EventSource>();
@@ -106,6 +108,32 @@ const options: Options = {};
 					...options,
 					onComplete: finished,
 				}
+			);
+		})(),
+		(async () => {
+			let count = 0;
+			const server = express();
+			const port = 8020;
+
+			const {SSE, send} = EasySse({endpoint: "/"});
+
+			server.get("/", (req, res, next) => {
+				SSE(req, res, next);
+				res.flushHeaders();
+			});
+
+			await new Promise<void>((resolve) => server.listen(port, resolve));
+
+			const finished = await createClientPool(port);
+
+			suite.add(
+				"easy-server-sent-events",
+				() => {
+					++count;
+
+					send("all", "message", count);
+				},
+				{...options, onComplete: finished}
 			);
 		})(),
 	]);
