@@ -1,34 +1,13 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
 import express from "express";
-import EventSource from "eventsource";
 import {Suite, Options} from "benchmark";
 import {createSession, createChannel} from "better-sse";
 // @ts-ignore
 import SseChannel from "sse-channel";
 // @ts-ignore
 import EasySse from "easy-server-sent-events";
-
-const createClientPool = async (port: number): Promise<() => void> => {
-	const sources = new Set<EventSource>();
-	const listeners = new Set<Promise<unknown>>();
-
-	for (let index = 0; index < 10; ++index) {
-		const eventsource = new EventSource(`http://localhost:${port}`);
-		const listener = new Promise((resolve) =>
-			eventsource.addEventListener("open", resolve)
-		);
-
-		sources.add(eventsource);
-		listeners.add(listener);
-	}
-
-	await Promise.all(listeners);
-
-	return () => {
-		sources.forEach((eventsource) => eventsource.close());
-	};
-};
+import {createClientPool} from "./lib/createClientPool";
 
 const options: Options = {};
 
@@ -66,7 +45,7 @@ const options: Options = {};
 
 			await new Promise<void>((resolve) => server.listen(port, resolve));
 
-			const finished = await createClientPool(port);
+			const finished = await createClientPool({port});
 
 			suite.add(
 				"better-sse",
@@ -91,7 +70,7 @@ const options: Options = {};
 
 			await new Promise<void>((resolve) => server.listen(port, resolve));
 
-			const finished = await createClientPool(port);
+			const finished = await createClientPool({port});
 
 			suite.add(
 				"sse-channel",
@@ -124,7 +103,7 @@ const options: Options = {};
 
 			await new Promise<void>((resolve) => server.listen(port, resolve));
 
-			const finished = await createClientPool(port);
+			const finished = await createClientPool({port});
 
 			suite.add(
 				"easy-server-sent-events",
