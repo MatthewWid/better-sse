@@ -287,12 +287,10 @@ class Session<
 	 *
 	 * @param id - Identification string to write.
 	 */
-	id = (id: string | null): this => {
-		const stringifed = id ?? "";
+	id = (id = ""): this => {
+		this.writeField("id", id);
 
-		this.writeField("id", stringifed);
-
-		this.lastId = stringifed;
+		this.lastId = id;
 
 		return this;
 	};
@@ -317,8 +315,8 @@ class Session<
 	 *
 	 * @param text - Text of the comment. Otherwise writes an empty field value.
 	 */
-	comment = (text?: string): this => {
-		this.writeField("", text ?? "");
+	comment = (text = ""): this => {
+		this.writeField("", text);
 
 		return this;
 	};
@@ -335,15 +333,11 @@ class Session<
 	 * @param eventName - Event name to write.
 	 * @param eventId - Event ID to write.
 	 */
-	push = (data: unknown, eventName?: string, eventId?: string): this => {
-		if (!eventName) {
-			eventName = "message";
-		}
-
-		if (!eventId) {
-			eventId = generateId();
-		}
-
+	push = (
+		data: unknown,
+		eventName = "message",
+		eventId = generateId()
+	): this => {
 		this.event(eventName).id(eventId).data(data).dispatch();
 
 		this.emit("push", data, eventName, eventId);

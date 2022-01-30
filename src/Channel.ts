@@ -107,13 +107,9 @@ class Channel<
 	 */
 	broadcast = (
 		data: unknown,
-		eventName?: string,
+		eventName = "message",
 		options: BroadcastOptions = {}
 	): this => {
-		if (!eventName) {
-			eventName = "message";
-		}
-
 		const eventId = generateId();
 
 		let sessions: Iterable<Session>;
