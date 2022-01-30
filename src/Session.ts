@@ -283,7 +283,7 @@ class Session<
 	/**
 	 * Set the event ID to the given string.
 	 *
-	 * Passing `null` will set the event ID to an empty string value.
+	 * Defaults to an empty string if no argument is given.
 	 *
 	 * @param id - Identification string to write.
 	 */

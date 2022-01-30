@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Fixed the Channel `session-disconnected` being fired after instead of before the session is deregistered.
 
+### Removed
+
+* Removed the ability to pass `null` to [`Session#id`](./docs/api.md#sessionid-id-string--this). Give no arguments at all instead.
+
 ## 0.7.1 - 2022-01-11
 
 ### Fixed

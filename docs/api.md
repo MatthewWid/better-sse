@@ -69,17 +69,17 @@ Write arbitrary data onto the wire.
 
 The given value is automatically serialized to a string using the `serializer` function which defaults to [JSON stringification](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
 
-#### `Session#id`: `(id: string | null) => this`
+#### `Session#id`: `([id: string]) => this`
 
 Set the event ID to the given string.
 
-Passing `null` will set the event ID to an empty string value.
+Defaults to an empty string if no argument is given.
 
 #### `Session#retry`: `(time: number) => this`
 
 Set the suggested reconnection time to the given milliseconds.
 
-#### `Session#comment`: `(text: string) => this`
+#### `Session#comment`: `([text: string]) => this`
 
 Write a comment (an ignored field).
 

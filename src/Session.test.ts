@@ -498,7 +498,7 @@ describe("event ID management", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.id(null);
+				session.id();
 
 				expect(write).toHaveBeenLastCalledWith("id:\n");
 				expect(session.lastId).toBe("");
