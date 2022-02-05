@@ -13,5 +13,6 @@ This directory showcases examples of using Better SSE.
 -   [Getting Started](./getting-started)
 -   [Channels](./channels)
 -   [Streams](./streams)
+-   [HTTP/2](./http2)
 -   [System Resource Monitor](./resource-monitor)
 -   [Benchmarks](./benchmarks)
