@@ -215,9 +215,14 @@ class Session<
 			headers[name] = value ?? "";
 		});
 
-		headers["Content-Type"] = "text/event-stream";
-		headers["Cache-Control"] = "no-cache, no-transform";
-		headers["Connection"] = "keep-alive";
+		if (this.res instanceof Http1ServerResponse) {
+			headers["Content-Type"] = "text/event-stream";
+			headers["Cache-Control"] = "no-cache, no-transform";
+			headers["Connection"] = "keep-alive";
+		} else {
+			headers["content-type"] = "text/event-stream";
+			headers["cache-control"] = "no-cache, no-transform";
+		}
 
 		this.res.writeHead(this.statusCode, headers);
 
