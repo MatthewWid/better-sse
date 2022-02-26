@@ -13,32 +13,6 @@ class History {
 	private channelToIds = new Map<Channel, Set<string>>();
 	private channelToListener = new Map<Channel, ChannelEvents["broadcast"]>();
 
-	private addBroadcastListener = (channel: Channel): void => {
-		const listener: ChannelEvents["broadcast"] = (
-			data,
-			eventName,
-			eventId
-		) => {
-			this.addEvent(data, eventName, eventId, channel);
-		};
-
-		channel.on("broadcast", listener);
-
-		this.channelToListener.set(channel, listener);
-	};
-
-	private removeBroadcastListener = (channel: Channel): void => {
-		const listener = this.channelToListener.get(channel);
-
-		if (!listener) {
-			return;
-		}
-
-		channel.removeListener("broadcast", listener);
-
-		this.channelToListener.delete(channel);
-	};
-
 	getEvents = (): ReadonlyArray<HistoryEvent> =>
 		Array.from(this.idToEvent.values());
 
@@ -81,7 +55,17 @@ class History {
 	register = (channel: Channel): this => {
 		this.channelToIds.set(channel, new Set());
 
-		this.addBroadcastListener(channel);
+		const listener: ChannelEvents["broadcast"] = (
+			data,
+			eventName,
+			eventId
+		) => {
+			this.addEvent(data, eventName, eventId, channel);
+		};
+
+		channel.on("broadcast", listener);
+
+		this.channelToListener.set(channel, listener);
 
 		return this;
 	};
@@ -98,7 +82,13 @@ class History {
 
 		this.channelToIds.delete(channel);
 
-		this.removeBroadcastListener(channel);
+		const listener = this.channelToListener.get(channel);
+
+		if (listener) {
+			channel.removeListener("broadcast", listener);
+
+			this.channelToListener.delete(channel);
+		}
 
 		return this;
 	};
