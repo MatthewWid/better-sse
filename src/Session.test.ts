@@ -4,7 +4,7 @@ import {Readable} from "stream";
 import {serialize, SerializerFunction} from "./lib/serialize";
 import {SanitizerFunction} from "./lib/sanitize";
 import {
-	createServer,
+	createHttpServer,
 	closeServer,
 	getUrl,
 	waitForConnect,
@@ -16,7 +16,7 @@ let url: string;
 let eventsource: EventSource;
 
 beforeEach(async () => {
-	server = await createServer();
+	server = await createHttpServer();
 
 	url = getUrl(server);
 });
@@ -32,6 +32,12 @@ afterEach(async () => {
 });
 
 describe("connection", () => {
+	const defaultHeaders: http.OutgoingHttpHeaders = {
+		"Content-Type": "text/event-stream",
+		"Cache-Control": "no-cache, no-transform",
+		Connection: "keep-alive",
+	};
+
 	it("constructs without errors when giving no options", (done) => {
 		server.on("request", (req, res) => {
 			expect(() => {
@@ -114,16 +120,12 @@ describe("connection", () => {
 
 	it("returns the correct response status code and headers", (done) => {
 		server.on("request", (req, res) => {
+			const writeHead = jest.spyOn(res, "writeHead");
+
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				expect(res.statusCode).toBe(200);
-				expect(res.headersSent).toBeTruthy();
-				expect(res.getHeader("Content-Type")).toBe("text/event-stream");
-				expect(res.getHeader("Cache-Control")).toBe(
-					"no-cache, no-transform"
-				);
-				expect(res.getHeader("Connection")).toBe("keep-alive");
+				expect(writeHead).toHaveBeenCalledWith(200, defaultHeaders);
 
 				done();
 			});
@@ -204,12 +206,16 @@ describe("connection", () => {
 		};
 
 		server.on("request", (req, res) => {
+			const writeHead = jest.spyOn(res, "writeHead");
+
 			const session = new Session(req, res, {
 				headers: additionalHeaders,
 			});
 
 			session.on("connected", () => {
-				expect(res.getHeaders()).toMatchObject(additionalHeaders);
+				const sentHeaders = writeHead.mock.calls[0][1];
+
+				expect(sentHeaders).toMatchObject(additionalHeaders);
 
 				done();
 			});
@@ -224,12 +230,16 @@ describe("connection", () => {
 		};
 
 		server.on("request", (req, res) => {
+			const writeHead = jest.spyOn(res, "writeHead");
+
 			const session = new Session(req, res, {
 				headers: additionalHeaders,
 			});
 
 			session.on("connected", () => {
-				expect(res.getHeaders()).toMatchObject({
+				const sentHeaders = writeHead.mock.calls[0][1];
+
+				expect(sentHeaders).toMatchObject({
 					"x-test-header-1": "",
 				});
 

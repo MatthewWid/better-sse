@@ -1,6 +1,6 @@
 import http from "http";
 import EventSource from "eventsource";
-import {createServer, closeServer, getUrl} from "./lib/testUtils";
+import {createHttpServer, closeServer, getUrl} from "./lib/testUtils";
 import {Session} from "./Session";
 import {createSession} from "./createSession";
 
@@ -9,7 +9,7 @@ let url: string;
 let eventsource: EventSource;
 
 beforeEach(async () => {
-	server = await createServer();
+	server = await createHttpServer();
 
 	url = getUrl(server);
 });
