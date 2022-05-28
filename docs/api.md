@@ -19,11 +19,11 @@ A Session represents an open connection between the server and the client.
 
 It emits the `connected` event after it has connected and flushed all headers to the client, and the `disconnected` event after client connection has been closed.
 
-#### `new Session<State>(req: IncomingMessage, res: ServerResponse[, options = {}])`
+#### `new Session<State>(req: IncomingMessage | Http2ServerRequest, res: ServerResponse | Http2ServerResponse[, options = {}])`
 
-`req` is an instance of [IncomingMessage](https://nodejs.org/api/http.html#http_class_http_incomingmessage).
+`req` is an instance of [IncomingMessage](https://nodejs.org/api/http.html#http_class_http_incomingmessage) or [Http2ServerRequest](https://nodejs.org/api/http2.html#class-http2http2serverrequest).
 
-`res` is an instance of [ServerResponse](https://nodejs.org/api/http.html#http_class_http_serverresponse).
+`res` is an instance of [ServerResponse](https://nodejs.org/api/http.html#http_class_http_serverresponse) or [Http2ServerResponse](https://nodejs.org/api/http2.html#class-http2http2serverresponse).
 
 `options` is an object with the following properties:
 
