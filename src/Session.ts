@@ -1,5 +1,10 @@
 import {Readable} from "stream";
-import {IncomingMessage, ServerResponse, OutgoingHttpHeaders} from "http";
+import {
+	IncomingMessage as Http1ServerRequest,
+	ServerResponse as Http1ServerResponse,
+	OutgoingHttpHeaders,
+} from "http";
+import {Http2ServerRequest, Http2ServerResponse} from "http2";
 import {TypedEmitter, EventMap} from "./lib/TypedEmitter";
 import {serialize, SerializerFunction} from "./lib/serialize";
 import {sanitize, SanitizerFunction} from "./lib/sanitize";
@@ -136,8 +141,19 @@ class Session<
 	 */
 	state = {} as State;
 
-	private req: IncomingMessage;
-	private res: ServerResponse;
+	/**
+	 * Raw HTTP request.
+	 */
+	private req: Http1ServerRequest | Http2ServerRequest;
+
+	/**
+	 * Raw HTTP response that is the minimal interface needed and forms the
+	 * intersection between the HTTP/1.1 and HTTP/2 server response interfaces.
+	 */
+	private res: {
+		writeHead: (statusCode: number, headers: OutgoingHttpHeaders) => void;
+		write: (chunk: string) => void;
+	};
 
 	private serialize: SerializerFunction;
 	private sanitize: SanitizerFunction;
@@ -149,8 +165,8 @@ class Session<
 	private headers: OutgoingHttpHeaders;
 
 	constructor(
-		req: IncomingMessage,
-		res: ServerResponse,
+		req: Http1ServerRequest | Http2ServerRequest,
+		res: Http1ServerResponse | Http2ServerResponse,
 		options: SessionOptions = {}
 	) {
 		super();
@@ -159,16 +175,23 @@ class Session<
 		this.res = res;
 
 		this.serialize = options.serializer ?? serialize;
+
 		this.sanitize = options.sanitizer ?? sanitize;
+
 		this.trustClientEventId = options.trustClientEventId ?? true;
+
 		this.initialRetry =
 			options.retry === null ? null : options.retry ?? 2000;
+
 		this.keepAliveInterval =
 			options.keepAlive === null ? null : options.keepAlive ?? 10000;
+
 		this.statusCode = options.statusCode ?? 200;
+
 		this.headers = options.headers ?? {};
 
-		this.req.on("close", this.onDisconnected);
+		this.req.once("close", this.onDisconnected);
+
 		setImmediate(this.onConnected);
 	}
 
@@ -186,15 +209,22 @@ class Session<
 			this.lastId = givenLastEventId as string;
 		}
 
+		const headers: OutgoingHttpHeaders = {};
+
 		Object.entries(this.headers).forEach(([name, value]) => {
-			this.res.setHeader(name, value ?? "");
+			headers[name] = value ?? "";
 		});
 
-		this.res.statusCode = this.statusCode;
-		this.res.setHeader("Content-Type", "text/event-stream");
-		this.res.setHeader("Cache-Control", "no-cache, no-transform");
-		this.res.setHeader("Connection", "keep-alive");
-		this.res.flushHeaders();
+		if (this.res instanceof Http1ServerResponse) {
+			headers["Content-Type"] = "text/event-stream";
+			headers["Cache-Control"] = "no-cache, no-transform";
+			headers["Connection"] = "keep-alive";
+		} else {
+			headers["content-type"] = "text/event-stream";
+			headers["cache-control"] = "no-cache, no-transform";
+		}
+
+		this.res.writeHead(this.statusCode, headers);
 
 		if (params.has("padding")) {
 			this.comment(" ".repeat(2049)).dispatch();

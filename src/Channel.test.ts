@@ -1,7 +1,7 @@
 import http from "http";
 import EventSource from "eventsource";
 import {
-	createServer,
+	createHttpServer,
 	closeServer,
 	getUrl,
 	waitForConnect,
@@ -20,7 +20,7 @@ let url: string;
 let eventsource: EventSource;
 
 beforeEach(async () => {
-	server = await createServer();
+	server = await createHttpServer();
 
 	url = getUrl(server);
 });

@@ -1,8 +1,9 @@
 import http from "http";
-import {AddressInfo} from "net";
+import http2 from "http2";
+import net, {AddressInfo} from "net";
 import {Session} from "../Session";
 
-const createServer = (): Promise<http.Server> =>
+const createHttpServer = (): Promise<http.Server> =>
 	new Promise<http.Server>((resolve, reject) => {
 		const server = http.createServer().listen();
 
@@ -10,7 +11,15 @@ const createServer = (): Promise<http.Server> =>
 		server.on("error", reject);
 	});
 
-const closeServer = (server: http.Server): Promise<void> =>
+const createHttp2Server = (): Promise<http2.Http2Server> =>
+	new Promise<http2.Http2Server>((resolve, reject) => {
+		const server = http2.createServer().listen();
+
+		server.on("listening", () => resolve(server));
+		server.on("error", reject);
+	});
+
+const closeServer = (server: net.Server): Promise<void> =>
 	new Promise<void>((resolve, reject) => {
 		if (server.listening) {
 			server.close((error) => {
@@ -25,10 +34,16 @@ const closeServer = (server: http.Server): Promise<void> =>
 		}
 	});
 
-const getUrl = (server: http.Server): string =>
+const getUrl = (server: net.Server): string =>
 	`http://localhost:${(server.address() as AddressInfo).port}`;
 
 const waitForConnect = (session: Session): Promise<void> =>
 	new Promise((resolve) => session.on("connected", resolve));
 
-export {createServer, closeServer, getUrl, waitForConnect};
+export {
+	createHttpServer,
+	createHttp2Server,
+	closeServer,
+	getUrl,
+	waitForConnect,
+};

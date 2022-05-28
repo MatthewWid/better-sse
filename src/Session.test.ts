@@ -1,13 +1,16 @@
 import http from "http";
+import http2 from "http2";
+import {AddressInfo} from "net";
 import EventSource from "eventsource";
 import {Readable} from "stream";
 import {serialize, SerializerFunction} from "./lib/serialize";
 import {SanitizerFunction} from "./lib/sanitize";
 import {
-	createServer,
+	createHttpServer,
 	closeServer,
 	getUrl,
 	waitForConnect,
+	createHttp2Server,
 } from "./lib/testUtils";
 import {Session} from "./Session";
 
@@ -16,7 +19,7 @@ let url: string;
 let eventsource: EventSource;
 
 beforeEach(async () => {
-	server = await createServer();
+	server = await createHttpServer();
 
 	url = getUrl(server);
 });
@@ -32,6 +35,12 @@ afterEach(async () => {
 });
 
 describe("connection", () => {
+	const defaultHeaders: http.OutgoingHttpHeaders = {
+		"Content-Type": "text/event-stream",
+		"Cache-Control": "no-cache, no-transform",
+		Connection: "keep-alive",
+	};
+
 	it("constructs without errors when giving no options", (done) => {
 		server.on("request", (req, res) => {
 			expect(() => {
@@ -114,16 +123,12 @@ describe("connection", () => {
 
 	it("returns the correct response status code and headers", (done) => {
 		server.on("request", (req, res) => {
+			const writeHead = jest.spyOn(res, "writeHead");
+
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				expect(res.statusCode).toBe(200);
-				expect(res.headersSent).toBeTruthy();
-				expect(res.getHeader("Content-Type")).toBe("text/event-stream");
-				expect(res.getHeader("Cache-Control")).toBe(
-					"no-cache, no-transform"
-				);
-				expect(res.getHeader("Connection")).toBe("keep-alive");
+				expect(writeHead).toHaveBeenCalledWith(200, defaultHeaders);
 
 				done();
 			});
@@ -204,12 +209,16 @@ describe("connection", () => {
 		};
 
 		server.on("request", (req, res) => {
+			const writeHead = jest.spyOn(res, "writeHead");
+
 			const session = new Session(req, res, {
 				headers: additionalHeaders,
 			});
 
 			session.on("connected", () => {
-				expect(res.getHeaders()).toMatchObject(additionalHeaders);
+				const sentHeaders = writeHead.mock.calls[0][1];
+
+				expect(sentHeaders).toMatchObject(additionalHeaders);
 
 				done();
 			});
@@ -224,12 +233,16 @@ describe("connection", () => {
 		};
 
 		server.on("request", (req, res) => {
+			const writeHead = jest.spyOn(res, "writeHead");
+
 			const session = new Session(req, res, {
 				headers: additionalHeaders,
 			});
 
 			session.on("connected", () => {
-				expect(res.getHeaders()).toMatchObject({
+				const sentHeaders = writeHead.mock.calls[0][1];
+
+				expect(sentHeaders).toMatchObject({
 					"x-test-header-1": "",
 				});
 
@@ -1082,5 +1095,69 @@ describe("polyfill support", () => {
 		});
 
 		eventsource = new EventSource(url);
+	});
+});
+
+describe("http/2", () => {
+	const defaultHeaders: http2.OutgoingHttpHeaders = {
+		"content-type": "text/event-stream",
+		"cache-control": "no-cache, no-transform",
+	};
+
+	let http2Client: http2.ClientHttp2Session;
+	let http2Req: http2.ClientHttp2Stream;
+	let http2Server: http2.Http2Server;
+	let http2Url: string;
+
+	beforeEach(async () => {
+		http2Server = await createHttp2Server();
+
+		http2Url = `http://localhost:${
+			(http2Server.address() as AddressInfo).port
+		}`;
+
+		http2Client = http2.connect(http2Url);
+
+		http2Client.on("error", console.error);
+	});
+
+	afterEach(async () => {
+		if (http2Client) {
+			http2Client.close();
+		}
+
+		if (http2Req) {
+			http2Req.close();
+		}
+
+		await closeServer(http2Server);
+	});
+
+	it("constructs and connects without errors", (done) => {
+		http2Server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			session.on("connected", () => {
+				res.end(done);
+			});
+		});
+
+		http2Req = http2Client.request().end();
+	});
+
+	it("returns the correct response status code and headers", (done) => {
+		http2Server.on("request", (req, res) => {
+			const writeHead = jest.spyOn(res, "writeHead");
+
+			const session = new Session(req, res);
+
+			session.on("connected", () => {
+				expect(writeHead).toHaveBeenCalledWith(200, defaultHeaders);
+
+				res.end(done);
+			});
+		});
+
+		http2Req = http2Client.request().end();
 	});
 });
