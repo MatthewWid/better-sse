@@ -1,4 +1,6 @@
 import http from "http";
+import http2 from "http2";
+import {AddressInfo} from "net";
 import EventSource from "eventsource";
 import {Readable} from "stream";
 import {serialize, SerializerFunction} from "./lib/serialize";
@@ -8,6 +10,7 @@ import {
 	closeServer,
 	getUrl,
 	waitForConnect,
+	createHttp2Server,
 } from "./lib/testUtils";
 import {Session} from "./Session";
 
@@ -1092,5 +1095,69 @@ describe("polyfill support", () => {
 		});
 
 		eventsource = new EventSource(url);
+	});
+});
+
+describe("http/2", () => {
+	const defaultHeaders: http2.OutgoingHttpHeaders = {
+		"content-type": "text/event-stream",
+		"cache-control": "no-cache, no-transform",
+	};
+
+	let http2Client: http2.ClientHttp2Session;
+	let http2Req: http2.ClientHttp2Stream;
+	let http2Server: http2.Http2Server;
+	let http2Url: string;
+
+	beforeEach(async () => {
+		http2Server = await createHttp2Server();
+
+		http2Url = `http://localhost:${
+			(http2Server.address() as AddressInfo).port
+		}`;
+
+		http2Client = http2.connect(http2Url);
+
+		http2Client.on("error", console.error);
+	});
+
+	afterEach(async () => {
+		if (http2Client) {
+			http2Client.close();
+		}
+
+		if (http2Req) {
+			http2Req.close();
+		}
+
+		await closeServer(http2Server);
+	});
+
+	it("constructs and connects without errors", (done) => {
+		http2Server.on("request", (req, res) => {
+			const session = new Session(req, res);
+
+			session.on("connected", () => {
+				res.end(done);
+			});
+		});
+
+		http2Req = http2Client.request().end();
+	});
+
+	it("returns the correct response status code and headers", (done) => {
+		http2Server.on("request", (req, res) => {
+			const writeHead = jest.spyOn(res, "writeHead");
+
+			const session = new Session(req, res);
+
+			session.on("connected", () => {
+				expect(writeHead).toHaveBeenCalledWith(200, defaultHeaders);
+
+				res.end(done);
+			});
+		});
+
+		http2Req = http2Client.request().end();
 	});
 });
