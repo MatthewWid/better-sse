@@ -11,7 +11,7 @@
 		"benchmark": "^2.1.4",
 		"better-sse": "^0.7.1",
 		"easy-server-sent-events": "^1.0.14",
-		"eventsource": "^1.1.0",
+		"eventsource": "^2.0.2",
 		"express": "^4.17.1",
 		"node-os-utils": "^1.3.5",
 		"pem": "^1.14.6",
