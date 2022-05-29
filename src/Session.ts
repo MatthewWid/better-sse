@@ -217,8 +217,11 @@ class Session<
 
 		if (this.res instanceof Http1ServerResponse) {
 			headers["Content-Type"] = "text/event-stream";
-			headers["Cache-Control"] = "no-cache, no-transform";
+			headers["Cache-Control"] =
+				"private, no-cache, no-store, no-transform, must-revalidate, max-age=0";
 			headers["Connection"] = "keep-alive";
+			headers["Pragma"] = "no-cache";
+			headers["X-Accel-Buffering"] = "no";
 		} else {
 			headers["content-type"] = "text/event-stream";
 			headers["cache-control"] = "no-cache, no-transform";

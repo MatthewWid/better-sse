@@ -37,8 +37,11 @@ afterEach(async () => {
 describe("connection", () => {
 	const defaultHeaders: http.OutgoingHttpHeaders = {
 		"Content-Type": "text/event-stream",
-		"Cache-Control": "no-cache, no-transform",
+		"Cache-Control":
+			"private, no-cache, no-store, no-transform, must-revalidate, max-age=0",
 		Connection: "keep-alive",
+		Pragma: "no-cache",
+		"X-Accel-Buffering": "no",
 	};
 
 	it("constructs without errors when giving no options", (done) => {
