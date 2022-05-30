@@ -280,14 +280,12 @@ describe("dispatch", () => {
 describe("retry", () => {
 	it("writes an initial retry field by default", (done) => {
 		server.on("request", (req, res) => {
-			const write = jest.spyOn(res, "write");
-
 			const session = new Session(req, res);
 
+			const retry = jest.spyOn(session, "retry");
+
 			session.on("connected", () => {
-				expect(write).toHaveBeenCalledTimes(2);
-				expect(write).toHaveBeenCalledWith("retry:2000\n");
-				expect(write).toHaveBeenCalledWith("\n");
+				expect(retry).toHaveBeenCalled();
 
 				done();
 			});
@@ -298,14 +296,14 @@ describe("retry", () => {
 
 	it("can modify the initial retry field value", (done) => {
 		server.on("request", (req, res) => {
-			const write = jest.spyOn(res, "write");
-
 			const session = new Session(req, res, {
 				retry: 4000,
 			});
 
+			const retry = jest.spyOn(session, "retry");
+
 			session.on("connected", () => {
-				expect(write).toHaveBeenCalledWith("retry:4000\n");
+				expect(retry).toHaveBeenCalledWith(4000);
 
 				done();
 			});
@@ -316,14 +314,14 @@ describe("retry", () => {
 
 	it("can prevent the initial retry field from being sent", (done) => {
 		server.on("request", (req, res) => {
-			const write = jest.spyOn(res, "write");
-
 			const session = new Session(req, res, {
 				retry: null,
 			});
 
+			const retry = jest.spyOn(session, "retry");
+
 			session.on("connected", () => {
-				expect(write).not.toHaveBeenCalledWith("retry:2000\n");
+				expect(retry).not.toHaveBeenCalled();
 
 				done();
 			});
@@ -341,9 +339,9 @@ describe("retry", () => {
 			});
 
 			session.on("connected", () => {
-				session.retry(8000);
+				session.retry(8000).dispatch();
 
-				expect(write).toHaveBeenCalledWith("retry:8000\n");
+				expect(write).toHaveBeenCalledWith("retry:8000\n\n");
 
 				done();
 			});
@@ -489,9 +487,9 @@ describe("event ID management", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.id(givenLastId);
+				session.id(givenLastId).dispatch();
 
-				expect(write).toHaveBeenLastCalledWith(`id:${givenLastId}\n`);
+				expect(write).toHaveBeenLastCalledWith(`id:${givenLastId}\n\n`);
 				expect(session.lastId).toBe(givenLastId);
 
 				session.data(0).dispatch();
@@ -514,9 +512,9 @@ describe("event ID management", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.id();
+				session.id().dispatch();
 
-				expect(write).toHaveBeenLastCalledWith("id:\n");
+				expect(write).toHaveBeenLastCalledWith("id:\n\n");
 				expect(session.lastId).toBe("");
 
 				done();
@@ -535,21 +533,15 @@ describe("event type", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.event("test");
+				session.event("test").dispatch();
 
-				expect(write).toHaveBeenLastCalledWith("event:test\n");
+				expect(write).toHaveBeenCalledWith("event:test\n\n");
 
-				session.data(0);
-
-				session.dispatch();
+				done();
 			});
 		});
 
 		eventsource = new EventSource(url);
-
-		eventsource.addEventListener("test", () => {
-			done();
-		});
 	});
 });
 
@@ -563,26 +555,15 @@ describe("data writing", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.data(dataToWrite);
+				session.data(dataToWrite).dispatch();
 
-				expect(write).toHaveBeenLastCalledWith(
-					`data:"${dataToWrite}"\n`
-				);
+				expect(write).toHaveBeenCalledWith(`data:"${dataToWrite}"\n\n`);
 
-				session.dispatch();
+				done();
 			});
 		});
 
 		eventsource = new EventSource(url);
-
-		eventsource.addEventListener(
-			"message",
-			(event: MessageEvent<string>) => {
-				expect(event.data).toBe(`"${dataToWrite}"`);
-
-				done();
-			}
-		);
 	});
 
 	it("serializes data written", (done) => {
@@ -592,26 +573,17 @@ describe("data writing", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.data(dataToWrite);
+				session.data(dataToWrite).dispatch();
 
-				expect(write).toHaveBeenLastCalledWith(
-					`data:${JSON.stringify(dataToWrite)}\n`
+				expect(write).toHaveBeenCalledWith(
+					`data:${JSON.stringify(dataToWrite)}\n\n`
 				);
 
-				session.dispatch();
+				done();
 			});
 		});
 
 		eventsource = new EventSource(url);
-
-		eventsource.addEventListener(
-			"message",
-			(event: MessageEvent<string>) => {
-				expect(event.data).toBe(JSON.stringify(dataToWrite));
-
-				done();
-			}
-		);
 	});
 });
 
@@ -623,9 +595,9 @@ describe("comments", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.comment("testcomment");
+				session.comment("testcomment").dispatch();
 
-				expect(write).toHaveBeenLastCalledWith(":testcomment\n");
+				expect(write).toHaveBeenLastCalledWith(":testcomment\n\n");
 
 				done();
 			});
@@ -641,9 +613,9 @@ describe("comments", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.comment();
+				session.comment().dispatch();
 
-				expect(write).toHaveBeenLastCalledWith(":\n");
+				expect(write).toHaveBeenLastCalledWith(":\n\n");
 
 				done();
 			});

@@ -122,6 +122,7 @@ class Session<
 > extends TypedEmitter<SessionEvents> {
 	/**
 	 * The last ID sent to the client.
+	 *
 	 * This is initialized to the last event ID given by the user, and otherwise is equal to the last number given to the `.id` method.
 	 *
 	 * @readonly
@@ -137,9 +138,17 @@ class Session<
 
 	/**
 	 * Custom state for this session.
+	 *
 	 * Use this object to safely store information related to the session and user.
 	 */
 	state = {} as State;
+
+	/**
+	 * Internal buffer used to store raw data from written fields.
+	 *
+	 * When Session#dispatch is called its buffer data will be flushed.
+	 */
+	private buffer = "";
 
 	/**
 	 * Raw HTTP request.
@@ -172,6 +181,7 @@ class Session<
 		super();
 
 		this.req = req;
+
 		this.res = res;
 
 		this.serialize = options.serializer ?? serialize;
@@ -192,10 +202,10 @@ class Session<
 
 		this.req.once("close", this.onDisconnected);
 
-		setImmediate(this.onConnected);
+		setImmediate(this.initialize);
 	}
 
-	private onConnected = () => {
+	private initialize = () => {
 		const url = `http://${this.req.headers.host}${this.req.url}`;
 		const params = new URL(url).searchParams;
 
@@ -269,9 +279,7 @@ class Session<
 	private writeField = (name: string, value: string): this => {
 		const sanitized = this.sanitize(value);
 
-		const text = `${name}:${sanitized}\n`;
-
-		this.res.write(text);
+		this.buffer += name + ":" + sanitized + "\n";
 
 		return this;
 	};
@@ -284,7 +292,9 @@ class Session<
 	 * Flush the buffered data to the client by writing an additional newline.
 	 */
 	dispatch = (): this => {
-		this.res.write("\n");
+		this.res.write(this.buffer + "\n");
+
+		this.buffer = "";
 
 		return this;
 	};
