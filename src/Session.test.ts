@@ -265,7 +265,7 @@ describe("dispatch", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.dispatch();
+				session.dispatch().flush();
 
 				expect(write).toHaveBeenLastCalledWith("\n");
 
@@ -339,9 +339,9 @@ describe("retry", () => {
 			});
 
 			session.on("connected", () => {
-				session.retry(8000).dispatch();
+				session.retry(8000).flush();
 
-				expect(write).toHaveBeenCalledWith("retry:8000\n\n");
+				expect(write).toHaveBeenCalledWith("retry:8000\n");
 
 				done();
 			});
@@ -487,12 +487,12 @@ describe("event ID management", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.id(givenLastId).dispatch();
+				session.id(givenLastId).dispatch().flush();
 
 				expect(write).toHaveBeenLastCalledWith(`id:${givenLastId}\n\n`);
 				expect(session.lastId).toBe(givenLastId);
 
-				session.data(0).dispatch();
+				session.data(0).dispatch().flush();
 			});
 		});
 
@@ -512,9 +512,9 @@ describe("event ID management", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.id().dispatch();
+				session.id().flush();
 
-				expect(write).toHaveBeenLastCalledWith("id:\n\n");
+				expect(write).toHaveBeenLastCalledWith("id:\n");
 				expect(session.lastId).toBe("");
 
 				done();
@@ -533,9 +533,9 @@ describe("event type", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.event("test").dispatch();
+				session.event("test").flush();
 
-				expect(write).toHaveBeenCalledWith("event:test\n\n");
+				expect(write).toHaveBeenCalledWith("event:test\n");
 
 				done();
 			});
@@ -555,9 +555,9 @@ describe("data writing", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.data(dataToWrite).dispatch();
+				session.data(dataToWrite).flush();
 
-				expect(write).toHaveBeenCalledWith(`data:"${dataToWrite}"\n\n`);
+				expect(write).toHaveBeenCalledWith(`data:"${dataToWrite}"\n`);
 
 				done();
 			});
@@ -573,10 +573,10 @@ describe("data writing", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.data(dataToWrite).dispatch();
+				session.data(dataToWrite).flush();
 
 				expect(write).toHaveBeenCalledWith(
-					`data:${JSON.stringify(dataToWrite)}\n\n`
+					`data:${JSON.stringify(dataToWrite)}\n`
 				);
 
 				done();
@@ -595,9 +595,9 @@ describe("comments", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.comment("testcomment").dispatch();
+				session.comment("testcomment").flush();
 
-				expect(write).toHaveBeenLastCalledWith(":testcomment\n\n");
+				expect(write).toHaveBeenLastCalledWith(":testcomment\n");
 
 				done();
 			});
@@ -613,9 +613,9 @@ describe("comments", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.comment().dispatch();
+				session.comment().flush();
 
-				expect(write).toHaveBeenLastCalledWith(":\n\n");
+				expect(write).toHaveBeenLastCalledWith(":\n");
 
 				done();
 			});
@@ -638,6 +638,7 @@ describe("push", () => {
 			const id = jest.spyOn(session, "id");
 			const data = jest.spyOn(session, "data");
 			const dispatch = jest.spyOn(session, "dispatch");
+			const flush = jest.spyOn(session, "flush");
 
 			session.on("connected", () => {
 				session.push(dataToWrite);
@@ -646,6 +647,7 @@ describe("push", () => {
 				expect(id).toHaveBeenCalled();
 				expect(data).toHaveBeenCalled();
 				expect(dispatch).toHaveBeenCalled();
+				expect(flush).toHaveBeenCalled();
 
 				done();
 			});

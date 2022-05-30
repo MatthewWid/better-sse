@@ -19,6 +19,8 @@ A Session represents an open connection between the server and the client.
 
 It emits the `connected` event after it has connected and flushed all headers to the client, and the `disconnected` event after client connection has been closed.
 
+As a performance optimisation, all events and data are first written to an internal buffer where it is stored until it is flushed to the client by calling the [`flush` method](#sessionflush---this).
+
 #### `new Session<State>(req: IncomingMessage | Http2ServerRequest, res: ServerResponse | Http2ServerResponse[, options = {}])`
 
 `req` is an instance of [IncomingMessage](https://nodejs.org/api/http.html#http_class_http_incomingmessage) or [Http2ServerRequest](https://nodejs.org/api/http2.html#class-http2http2serverrequest).
@@ -55,17 +57,13 @@ Use this object to safely store information related to the session and user.
 
 Use [module augmentation](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation) to safely add new properties to the `SessionState` interface.
 
-#### `Session#dispatch`: `() => this`
-
-Flush the buffered data to the client by writing an additional newline.
-
 #### `Session#event`: `(type: string) => this`
 
 Set the event to the given name (also referred to as "type" in the specification).
 
 #### `Session#data`: `(data: any) => this`
 
-Write arbitrary data onto the wire.
+Write arbitrary data with the last event.
 
 The given value is automatically serialized to a string using the `serializer` function which defaults to [JSON stringification](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
 
@@ -85,11 +83,21 @@ Write a comment (an ignored field).
 
 This will not fire an event, but is often used to keep the connection alive.
 
+#### `Session#dispatch`: `() => this`
+
+Indicate that the event has finished being created by writing an additional newline character.
+
+Note that this does **not** send the written data to the client. To do so, use the [`flush` method](#sessionflush---this) to flush the internal buffer over the wire.
+
+#### `Session#flush`: `() => this`
+
+Flush the buffered data to the client and clear the buffer.
+
 #### `Session#push`: `(data: unknown[, eventName: string[, eventId: string]]) => this`
 
-Create and dispatch an event with the given data all at once.
+Create, write and dispatch an event all at once with the given data.
 
-This is equivalent to calling `.event()`, `.id()`, `.data()` and `.dispatch()` in that order.
+This is equivalent to calling the methods `event`, `id`, `data`, `dispatch` and `flush` in that order.
 
 If no event name is given, the event name is set to `"message"`.
 
