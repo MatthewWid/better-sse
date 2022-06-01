@@ -7,10 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.8.0 - 2022-06-02
+
+### Added
+
+* Added an internal data buffer to [Session](./docs/api.md#session) that buffers written data internally until it is flushed to the client using the new [`Session#flush`](./docs/api.md#sessionflush---this) method.
+* Added the `Pragma`, `X-Accel-Buffering` headers and add additional values to the `Cache-Control` default header to further disable all forms of caching.
+* Added support for supplying the [Node HTTP/2 compatibility API](https://nodejs.org/api/http2.html#compatibility-api) `Http2ServerRequest` and `Http2ServerResponse` objects to the [`Session`](./docs/api.md#session) constructor `req` and `res` parameters, respectively.
+
 ### Changed
 
+* Update the [`Session#event`](./docs/api.md#sessionevent-type-string--this), [`Session#data`](./docs/api.md#sessiondata-data-any--this), [`Session#id`](./docs/api.md#sessionid-id-string--this), [`Session#retry`](./docs/api.md#sessionretry-time-number--this) and [`Session#comment`](./docs/api.md#sessioncomment-text-string--this) methods to write to the internal data buffer instead of sending the field data over the wire immediately.
+* Update the [`Session#dispatch`](./docs/api.md#sessiondispatch---this) method to only write a newline (and to the internal data buffer) and not flush the written data to the client.
 * Update the [`Channel#broadcast`](./docs/api.md#channelbroadcast-data-unknown-eventname-string-options-object--this) method to generate its own custom event ID and thus add it as an additional argument to its `broadcast` event callback function.
 * Update the [`Channel#register`](./docs/api.md#channelregister-session-session--this) and [`Channel#deregister`](./docs/api.md#channelderegister-session-session--this) to not do anything if the channel is already registered or deregistered, respectively.
+* Update the [`Session` constructor options `header` field](./docs/api.md#session) to overwrite conflicting default headers instead of being ignored.
+* Update auto-generated event IDs to be guaranteed to be a cryptographically unique string instead of a pseudorandomly generated string of eight characters.
 
 ### Fixed
 
