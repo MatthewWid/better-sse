@@ -37,9 +37,11 @@ interface SessionOptions {
 	trustClientEventId?: boolean;
 
 	/**
-	 * Time in milliseconds for the client to wait before attempting to reconnect if the connection is closed. This is a request to the client browser, and does not guarantee that the client will actually respect the given time.
+	 * Time in milliseconds for the client to wait before attempting to reconnect if the connection is closed.
 	 *
-	 * This is equivalent to immediately calling `.retry().dispatch()` after a connection is made.
+	 * This is a request to the client browser, and does not guarantee that the client will actually respect the given time.
+	 *
+	 * Equivalent to immediately calling `.retry().dispatch().flush()` after a connection is made.
 	 *
 	 * Give as `null` to avoid sending an explicit reconnection time and allow the client browser to decide itself.
 	 *
@@ -122,6 +124,7 @@ class Session<
 > extends TypedEmitter<SessionEvents> {
 	/**
 	 * The last ID sent to the client.
+	 *
 	 * This is initialized to the last event ID given by the user, and otherwise is equal to the last number given to the `.id` method.
 	 *
 	 * @readonly
@@ -137,9 +140,17 @@ class Session<
 
 	/**
 	 * Custom state for this session.
+	 *
 	 * Use this object to safely store information related to the session and user.
 	 */
 	state = {} as State;
+
+	/**
+	 * Internal buffer used to store raw data from written fields.
+	 *
+	 * When Session#dispatch is called its buffer data will be flushed.
+	 */
+	private buffer = "";
 
 	/**
 	 * Raw HTTP request.
@@ -172,6 +183,7 @@ class Session<
 		super();
 
 		this.req = req;
+
 		this.res = res;
 
 		this.serialize = options.serializer ?? serialize;
@@ -192,10 +204,10 @@ class Session<
 
 		this.req.once("close", this.onDisconnected);
 
-		setImmediate(this.onConnected);
+		setImmediate(this.initialize);
 	}
 
-	private onConnected = () => {
+	private initialize = () => {
 		const url = `http://${this.req.headers.host}${this.req.url}`;
 		const params = new URL(url).searchParams;
 
@@ -241,6 +253,8 @@ class Session<
 			this.retry(this.initialRetry).dispatch();
 		}
 
+		this.flush();
+
 		if (this.keepAliveInterval !== null) {
 			this.keepAliveTimer = setInterval(
 				this.keepAlive,
@@ -269,24 +283,13 @@ class Session<
 	private writeField = (name: string, value: string): this => {
 		const sanitized = this.sanitize(value);
 
-		const text = `${name}:${sanitized}\n`;
-
-		this.res.write(text);
+		this.buffer += name + ":" + sanitized + "\n";
 
 		return this;
 	};
 
 	private keepAlive = () => {
-		this.comment().dispatch();
-	};
-
-	/**
-	 * Flush the buffered data to the client by writing an additional newline.
-	 */
-	dispatch = (): this => {
-		this.res.write("\n");
-
-		return this;
+		this.comment().dispatch().flush();
 	};
 
 	/**
@@ -301,7 +304,7 @@ class Session<
 	}
 
 	/**
-	 * Write arbitrary data onto the wire that is automatically serialized to a string using the given `serializer` function option or JSON stringification by default.
+	 * Write an arbitrary data field that is automatically serialized to a string using the given `serializer` function option or JSON stringification by default.
 	 *
 	 * @param data - Data to serialize and write.
 	 */
@@ -355,12 +358,37 @@ class Session<
 	};
 
 	/**
-	 * Create and dispatch an event with the given data all at once.
-	 * This is equivalent to calling `.event()`, `.id()`, `.data()` and `.dispatch()` in that order.
+	 * Indicate that the event has finished being created by writing an additional newline character.
+	 *
+	 * Note that this does **not** send the written data to the client. Use `flush` to flush the internal buffer.
+	 */
+	dispatch = (): this => {
+		this.buffer += "\n";
+
+		return this;
+	};
+
+	/**
+	 * Flush the buffered data to the client and clear the buffer.
+	 */
+	flush = (): this => {
+		this.res.write(this.buffer);
+
+		this.buffer = "";
+
+		return this;
+	};
+
+	/**
+	 * Create, dispatch and flush an event with the given data all at once.
+	 *
+	 * This is equivalent to calling the methods `event`, `id`, `data`, `dispatch` and `flush` in that order.
 	 *
 	 * If no event name is given, the event name is set to `"message"`.
 	 *
 	 * If no event ID is given, the event ID (and thus the `lastid` property) is set to a unique string generated using a cryptographic pseudorandom number generator.
+	 *
+	 * Emits the `push` event with the given data, event name and event ID in that order.
 	 *
 	 * @param data - Data to write.
 	 * @param eventName - Event name to write.
@@ -371,7 +399,7 @@ class Session<
 		eventName = "message",
 		eventId = generateId()
 	): this => {
-		this.event(eventName).id(eventId).data(data).dispatch();
+		this.event(eventName).id(eventId).data(data).dispatch().flush();
 
 		this.emit("push", data, eventName, eventId);
 

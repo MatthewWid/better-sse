@@ -265,7 +265,7 @@ describe("dispatch", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.dispatch();
+				session.dispatch().flush();
 
 				expect(write).toHaveBeenLastCalledWith("\n");
 
@@ -280,14 +280,12 @@ describe("dispatch", () => {
 describe("retry", () => {
 	it("writes an initial retry field by default", (done) => {
 		server.on("request", (req, res) => {
-			const write = jest.spyOn(res, "write");
-
 			const session = new Session(req, res);
 
+			const retry = jest.spyOn(session, "retry");
+
 			session.on("connected", () => {
-				expect(write).toHaveBeenCalledTimes(2);
-				expect(write).toHaveBeenCalledWith("retry:2000\n");
-				expect(write).toHaveBeenCalledWith("\n");
+				expect(retry).toHaveBeenCalled();
 
 				done();
 			});
@@ -298,14 +296,14 @@ describe("retry", () => {
 
 	it("can modify the initial retry field value", (done) => {
 		server.on("request", (req, res) => {
-			const write = jest.spyOn(res, "write");
-
 			const session = new Session(req, res, {
 				retry: 4000,
 			});
 
+			const retry = jest.spyOn(session, "retry");
+
 			session.on("connected", () => {
-				expect(write).toHaveBeenCalledWith("retry:4000\n");
+				expect(retry).toHaveBeenCalledWith(4000);
 
 				done();
 			});
@@ -316,14 +314,14 @@ describe("retry", () => {
 
 	it("can prevent the initial retry field from being sent", (done) => {
 		server.on("request", (req, res) => {
-			const write = jest.spyOn(res, "write");
-
 			const session = new Session(req, res, {
 				retry: null,
 			});
 
+			const retry = jest.spyOn(session, "retry");
+
 			session.on("connected", () => {
-				expect(write).not.toHaveBeenCalledWith("retry:2000\n");
+				expect(retry).not.toHaveBeenCalled();
 
 				done();
 			});
@@ -341,7 +339,7 @@ describe("retry", () => {
 			});
 
 			session.on("connected", () => {
-				session.retry(8000);
+				session.retry(8000).flush();
 
 				expect(write).toHaveBeenCalledWith("retry:8000\n");
 
@@ -489,12 +487,12 @@ describe("event ID management", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.id(givenLastId);
+				session.id(givenLastId).dispatch().flush();
 
-				expect(write).toHaveBeenLastCalledWith(`id:${givenLastId}\n`);
+				expect(write).toHaveBeenLastCalledWith(`id:${givenLastId}\n\n`);
 				expect(session.lastId).toBe(givenLastId);
 
-				session.data(0).dispatch();
+				session.data(0).dispatch().flush();
 			});
 		});
 
@@ -514,7 +512,7 @@ describe("event ID management", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.id();
+				session.id().flush();
 
 				expect(write).toHaveBeenLastCalledWith("id:\n");
 				expect(session.lastId).toBe("");
@@ -535,21 +533,15 @@ describe("event type", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.event("test");
+				session.event("test").flush();
 
-				expect(write).toHaveBeenLastCalledWith("event:test\n");
+				expect(write).toHaveBeenCalledWith("event:test\n");
 
-				session.data(0);
-
-				session.dispatch();
+				done();
 			});
 		});
 
 		eventsource = new EventSource(url);
-
-		eventsource.addEventListener("test", () => {
-			done();
-		});
 	});
 });
 
@@ -563,26 +555,15 @@ describe("data writing", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.data(dataToWrite);
+				session.data(dataToWrite).flush();
 
-				expect(write).toHaveBeenLastCalledWith(
-					`data:"${dataToWrite}"\n`
-				);
+				expect(write).toHaveBeenCalledWith(`data:"${dataToWrite}"\n`);
 
-				session.dispatch();
+				done();
 			});
 		});
 
 		eventsource = new EventSource(url);
-
-		eventsource.addEventListener(
-			"message",
-			(event: MessageEvent<string>) => {
-				expect(event.data).toBe(`"${dataToWrite}"`);
-
-				done();
-			}
-		);
 	});
 
 	it("serializes data written", (done) => {
@@ -592,26 +573,17 @@ describe("data writing", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.data(dataToWrite);
+				session.data(dataToWrite).flush();
 
-				expect(write).toHaveBeenLastCalledWith(
+				expect(write).toHaveBeenCalledWith(
 					`data:${JSON.stringify(dataToWrite)}\n`
 				);
 
-				session.dispatch();
+				done();
 			});
 		});
 
 		eventsource = new EventSource(url);
-
-		eventsource.addEventListener(
-			"message",
-			(event: MessageEvent<string>) => {
-				expect(event.data).toBe(JSON.stringify(dataToWrite));
-
-				done();
-			}
-		);
 	});
 });
 
@@ -623,7 +595,7 @@ describe("comments", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.comment("testcomment");
+				session.comment("testcomment").flush();
 
 				expect(write).toHaveBeenLastCalledWith(":testcomment\n");
 
@@ -641,7 +613,7 @@ describe("comments", () => {
 			const session = new Session(req, res);
 
 			session.on("connected", () => {
-				session.comment();
+				session.comment().flush();
 
 				expect(write).toHaveBeenLastCalledWith(":\n");
 
@@ -666,6 +638,7 @@ describe("push", () => {
 			const id = jest.spyOn(session, "id");
 			const data = jest.spyOn(session, "data");
 			const dispatch = jest.spyOn(session, "dispatch");
+			const flush = jest.spyOn(session, "flush");
 
 			session.on("connected", () => {
 				session.push(dataToWrite);
@@ -674,6 +647,7 @@ describe("push", () => {
 				expect(id).toHaveBeenCalled();
 				expect(data).toHaveBeenCalled();
 				expect(dispatch).toHaveBeenCalled();
+				expect(flush).toHaveBeenCalled();
 
 				done();
 			});
