@@ -255,6 +255,32 @@ describe("connection", () => {
 
 		eventsource = new EventSource(url);
 	});
+
+	it("can overwrite the default headers", (done) => {
+		const additionalHeaders = {
+			"X-Accel-Buffering": "yes",
+		};
+
+		server.on("request", (req, res) => {
+			const writeHead = jest.spyOn(res, "writeHead");
+
+			const session = new Session(req, res, {
+				headers: additionalHeaders,
+			});
+
+			session.on("connected", () => {
+				const sentHeaders = writeHead.mock.calls[0][1];
+
+				expect(sentHeaders).toMatchObject({
+					"X-Accel-Buffering": "yes",
+				});
+
+				done();
+			});
+		});
+
+		eventsource = new EventSource(url);
+	});
 });
 
 describe("dispatch", () => {
@@ -1078,7 +1104,10 @@ describe("polyfill support", () => {
 describe("http/2", () => {
 	const defaultHeaders: http2.OutgoingHttpHeaders = {
 		"content-type": "text/event-stream",
-		"cache-control": "no-cache, no-transform",
+		"cache-control":
+			"private, no-cache, no-store, no-transform, must-revalidate, max-age=0",
+		pragma: "no-cache",
+		"x-accel-buffering": "no",
 	};
 
 	let http2Client: http2.ClientHttp2Session;

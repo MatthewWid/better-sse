@@ -223,10 +223,6 @@ class Session<
 
 		const headers: OutgoingHttpHeaders = {};
 
-		Object.entries(this.headers).forEach(([name, value]) => {
-			headers[name] = value ?? "";
-		});
-
 		if (this.res instanceof Http1ServerResponse) {
 			headers["Content-Type"] = "text/event-stream";
 			headers["Cache-Control"] =
@@ -236,7 +232,14 @@ class Session<
 			headers["X-Accel-Buffering"] = "no";
 		} else {
 			headers["content-type"] = "text/event-stream";
-			headers["cache-control"] = "no-cache, no-transform";
+			headers["cache-control"] =
+				"private, no-cache, no-store, no-transform, must-revalidate, max-age=0";
+			headers["pragma"] = "no-cache";
+			headers["x-accel-buffering"] = "no";
+		}
+
+		for (const [name, value] of Object.entries(this.headers)) {
+			headers[name] = value ?? "";
 		}
 
 		this.res.writeHead(this.statusCode, headers);
