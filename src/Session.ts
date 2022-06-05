@@ -120,7 +120,7 @@ interface SessionEvents extends EventMap {
  * @param options - Options given to the session instance.
  */
 class Session<
-	State extends Record<string, unknown> = SessionState
+	State extends Record<string, any> = SessionState
 > extends TypedEmitter<SessionEvents> {
 	/**
 	 * The last ID sent to the client.
