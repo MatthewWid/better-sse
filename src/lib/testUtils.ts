@@ -38,7 +38,13 @@ const getUrl = (server: net.Server): string =>
 	`http://localhost:${(server.address() as AddressInfo).port}`;
 
 const waitForConnect = (session: Session): Promise<void> =>
-	new Promise((resolve) => session.on("connected", resolve));
+	new Promise((resolve) => {
+		if (session.isConnected) {
+			resolve();
+		} else {
+			session.on("connected", resolve);
+		}
+	});
 
 export {
 	createHttpServer,

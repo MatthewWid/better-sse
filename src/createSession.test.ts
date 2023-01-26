@@ -1,3 +1,4 @@
+import {it, expect, beforeEach, afterEach} from "vitest";
 import http from "http";
 import EventSource from "eventsource";
 import {createHttpServer, closeServer, getUrl} from "./lib/testUtils";
@@ -22,14 +23,15 @@ afterEach(async () => {
 	await closeServer(server);
 });
 
-it("resolves with an instance of a session", (done) => {
-	server.on("request", async (req, res) => {
-		const session = await createSession(req, res);
+it("resolves with an instance of a session", () =>
+	new Promise<void>((done) => {
+		server.on("request", async (req, res) => {
+			const session = await createSession(req, res);
 
-		expect(session).toBeInstanceOf(Session);
+			expect(session).toBeInstanceOf(Session);
 
-		done();
-	});
+			done();
+		});
 
-	eventsource = new EventSource(url);
-});
+		eventsource = new EventSource(url);
+	}));
