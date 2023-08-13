@@ -1,20 +1,24 @@
 import {TypedEmitter, EventMap} from "./lib/TypedEmitter";
 import {generateId} from "./lib/generateId";
-import {Session} from "./Session";
+import {Session, DefaultSessionState} from "./Session";
 
-interface BroadcastOptions<State extends Session['state'] = Record<string, unknown>> {
+interface BroadcastOptions<
+	SessionState extends Record<string, unknown> = DefaultSessionState
+> {
 	/**
 	 * Filter sessions that should receive the event.
 	 *
 	 * Called with each session and should return `true` to allow the event to be sent and otherwise return `false` to prevent the session from receiving the event.
 	 */
-	filter?: (session: Session<State>) => boolean;
+	filter?: (session: Session<SessionState>) => boolean;
 }
 
-interface ChannelEvents<State extends Session['state'] = Record<string, unknown>> extends EventMap {
-	"session-registered": (session: Session<State>) => void;
-	"session-deregistered": (session: Session<State>) => void;
-	"session-disconnected": (session: Session<State>) => void;
+interface ChannelEvents<
+	SessionState extends Record<string, unknown> = DefaultSessionState
+> extends EventMap {
+	"session-registered": (session: Session<SessionState>) => void;
+	"session-deregistered": (session: Session<SessionState>) => void;
+	"session-disconnected": (session: Session<SessionState>) => void;
 	broadcast: (data: unknown, eventName: string, eventId: string) => void;
 }
 
@@ -25,10 +29,11 @@ interface ChannelEvents<State extends Session['state'] = Record<string, unknown>
  */
 class Channel<
 	State extends Record<string, unknown> = Record<string, unknown>,
-	SessionState extends Session['state'] = Record<string, unknown>
+	SessionState extends Record<string, unknown> = DefaultSessionState
 > extends TypedEmitter<ChannelEvents<SessionState>> {
 	/**
 	 * Custom state for this channel.
+	 *
 	 * Use this object to safely store information related to the channel.
 	 */
 	state = {} as State;

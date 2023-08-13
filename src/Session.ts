@@ -97,7 +97,7 @@ interface IterateOptions {
 	eventName?: string;
 }
 
-interface SessionState {
+interface DefaultSessionState {
 	[key: string]: unknown;
 }
 
@@ -120,7 +120,7 @@ interface SessionEvents extends EventMap {
  * @param options - Options given to the session instance.
  */
 class Session<
-	State extends Record<string, unknown> = SessionState
+	State extends Record<string, unknown> = DefaultSessionState
 > extends TypedEmitter<SessionEvents> {
 	/**
 	 * The last ID sent to the client.
@@ -475,7 +475,7 @@ export type {
 	SessionOptions,
 	StreamOptions,
 	IterateOptions,
-	SessionState,
+	DefaultSessionState,
 	SessionEvents,
 };
 export {Session};
