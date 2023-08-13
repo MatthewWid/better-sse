@@ -18,12 +18,6 @@ import {
 import {Session} from "./Session";
 import {Channel} from "./Channel";
 
-declare module "./Session" {
-	interface SessionState {
-		isTrusted: boolean;
-	}
-}
-
 let server: http.Server;
 let url: string;
 let eventsource: EventSource;
@@ -359,12 +353,17 @@ describe("broadcasting", () => {
 
 	it("can filter sessions when broadcasting", () =>
 		new Promise<void>((done) => {
-			const channel = new Channel();
+			type AuthSessionState = {isTrusted: boolean};
+
+			const channel = new Channel<
+				Record<string, unknown>,
+				AuthSessionState
+			>();
 
 			const sessionPushMocks: SpyInstance[] = [];
 
 			server.on("request", async (req, res) => {
-				const session = new Session(req, res);
+				const session = new Session<AuthSessionState>(req, res);
 
 				await waitForConnect(session);
 
