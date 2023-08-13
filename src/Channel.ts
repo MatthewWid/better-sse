@@ -2,19 +2,19 @@ import {TypedEmitter, EventMap} from "./lib/TypedEmitter";
 import {generateId} from "./lib/generateId";
 import {Session} from "./Session";
 
-interface BroadcastOptions {
+interface BroadcastOptions<State extends Session['state'] = Record<string, unknown>> {
 	/**
 	 * Filter sessions that should receive the event.
 	 *
 	 * Called with each session and should return `true` to allow the event to be sent and otherwise return `false` to prevent the session from receiving the event.
 	 */
-	filter?: (session: Session) => boolean;
+	filter?: (session: Session<State>) => boolean;
 }
 
-interface ChannelEvents extends EventMap {
-	"session-registered": (session: Session) => void;
-	"session-deregistered": (session: Session) => void;
-	"session-disconnected": (session: Session) => void;
+interface ChannelEvents<State extends Session['state'] = Record<string, unknown>> extends EventMap {
+	"session-registered": (session: Session<State>) => void;
+	"session-deregistered": (session: Session<State>) => void;
+	"session-disconnected": (session: Session<State>) => void;
 	broadcast: (data: unknown, eventName: string, eventId: string) => void;
 }
 
@@ -24,15 +24,16 @@ interface ChannelEvents extends EventMap {
  * It extends from the {@link https://nodejs.org/api/events.html#events_class_eventemitter | EventEmitter} class.
  */
 class Channel<
-	State extends Record<string, unknown> = Record<string, unknown>
-> extends TypedEmitter<ChannelEvents> {
+	State extends Record<string, unknown> = Record<string, unknown>,
+	SessionState extends Session['state'] = Record<string, unknown>
+> extends TypedEmitter<ChannelEvents<SessionState>> {
 	/**
 	 * Custom state for this channel.
 	 * Use this object to safely store information related to the channel.
 	 */
 	state = {} as State;
 
-	private sessions = new Set<Session>();
+	private sessions = new Set<Session<SessionState>>();
 
 	constructor() {
 		super();
@@ -41,7 +42,7 @@ class Channel<
 	/**
 	 * List of the currently active sessions subscribed to this channel.
 	 */
-	get activeSessions(): ReadonlyArray<Session> {
+	get activeSessions(): ReadonlyArray<Session<SessionState>> {
 		return Array.from(this.sessions);
 	}
 
@@ -59,7 +60,7 @@ class Channel<
 	 *
 	 * @param session - Session to register.
 	 */
-	register(session: Session): this {
+	register(session: Session<SessionState>): this {
 		if (this.sessions.has(session)) {
 			return this;
 		}
@@ -88,7 +89,7 @@ class Channel<
 	 *
 	 * @param session - Session to deregister.
 	 */
-	deregister(session: Session): this {
+	deregister(session: Session<SessionState>): this {
 		if (!this.sessions.has(session)) {
 			return this;
 		}
@@ -108,11 +109,11 @@ class Channel<
 	broadcast = (
 		data: unknown,
 		eventName = "message",
-		options: BroadcastOptions = {}
+		options: BroadcastOptions<SessionState> = {}
 	): this => {
 		const eventId = generateId();
 
-		let sessions: Iterable<Session>;
+		let sessions: Iterable<Session<SessionState>>;
 
 		if (options.filter) {
 			sessions = Array.from(this.sessions).filter(options.filter);
