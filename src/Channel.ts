@@ -27,9 +27,11 @@ interface DefaultChannelState {
 }
 
 /**
- * A Channel is used to broadcast events to many sessions at once.
+ * A `Channel` is used to broadcast events to many sessions at once.
  *
  * It extends from the {@link https://nodejs.org/api/events.html#events_class_eventemitter | EventEmitter} class.
+ *
+ * You may use the second generic argument `SessionState` to enforce that only sessions with the same state type may be registered with this channel.
  */
 class Channel<
 	State extends Record<string, unknown> = DefaultChannelState,
@@ -65,7 +67,7 @@ class Channel<
 	/**
 	 * Register a session so that it can start receiving events from this channel.
 	 *
-	 * If the session is already registered this method does nothing.
+	 * If the session was already registered to begin with this method does nothing.
 	 *
 	 * @param session - Session to register.
 	 */
@@ -111,9 +113,9 @@ class Channel<
 	}
 
 	/**
-	 * Push an event to every active session on this channel.
+	 * Broadcast an event with the given data and name to every active session registered with this channel.
 	 *
-	 * Takes the same arguments as the `Session#push` method.
+	 * Note that the broadcasted event will have the same ID across all receiving sessions instead of generating a unique ID for each.
 	 */
 	broadcast = (
 		data: unknown,

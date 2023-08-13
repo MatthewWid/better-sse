@@ -28,7 +28,7 @@ interface SessionOptions {
 	sanitizer?: SanitizerFunction;
 
 	/**
-	 * Whether to trust the last event ID given by the client in the `Last-Event-ID` request header.
+	 * Whether to trust or ignore the last event ID given by the client in the `Last-Event-ID` request header.
 	 *
 	 * When set to `false`, the `lastId` property will always be initialized to an empty string.
 	 *
@@ -64,7 +64,6 @@ interface SessionOptions {
 	 * Status code to be sent to the client.
 	 *
 	 * Event stream requests can be redirected using HTTP 301 and 307 status codes.
-	 *
 	 * Make sure to set `Location` header when using these status codes using the `headers` property.
 	 *
 	 * A client can be asked to stop reconnecting by using 204 status code.
@@ -108,12 +107,19 @@ interface SessionEvents extends EventMap {
 }
 
 /**
- * A Session represents an open connection between the server and a client.
+ * A `Session` represents an open connection between the server and a client.
  *
  * It extends from the {@link https://nodejs.org/api/events.html#events_class_eventemitter | EventEmitter} class.
  *
- * It emits the `connected` event after it has connected and flushed all headers to the client, and the
- * `disconnected` event after client connection has been closed.
+ * It emits the `connected` event after it has connected and sent all headers to the client, and the
+ * `disconnected` event after the connection has been closed.
+ *
+ * Note that creating a new session will immediately send the initial status code and headers to the client.
+ * Attempting to write additional headers after you have created a new session will result in an error.
+ *
+ * As a performance optimisation, all events and data are first written to an internal buffer
+ * where it is stored until it is flushed to the client by calling the `flush` method. This is
+ * done for you when using the `push` helper method.
  *
  * @param req - The Node HTTP {@link https://nodejs.org/api/http.html#http_class_http_incomingmessage | ServerResponse} object.
  * @param res - The Node HTTP {@link https://nodejs.org/api/http.html#http_class_http_serverresponse | IncomingMessage} object.
@@ -123,16 +129,18 @@ class Session<
 	State extends Record<string, unknown> = DefaultSessionState
 > extends TypedEmitter<SessionEvents> {
 	/**
-	 * The last ID sent to the client.
+	 * The last event ID sent to the client.
 	 *
 	 * This is initialized to the last event ID given by the user, and otherwise is equal to the last number given to the `.id` method.
+	 *
+	 * For security reasons, keep in mind that the client can provide *any* initial ID here. Use the `trustClientEventId` to ignore the client-given initial ID.
 	 *
 	 * @readonly
 	 */
 	lastId = "";
 
 	/**
-	 * Indicates whether the session and connection is open or not.
+	 * Indicates whether the session and underlying connection is open or not.
 	 *
 	 * @readonly
 	 */
@@ -142,6 +150,9 @@ class Session<
 	 * Custom state for this session.
 	 *
 	 * Use this object to safely store information related to the session and user.
+	 *
+	 * Use [module augmentation and declaration merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation)
+	 * to safely add new properties to the `DefaultSessionState` interface.
 	 */
 	state = {} as State;
 
@@ -296,7 +307,7 @@ class Session<
 	};
 
 	/**
-	 * Set the event to the given name (also referred to as "type" in the specification).
+	 * Set the event to the given name (also referred to as the event "type" in the specification).
 	 *
 	 * @param type - Event name/type.
 	 */
@@ -383,7 +394,7 @@ class Session<
 	};
 
 	/**
-	 * Create, dispatch and flush an event with the given data all at once.
+	 * Create, write, dispatch and flush an event with the given data to the client all at once.
 	 *
 	 * This is equivalent to calling the methods `event`, `id`, `data`, `dispatch` and `flush` in that order.
 	 *
@@ -412,10 +423,11 @@ class Session<
 	/**
 	 * Pipe readable stream data to the client.
 	 *
-	 * Each data emission by the stream emits a new event that is dispatched to the client.
+	 * Each data emission by the stream pushes a new event to the client.
+	 *
 	 * This uses the `push` method under the hood.
 	 *
-	 * If no event name is given in the options object, the event name (type) is set to `"stream"`.
+	 * If no event name is given in the options object, the event name is set to `"stream"`.
 	 *
 	 * @param stream - Readable stream to consume from.
 	 * @param options - Options to alter how the stream is flushed to the client.
@@ -448,12 +460,13 @@ class Session<
 	};
 
 	/**
-	 * Iterate over an iterable and send yielded values as data to the client.
+	 * Iterate over an iterable and send yielded values to the client.
 	 *
-	 * Each yield emits a new event that is dispatched to the client.
+	 * Each yield pushes a new event to the client.
+	 *
 	 * This uses the `push` method under the hood.
 	 *
-	 * If no event name is given in the options object, the event name (type) is set to `"iteration"`.
+	 * If no event name is given in the options object, the event name is set to `"iteration"`.
 	 *
 	 * @param iterable - Iterable to consume data from.
 	 *

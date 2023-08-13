@@ -18,7 +18,7 @@ Channels can be used for things such as notification systems, chat rooms and syn
 
 We are going to be making a channel that does two things:
 
-1. Synchronizes a number that counts up in set intervals with all clients, and,
+1. Synchronizes a number that counts up every second with all clients, and,
 2. Sends a live updating count of how many users are currently online in real time.
 
 Let's start off from where the Getting Started guide finished as a base:
@@ -26,7 +26,7 @@ Let's start off from where the Getting Started guide finished as a base:
 ```javascript
 // server.ts
 import express from "express";
-import {createSession} from "better-sse";
+import { createSession } from "better-sse";
 
 const app = express();
 
@@ -51,18 +51,18 @@ Let's create a channel called *ticker* in a new file and export it:
 
 ```javascript
 // channels/ticker.ts
-import {createChannel} from "better-sse";
+import { createChannel } from "better-sse";
 
 const ticker = createChannel();
 
-export {ticker};
+export { ticker };
 ```
 
 Then import the channel to where your route handler is located:
 
 ```javascript
 // server.ts
-import {ticker} from "./channels/ticker";
+import { ticker } from "./channels/ticker";
 ```
 
 You then need to *register* the session with your new channel so that it can start receiving events. Inside your route handler add the following just after you create your session:
@@ -97,7 +97,7 @@ Here we have a variable `count` that gets incremented by `1` every 1000ms (one s
 
 We then broadcast the value of `count` on the `ticker` channel every interval under the event name `tick` which will be received by all of our registered sessions.
 
-On our client-side let's write a handler that updates some text with the received value:
+Back on our client-side let's write some code that updates a text field on the page with the received value:
 
 ```javascript
 // public/client.js
@@ -123,7 +123,7 @@ You can open the same page in multiple tabs at once and notice that the value is
 
 ### Track online users
 
-Let's add some more functionality to our *ticker* channel. This time we want to keep our users in the know about how many other users are on the site at the same time as them. No one wants to feel lonely!
+Let's add some more functionality to our `ticker` channel. This time we want to keep our users in the know about how many other users are on the site at the same time as them. No one wants to feel lonely!
 
 Channels [emit events](https://nodejs.org/api/events.html#events_class_eventemitter) when certain things happen such as sessions being registered, deregistered and being disconnected. Let's listen on these events to broadcast the total number of connected sessions at any given time.
 
@@ -143,7 +143,7 @@ Here we create a function `broadcastSessionCount` that broadcasts a value with t
 
 We then listen on both the events `session-registered` and `session-deregistered` and set the `broadcastSessionCount` function as a callback for each. This way, every time a session joins or leaves the channel the count is re-broadcasted and updated for all of the existing sessions on the channel.
 
-Back on our client lets add another listener that displays the session count:
+Back on our client lets add another listener for our new event that displays the session count in another text field:
 
 ```javascript
 // public/client.js
@@ -167,8 +167,8 @@ Your finished code should look like the following:
 ```javascript
 // server.ts
 import express from "express";
-import {createSession} from "better-sse";
-import {ticker} from "./channels/ticker";
+import { createSession } from "better-sse";
+import { ticker } from "./channels/ticker";
 
 const app = express();
 
@@ -185,7 +185,7 @@ app.listen(8080);
 
 ```typescript
 // channels/ticker.ts
-import {createChannel} from "better-sse";
+import { createChannel } from "better-sse";
 
 const ticker = createChannel();
 
