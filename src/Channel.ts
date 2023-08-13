@@ -22,13 +22,17 @@ interface ChannelEvents<
 	broadcast: (data: unknown, eventName: string, eventId: string) => void;
 }
 
+interface DefaultChannelState {
+	[key: string]: unknown;
+}
+
 /**
  * A Channel is used to broadcast events to many sessions at once.
  *
  * It extends from the {@link https://nodejs.org/api/events.html#events_class_eventemitter | EventEmitter} class.
  */
 class Channel<
-	State extends Record<string, unknown> = Record<string, unknown>,
+	State extends Record<string, unknown> = DefaultChannelState,
 	SessionState extends Record<string, unknown> = DefaultSessionState
 > extends TypedEmitter<ChannelEvents<SessionState>> {
 	/**
@@ -136,5 +140,5 @@ class Channel<
 	};
 }
 
-export type {BroadcastOptions, ChannelEvents};
+export type {BroadcastOptions, ChannelEvents, DefaultChannelState};
 export {Channel};

@@ -475,7 +475,7 @@ export type {
 	SessionOptions,
 	StreamOptions,
 	IterateOptions,
-	DefaultSessionState,
 	SessionEvents,
+	DefaultSessionState,
 };
 export {Session};
