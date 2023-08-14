@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.9.0 - 2023-08-14
+
+### Added
+
+* Added the ability to type the `state` property of sessions registered with a [Channel](./docs/api.md#channel) via an optional second generic argument to the `Channel` constructor.
+* Added the [`DefaultChannelState` interface](./docs/api.md#channelstate-state) that may be used via module augmentation to alter the default channel state type for all channels.
+
+### Changed
+
+* Update the [`SessionState` interface](docs/api.md#sessionstate-state) to be named `DefaultSessionState`.
+
 ## 0.8.0 - 2022-06-02
 
 ### Added
