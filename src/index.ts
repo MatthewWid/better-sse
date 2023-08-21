@@ -6,3 +6,5 @@ export * from "./createChannel";
 
 export * from "./History";
 export * from "./createHistory";
+
+export * from "./lib/generateId";

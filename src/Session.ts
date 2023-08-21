@@ -125,9 +125,7 @@ interface SessionEvents extends EventMap {
  * @param res - The Node HTTP {@link https://nodejs.org/api/http.html#http_class_http_serverresponse | IncomingMessage} object.
  * @param options - Options given to the session instance.
  */
-class Session<
-	State extends Record<string, unknown> = DefaultSessionState
-> extends TypedEmitter<SessionEvents> {
+class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	/**
 	 * The last event ID sent to the client.
 	 *

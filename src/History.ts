@@ -23,18 +23,13 @@ class History {
 		data: unknown,
 		eventName: string,
 		eventId: string,
-		channel?: Channel
+		channel: Channel
 	): this => {
 		this.idToEvent.set(eventId, {data, name: eventName, id: eventId});
 
-		if (channel) {
-			if (!this.channelToIds.has(channel)) {
-				this.register(channel);
-			}
+		this.idToChannel.set(eventId, channel);
 
-			this.idToChannel.set(eventId, channel);
-			(this.channelToIds.get(channel) as Set<string>).add(eventId);
-		}
+		(this.channelToIds.get(channel) as Set<string>).add(eventId);
 
 		return this;
 	};
@@ -53,6 +48,10 @@ class History {
 	};
 
 	register = (channel: Channel): this => {
+		if (this.channelToIds.has(channel)) {
+			return this;
+		}
+
 		this.channelToIds.set(channel, new Set());
 
 		const listener: ChannelEvents["broadcast"] = (
@@ -71,6 +70,10 @@ class History {
 	};
 
 	deregister = (channel: Channel): this => {
+		if (!this.channelToIds.has(channel)) {
+			return this;
+		}
+
 		const ids = this.channelToIds.get(channel);
 
 		if (ids) {
@@ -93,10 +96,8 @@ class History {
 		return this;
 	};
 
-	pushSinceLastId = (session: Session): this => {
-		const {lastId, push} = session;
-
-		if (!this.idToEvent.has(lastId)) {
+	replay = (session: Session): this => {
+		if (!this.idToEvent.has(session.lastId)) {
 			return this;
 		}
 
@@ -115,9 +116,9 @@ class History {
 				if (
 					channelsWithSession.has(this.idToChannel.get(id) as Channel)
 				) {
-					push(data, name, id);
+					session.push(data, name, id);
 				}
-			} else if (id === lastId) {
+			} else if (id === session.lastId) {
 				hasPassedLastEvent = true;
 			}
 		}
