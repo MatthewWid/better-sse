@@ -1,3 +1,4 @@
+import {Buffer} from "buffer";
 import {Readable} from "stream";
 import {
 	IncomingMessage as Http1ServerRequest,
@@ -5,16 +6,15 @@ import {
 	OutgoingHttpHeaders,
 } from "http";
 import {Http2ServerRequest, Http2ServerResponse} from "http2";
+import {EventBuffer} from "./EventBuffer";
 import {TypedEmitter, EventMap} from "./lib/TypedEmitter";
-import {serialize, SerializerFunction} from "./lib/serialize";
-import {sanitize, SanitizerFunction} from "./lib/sanitize";
+import {SerializerFunction} from "./lib/serialize";
+import {SanitizerFunction} from "./lib/sanitize";
 import {generateId} from "./lib/generateId";
 
 interface SessionOptions {
 	/**
 	 * Serialize data to a string that can be written.
-	 *
-	 * Note that only values written with `.data()` or `.push()` are serialized, as everything else is assumed to already be a string.
 	 *
 	 * Defaults to `JSON.stringify`.
 	 */
@@ -117,10 +117,6 @@ interface SessionEvents extends EventMap {
  * Note that creating a new session will immediately send the initial status code and headers to the client.
  * Attempting to write additional headers after you have created a new session will result in an error.
  *
- * As a performance optimisation, all events and data are first written to an internal buffer
- * where it is stored until it is flushed to the client by calling the `flush` method. This is
- * done for you when using the `push` helper method.
- *
  * @param req - The Node HTTP {@link https://nodejs.org/api/http.html#http_class_http_incomingmessage | ServerResponse} object.
  * @param res - The Node HTTP {@link https://nodejs.org/api/http.html#http_class_http_serverresponse | IncomingMessage} object.
  * @param options - Options given to the session instance.
@@ -156,12 +152,7 @@ class Session<
 	 */
 	state = {} as State;
 
-	/**
-	 * Internal buffer used to store raw data from written fields.
-	 *
-	 * When Session#dispatch is called its buffer data will be flushed.
-	 */
-	private buffer = "";
+	private buffer: EventBuffer;
 
 	/**
 	 * Raw HTTP request.
@@ -177,8 +168,6 @@ class Session<
 		write: (chunk: string) => void;
 	};
 
-	private serialize: SerializerFunction;
-	private sanitize: SanitizerFunction;
 	private trustClientEventId: boolean;
 	private initialRetry: number | null;
 	private keepAliveInterval: number | null;
@@ -197,9 +186,10 @@ class Session<
 
 		this.res = res;
 
-		this.serialize = options.serializer ?? serialize;
-
-		this.sanitize = options.sanitizer ?? sanitize;
+		this.buffer = new EventBuffer({
+			serializer: options.serializer,
+			sanitizer: options.sanitizer,
+		});
 
 		this.trustClientEventId = options.trustClientEventId ?? true;
 
@@ -256,15 +246,15 @@ class Session<
 		this.res.writeHead(this.statusCode, headers);
 
 		if (params.has("padding")) {
-			this.comment(" ".repeat(2049)).dispatch();
+			this.buffer.comment(" ".repeat(2049)).dispatch();
 		}
 
 		if (params.has("evs_preamble")) {
-			this.comment(" ".repeat(2056)).dispatch();
+			this.buffer.comment(" ".repeat(2056)).dispatch();
 		}
 
 		if (this.initialRetry !== null) {
-			this.retry(this.initialRetry).dispatch();
+			this.buffer.retry(this.initialRetry).dispatch();
 		}
 
 		this.flush();
@@ -291,54 +281,34 @@ class Session<
 		this.emit("disconnected");
 	};
 
-	/**
-	 * Write a line with a field key and value appended with a newline character.
-	 */
-	private writeField = (name: string, value: string): this => {
-		const sanitized = this.sanitize(value);
-
-		this.buffer += name + ":" + sanitized + "\n";
-
-		return this;
-	};
-
 	private keepAlive = () => {
-		this.comment().dispatch().flush();
+		this.buffer.comment().dispatch();
+		this.flush();
 	};
 
 	/**
-	 * Set the event to the given name (also referred to as the event "type" in the specification).
-	 *
-	 * @param type - Event name/type.
+	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
 	 */
 	event(type: string): this {
-		this.writeField("event", type);
+		this.buffer.event(type);
 
 		return this;
 	}
 
 	/**
-	 * Write an arbitrary data field that is automatically serialized to a string using the given `serializer` function option or JSON stringification by default.
-	 *
-	 * @param data - Data to serialize and write.
+	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
 	 */
 	data = (data: unknown): this => {
-		const serialized = this.serialize(data);
-
-		this.writeField("data", serialized);
+		this.buffer.data(data);
 
 		return this;
 	};
 
 	/**
-	 * Set the event ID to the given string.
-	 *
-	 * Defaults to an empty string if no argument is given.
-	 *
-	 * @param id - Identification string to write.
+	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
 	 */
 	id = (id = ""): this => {
-		this.writeField("id", id);
+		this.buffer.id(id);
 
 		this.lastId = id;
 
@@ -346,61 +316,51 @@ class Session<
 	};
 
 	/**
-	 * Set the suggested reconnection time to the given milliseconds.
-	 *
-	 * @param time - Time in milliseconds to retry.
+	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
 	 */
 	retry = (time: number): this => {
-		const stringifed = time.toString();
-
-		this.writeField("retry", stringifed);
+		this.buffer.retry(time);
 
 		return this;
 	};
 
 	/**
-	 * Write a comment (an ignored field).
-	 *
-	 * This will not fire an event, but is often used to keep the connection alive.
-	 *
-	 * @param text - Text of the comment. Otherwise writes an empty field value.
+	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
 	 */
-	comment = (text = ""): this => {
-		this.writeField("", text);
+	comment = (text?: string): this => {
+		this.buffer.comment(text);
 
 		return this;
 	};
 
 	/**
-	 * Indicate that the event has finished being created by writing an additional newline character.
-	 *
-	 * Note that this does **not** send the written data to the client. Use `flush` to flush the internal buffer.
+	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
 	 */
 	dispatch = (): this => {
-		this.buffer += "\n";
+		this.buffer.dispatch();
 
 		return this;
 	};
 
 	/**
-	 * Flush the buffered data to the client and clear the buffer.
+	 * Flush the contents of the internal buffer to the client and clear the buffer.
+	 *
+	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
 	 */
 	flush = (): this => {
-		this.res.write(this.buffer);
+		this.res.write(this.buffer.read());
 
-		this.buffer = "";
+		this.buffer.clear();
 
 		return this;
 	};
 
 	/**
-	 * Create, write, dispatch and flush an event with the given data to the client all at once.
-	 *
-	 * This is equivalent to calling the methods `event`, `id`, `data`, `dispatch` and `flush` in that order.
+	 * Push an event to the client.
 	 *
 	 * If no event name is given, the event name is set to `"message"`.
 	 *
-	 * If no event ID is given, the event ID (and thus the `lastid` property) is set to a unique string generated using a cryptographic pseudorandom number generator.
+	 * If no event ID is given, the event ID (and thus the `lastId` property) is set to a unique string generated using a cryptographic pseudorandom number generator.
 	 *
 	 * Emits the `push` event with the given data, event name and event ID in that order.
 	 *
@@ -413,7 +373,11 @@ class Session<
 		eventName = "message",
 		eventId = generateId()
 	): this => {
-		this.event(eventName).id(eventId).data(data).dispatch().flush();
+		this.buffer.push(data, eventName, eventId);
+
+		this.flush();
+
+		this.lastId = eventId;
 
 		this.emit("push", data, eventName, eventId);
 
@@ -421,15 +385,13 @@ class Session<
 	};
 
 	/**
-	 * Pipe readable stream data to the client.
-	 *
-	 * Each data emission by the stream pushes a new event to the client.
+	 * Pipe readable stream data as a series of events to the client.
 	 *
 	 * This uses the `push` method under the hood.
 	 *
-	 * If no event name is given in the options object, the event name is set to `"stream"`.
+	 * If no event name is given in the `options` object, the event name is set to `"stream"`.
 	 *
-	 * @param stream - Readable stream to consume from.
+	 * @param stream - Readable stream to consume data from.
 	 * @param options - Options to alter how the stream is flushed to the client.
 	 *
 	 * @returns A promise that resolves or rejects based on the success of the stream write finishing.
@@ -460,17 +422,15 @@ class Session<
 	};
 
 	/**
-	 * Iterate over an iterable and send yielded values to the client.
-	 *
-	 * Each yield pushes a new event to the client.
+	 * Iterate over an iterable and send yielded values as events to the client.
 	 *
 	 * This uses the `push` method under the hood.
 	 *
-	 * If no event name is given in the options object, the event name is set to `"iteration"`.
+	 * If no event name is given in the `options` object, the event name is set to `"iteration"`.
 	 *
 	 * @param iterable - Iterable to consume data from.
 	 *
-	 * @returns A promise that resolves once all the data has been yielded from the iterable.
+	 * @returns A promise that resolves once all data has been successfully yielded from the iterable.
 	 */
 	iterate = async <DataType = unknown>(
 		iterable: Iterable<DataType> | AsyncIterable<DataType>,

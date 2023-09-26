@@ -2,6 +2,7 @@ import http from "http";
 import http2 from "http2";
 import net, {AddressInfo} from "net";
 import {Session} from "../Session";
+import {EventBuffer} from "../EventBuffer";
 
 const createHttpServer = (): Promise<http.Server> =>
 	new Promise<http.Server>((resolve, reject) => {
@@ -46,10 +47,14 @@ const waitForConnect = (session: Session): Promise<void> =>
 		}
 	});
 
+const getBuffer = (session: Session): EventBuffer =>
+	Reflect.get(session, "buffer");
+
 export {
 	createHttpServer,
 	createHttp2Server,
 	closeServer,
 	getUrl,
 	waitForConnect,
+	getBuffer,
 };

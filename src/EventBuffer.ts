@@ -1,0 +1,156 @@
+import {serialize, SerializerFunction} from "./lib/serialize";
+import {sanitize, SanitizerFunction} from "./lib/sanitize";
+import {generateId} from "./lib/generateId";
+
+interface EventBufferOptions {
+	/**
+	 * Serialize data to a string that can be written.
+	 *
+	 * Defaults to `JSON.stringify`.
+	 */
+	serializer?: SerializerFunction;
+
+	/**
+	 * Sanitize values so as to not prematurely dispatch events when writing fields whose text inadvertently contains newlines.
+	 *
+	 * By default, CR, LF and CRLF characters are replaced with a single LF character (`\n`) and then any trailing LF characters are stripped so as to prevent a blank line being written and accidentally dispatching the event before `.dispatch()` is called.
+	 */
+	sanitizer?: SanitizerFunction;
+}
+
+/**
+ * An `EventBuffer` allows you to write raw spec-compliant SSE fields into a buffer that can be sent directly over the wire.
+ */
+class EventBuffer {
+	private buffer = "";
+	private serialize: SerializerFunction;
+	private sanitize: SanitizerFunction;
+
+	constructor(options: EventBufferOptions = {}) {
+		this.serialize = options.serializer ?? serialize;
+		this.sanitize = options.sanitizer ?? sanitize;
+	}
+
+	/**
+	 * Write a line with a field key and value appended with a newline character.
+	 */
+	private writeField = (name: string, value: string): this => {
+		const sanitized = this.sanitize(value);
+
+		this.buffer += name + ":" + sanitized + "\n";
+
+		return this;
+	};
+
+	/**
+	 * Set the event to the given name (also referred to as the event "type" in the specification).
+	 *
+	 * @param type - Event name/type.
+	 */
+	event(type: string): this {
+		this.writeField("event", type);
+
+		return this;
+	}
+
+	/**
+	 * Write an arbitrary data field that is automatically serialized to a string using the given `serializer` function option or JSON stringification by default.
+	 *
+	 * @param data - Data to serialize and write.
+	 */
+	data = (data: unknown): this => {
+		const serialized = this.serialize(data);
+
+		this.writeField("data", serialized);
+
+		return this;
+	};
+
+	/**
+	 * Set the event ID to the given string.
+	 *
+	 * Defaults to an empty string if no argument is given.
+	 *
+	 * @param id - Identification string to write.
+	 */
+	id = (id = ""): this => {
+		this.writeField("id", id);
+
+		return this;
+	};
+
+	/**
+	 * Set the suggested reconnection time to the given milliseconds.
+	 *
+	 * @param time - Time in milliseconds to retry.
+	 */
+	retry = (time: number): this => {
+		const stringifed = time.toString();
+
+		this.writeField("retry", stringifed);
+
+		return this;
+	};
+
+	/**
+	 * Write a comment (an ignored field).
+	 *
+	 * This will not fire an event, but is often used to keep the connection alive.
+	 *
+	 * @param text - Text of the comment. Otherwise writes an empty field value.
+	 */
+	comment = (text = ""): this => {
+		this.writeField("", text);
+
+		return this;
+	};
+
+	/**
+	 * Indicate that the event has finished being created by writing an additional newline character.
+	 */
+	dispatch = (): this => {
+		this.buffer += "\n";
+
+		return this;
+	};
+
+	/**
+	 * Create, write and dispatch an event with the given data to the client all at once.
+	 *
+	 * This is equivalent to calling the methods `event`, `id`, `data` and `dispatch` in that order.
+	 *
+	 * If no event name is given, the event name is set to `"message"`.
+	 *
+	 * If no event ID is given, the event ID (and thus the `lastId` property) is set to a unique string generated using a cryptographic pseudorandom number generator.
+	 *
+	 * @param data - Data to write.
+	 * @param eventName - Event name to write.
+	 * @param eventId - Event ID to write.
+	 */
+	push = (
+		data: unknown,
+		eventName = "message",
+		eventId = generateId()
+	): this => {
+		this.event(eventName).id(eventId).data(data).dispatch();
+
+		return this;
+	};
+
+	/**
+	 * Clear the contents of the buffer.
+	 */
+	clear = () => {
+		this.buffer = "";
+
+		return this;
+	};
+
+	/**
+	 * Get a copy of the buffer contents.
+	 */
+	read = () => this.buffer;
+}
+
+export type {EventBufferOptions};
+export {EventBuffer};

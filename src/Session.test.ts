@@ -1,17 +1,16 @@
-import {vi, describe, it, expect, beforeEach, afterEach, Mocked} from "vitest";
+import {vi, describe, it, expect, beforeEach, afterEach} from "vitest";
 import http from "http";
 import http2 from "http2";
 import {AddressInfo} from "net";
 import EventSource from "eventsource";
 import {Readable} from "stream";
-import {serialize, SerializerFunction} from "./lib/serialize";
-import {SanitizerFunction} from "./lib/sanitize";
 import {
 	createHttpServer,
+	createHttp2Server,
 	closeServer,
 	getUrl,
 	waitForConnect,
-	createHttp2Server,
+	getBuffer,
 } from "./lib/testUtils";
 import {Session} from "./Session";
 
@@ -162,59 +161,6 @@ describe("connection", () => {
 			eventsource = new EventSource(url);
 		}));
 
-	it("can override the serializer function", () =>
-		new Promise<void>((done) => {
-			const serializer = vi.fn(
-				(value: string) => `123${JSON.stringify(value)}123`
-			) as Mocked<SerializerFunction>;
-
-			server.on("request", (req, res) => {
-				const session = new Session(req, res, {serializer});
-
-				session.on("connected", () => {
-					session.push("Hello world");
-
-					expect(serializer).toHaveBeenCalledWith("Hello world");
-				});
-			});
-
-			eventsource = new EventSource(url);
-
-			eventsource.addEventListener("message", (event) => {
-				expect(event.data).toBe('123"Hello world"123');
-
-				done();
-			});
-		}));
-
-	it("can override the sanitizer function", () =>
-		new Promise<void>((done) => {
-			const sanitizer = vi.fn((value: string) =>
-				value === serialize("Hello world") ? "sanitized" : value
-			) as Mocked<SanitizerFunction>;
-
-			server.on("request", (req, res) => {
-				const session = new Session(req, res, {sanitizer});
-
-				session.on("connected", () => {
-					session.push("Hello world");
-
-					expect(sanitizer).toHaveBeenCalled();
-					expect(sanitizer).toHaveBeenCalledWith(
-						serialize("Hello world")
-					);
-				});
-			});
-
-			eventsource = new EventSource(url);
-
-			eventsource.addEventListener("message", (event) => {
-				expect(event.data).toBe("sanitized");
-
-				done();
-			});
-		}));
-
 	it("adds custom headers to the response headers", () =>
 		new Promise<void>((done) => {
 			const additionalHeaders = {
@@ -296,40 +242,21 @@ describe("connection", () => {
 		}));
 });
 
-describe("dispatch", () => {
-	it("writes a newline when calling dispatch", () =>
-		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
-				const write = vi.spyOn(res, "write");
-
-				const session = new Session(req, res);
-
-				session.on("connected", () => {
-					session.dispatch().flush();
-
-					expect(write).toHaveBeenLastCalledWith("\n");
-
-					done();
-				});
-			});
-
-			eventsource = new EventSource(url);
-		}));
-});
-
 describe("retry", () => {
 	it("writes an initial retry field by default", () =>
 		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
+			server.on("request", async (req, res) => {
 				const session = new Session(req, res);
 
-				const retry = vi.spyOn(session, "retry");
+				const buffer = getBuffer(session);
 
-				session.on("connected", () => {
-					expect(retry).toHaveBeenCalled();
+				const retry = vi.spyOn(buffer, "retry");
 
-					done();
-				});
+				await waitForConnect(session);
+
+				expect(retry).toHaveBeenCalled();
+
+				done();
 			});
 
 			eventsource = new EventSource(url);
@@ -337,18 +264,20 @@ describe("retry", () => {
 
 	it("can modify the initial retry field value", () =>
 		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
+			server.on("request", async (req, res) => {
 				const session = new Session(req, res, {
 					retry: 4000,
 				});
 
-				const retry = vi.spyOn(session, "retry");
+				const buffer = getBuffer(session);
 
-				session.on("connected", () => {
-					expect(retry).toHaveBeenCalledWith(4000);
+				const retry = vi.spyOn(buffer, "retry");
 
-					done();
-				});
+				await waitForConnect(session);
+
+				expect(retry).toHaveBeenCalledWith(4000);
+
+				done();
 			});
 
 			eventsource = new EventSource(url);
@@ -356,39 +285,20 @@ describe("retry", () => {
 
 	it("can prevent the initial retry field from being sent", () =>
 		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
+			server.on("request", async (req, res) => {
 				const session = new Session(req, res, {
 					retry: null,
 				});
 
-				const retry = vi.spyOn(session, "retry");
+				const buffer = getBuffer(session);
 
-				session.on("connected", () => {
-					expect(retry).not.toHaveBeenCalled();
+				const retry = vi.spyOn(buffer, "retry");
 
-					done();
-				});
-			});
+				await waitForConnect(session);
 
-			eventsource = new EventSource(url);
-		}));
+				expect(retry).not.toHaveBeenCalled();
 
-	it("can imperatively set the retry time", () =>
-		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
-				const write = vi.spyOn(res, "write");
-
-				const session = new Session(req, res, {
-					retry: null,
-				});
-
-				session.on("connected", () => {
-					session.retry(8000).flush();
-
-					expect(write).toHaveBeenCalledWith("retry:8000\n");
-
-					done();
-				});
+				done();
 			});
 
 			eventsource = new EventSource(url);
@@ -478,14 +388,14 @@ describe("event ID management", () => {
 
 	it("starts with an empty last event ID", () =>
 		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
+			server.on("request", async (req, res) => {
 				const session = new Session(req, res);
 
-				session.on("connected", () => {
-					expect(session.lastId).toBe("");
+				await waitForConnect(session);
 
-					done();
-				});
+				expect(session.lastId).toBe("");
+
+				done();
 			});
 
 			eventsource = new EventSource(url);
@@ -493,14 +403,14 @@ describe("event ID management", () => {
 
 	it("trusts and stores the given last event ID by default", () =>
 		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
+			server.on("request", async (req, res) => {
 				const session = new Session(req, res);
 
-				session.on("connected", () => {
-					expect(session.lastId).toBe(givenLastId);
+				await waitForConnect(session);
 
-					done();
-				});
+				expect(session.lastId).toBe(givenLastId);
+
+				done();
 			});
 
 			eventsource = new EventSource(url, {
@@ -510,309 +420,43 @@ describe("event ID management", () => {
 
 	it("ignores the given last event ID if set in options", () =>
 		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
+			server.on("request", async (req, res) => {
 				const session = new Session(req, res, {
 					trustClientEventId: false,
 				});
 
-				session.on("connected", () => {
-					expect(session.lastId).toBe("");
+				await waitForConnect(session);
 
-					done();
-				});
+				expect(session.lastId).toBe("");
+
+				done();
 			});
 
 			eventsource = new EventSource(url, {
 				headers: {"Last-Event-ID": givenLastId},
 			});
 		}));
-
-	it("can imperatively set the event ID", () =>
-		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
-				const write = vi.spyOn(res, "write");
-
-				const session = new Session(req, res);
-
-				session.on("connected", () => {
-					session.id(givenLastId).dispatch().flush();
-
-					expect(write).toHaveBeenLastCalledWith(
-						`id:${givenLastId}\n\n`
-					);
-					expect(session.lastId).toBe(givenLastId);
-
-					session.data(0).dispatch().flush();
-				});
-			});
-
-			eventsource = new EventSource(url);
-
-			eventsource.addEventListener("message", (event) => {
-				expect(event.lastEventId).toBe(givenLastId);
-
-				done();
-			});
-		}));
-
-	it("sets the event ID to an empty string when passed null", () =>
-		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
-				const write = vi.spyOn(res, "write");
-
-				const session = new Session(req, res);
-
-				session.on("connected", () => {
-					session.id().flush();
-
-					expect(write).toHaveBeenLastCalledWith("id:\n");
-					expect(session.lastId).toBe("");
-
-					done();
-				});
-			});
-
-			eventsource = new EventSource(url);
-		}));
-});
-
-describe("event type", () => {
-	it("can imperatively set the event type", () =>
-		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
-				const write = vi.spyOn(res, "write");
-
-				const session = new Session(req, res);
-
-				session.on("connected", () => {
-					session.event("test").flush();
-
-					expect(write).toHaveBeenCalledWith("event:test\n");
-
-					done();
-				});
-			});
-
-			eventsource = new EventSource(url);
-		}));
-});
-
-describe("data writing", () => {
-	const dataToWrite = "test";
-
-	it("can imperatively write data", () =>
-		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
-				const write = vi.spyOn(res, "write");
-
-				const session = new Session(req, res);
-
-				session.on("connected", () => {
-					session.data(dataToWrite).flush();
-
-					expect(write).toHaveBeenCalledWith(
-						`data:"${dataToWrite}"\n`
-					);
-
-					done();
-				});
-			});
-
-			eventsource = new EventSource(url);
-		}));
-
-	it("serializes data written", () =>
-		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
-				const write = vi.spyOn(res, "write");
-
-				const session = new Session(req, res);
-
-				session.on("connected", () => {
-					session.data(dataToWrite).flush();
-
-					expect(write).toHaveBeenCalledWith(
-						`data:${JSON.stringify(dataToWrite)}\n`
-					);
-
-					done();
-				});
-			});
-
-			eventsource = new EventSource(url);
-		}));
-});
-
-describe("comments", () => {
-	it("can imperatively write a field with no field name", () =>
-		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
-				const write = vi.spyOn(res, "write");
-
-				const session = new Session(req, res);
-
-				session.on("connected", () => {
-					session.comment("testcomment").flush();
-
-					expect(write).toHaveBeenLastCalledWith(":testcomment\n");
-
-					done();
-				});
-			});
-
-			eventsource = new EventSource(url);
-		}));
-
-	it("can write a comment with no field value", () =>
-		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
-				const write = vi.spyOn(res, "write");
-
-				const session = new Session(req, res);
-
-				session.on("connected", () => {
-					session.comment().flush();
-
-					expect(write).toHaveBeenLastCalledWith(":\n");
-
-					done();
-				});
-			});
-
-			eventsource = new EventSource(url);
-		}));
 });
 
 describe("push", () => {
-	const dataToWrite = "testData";
-	const eventName = "testEvent";
-	const eventId = "123456";
+	const args = ["test-data", "test-name", "test-id"] as const;
 
-	it("calls all field writing methods", () =>
+	it("passes push arguments to internal buffer push method", () =>
 		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
+			server.on("request", async (req, res) => {
 				const session = new Session(req, res);
 
-				const event = vi.spyOn(session, "event");
-				const id = vi.spyOn(session, "id");
-				const data = vi.spyOn(session, "data");
-				const dispatch = vi.spyOn(session, "dispatch");
-				const flush = vi.spyOn(session, "flush");
+				const buffer = getBuffer(session);
 
-				session.on("connected", () => {
-					session.push(dataToWrite);
+				const push = vi.spyOn(buffer, "push");
 
-					expect(event).toHaveBeenCalled();
-					expect(id).toHaveBeenCalled();
-					expect(data).toHaveBeenCalled();
-					expect(dispatch).toHaveBeenCalled();
-					expect(flush).toHaveBeenCalled();
+				await waitForConnect(session);
 
-					done();
-				});
-			});
+				session.push(...args);
 
-			eventsource = new EventSource(url);
-		}));
+				expect(push).toHaveBeenCalledWith(...args);
 
-	it("sets the event type to a default with no given event type", () =>
-		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
-				const session = new Session(req, res);
-
-				const event = vi.spyOn(session, "event");
-
-				session.on("connected", () => {
-					session.push(dataToWrite);
-
-					expect(event).toHaveBeenCalledWith("message");
-
-					done();
-				});
-			});
-
-			eventsource = new EventSource(url);
-		}));
-
-	it("sets the event type to the given event type", () =>
-		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
-				const session = new Session(req, res);
-
-				const event = vi.spyOn(session, "event");
-
-				session.on("connected", () => {
-					session.push(dataToWrite, eventName);
-
-					expect(event).toHaveBeenCalledWith(eventName);
-
-					done();
-				});
-			});
-
-			eventsource = new EventSource(url);
-		}));
-
-	it("calls data write with the same given data value", () =>
-		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
-				const session = new Session(req, res);
-
-				const data = vi.spyOn(session, "data");
-
-				session.on("connected", () => {
-					session.push(dataToWrite);
-
-					expect(data).toHaveBeenCalledWith(dataToWrite);
-
-					done();
-				});
-			});
-
-			eventsource = new EventSource(url);
-		}));
-
-	it("calls event ID with the given event ID", () =>
-		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
-				const session = new Session(req, res);
-
-				const id = vi.spyOn(session, "id");
-
-				session.on("connected", () => {
-					session.push(dataToWrite, eventName, eventId);
-
-					expect(id).toHaveBeenCalledWith(eventId);
-
-					done();
-				});
-			});
-
-			eventsource = new EventSource(url);
-		}));
-
-	it("generates and sets a new event ID if no custom event ID is given", () =>
-		new Promise<void>((done) => {
-			const oldId = "1234567890";
-
-			server.on("request", (req, res) => {
-				const session = new Session(req, res);
-
-				const id = vi.spyOn(session, "id");
-
-				session.on("connected", () => {
-					session.id(oldId);
-
-					session.push(dataToWrite, eventName);
-
-					const newId = session.lastId;
-
-					expect(id).toHaveBeenCalledWith(newId);
-
-					expect(newId).not.toBe(oldId);
-
-					done();
-				});
+				done();
 			});
 
 			eventsource = new EventSource(url);
@@ -820,8 +464,6 @@ describe("push", () => {
 
 	it("emits a push event with the same arguments", () =>
 		new Promise<void>((done) => {
-			const args = ["data", "eventName", "eventId"] as const;
-
 			const callback = vi.fn();
 
 			server.on("request", async (req, res) => {
@@ -834,6 +476,44 @@ describe("push", () => {
 				session.push(...args);
 
 				expect(callback).toHaveBeenCalledWith(...args);
+
+				done();
+			});
+
+			eventsource = new EventSource(url);
+		}));
+
+	it("sets the last id to the event id", () =>
+		new Promise<void>((done) => {
+			server.on("request", async (req, res) => {
+				const session = new Session(req, res);
+
+				await waitForConnect(session);
+
+				session.push(...args);
+
+				const [, , givenId] = args;
+
+				expect(session.lastId).toBe(givenId);
+
+				done();
+			});
+
+			eventsource = new EventSource(url);
+		}));
+
+	it("flushes buffer data to the client", () =>
+		new Promise<void>((done) => {
+			server.on("request", async (req, res) => {
+				const session = new Session(req, res);
+
+				await waitForConnect(session);
+
+				const flush = vi.spyOn(session, "flush");
+
+				session.push(...args);
+
+				expect(flush).toHaveBeenCalled();
 
 				done();
 			});
@@ -1082,8 +762,10 @@ describe("polyfill support", () => {
 			server.on("request", async (req, res) => {
 				const session = new Session(req, res);
 
-				const comment = vi.spyOn(session, "comment");
-				const dispatch = vi.spyOn(session, "dispatch");
+				const buffer = getBuffer(session);
+
+				const comment = vi.spyOn(buffer, "comment");
+				const dispatch = vi.spyOn(buffer, "dispatch");
 
 				await waitForConnect(session);
 
@@ -1118,8 +800,10 @@ describe("polyfill support", () => {
 			server.on("request", async (req, res) => {
 				const session = new Session(req, res);
 
-				const comment = vi.spyOn(session, "comment");
-				const dispatch = vi.spyOn(session, "dispatch");
+				const buffer = getBuffer(session);
+
+				const comment = vi.spyOn(buffer, "comment");
+				const dispatch = vi.spyOn(buffer, "dispatch");
 
 				await waitForConnect(session);
 
@@ -1137,7 +821,9 @@ describe("polyfill support", () => {
 			server.on("request", async (req, res) => {
 				const session = new Session(req, res);
 
-				const comment = vi.spyOn(session, "comment");
+				const buffer = getBuffer(session);
+
+				const comment = vi.spyOn(buffer, "comment");
 
 				await waitForConnect(session);
 
