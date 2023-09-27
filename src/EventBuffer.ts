@@ -1,6 +1,8 @@
 import {serialize, SerializerFunction} from "./lib/serialize";
 import {sanitize, SanitizerFunction} from "./lib/sanitize";
 import {generateId} from "./lib/generateId";
+import {createPushFromStream} from "./lib/createPushFromStream";
+import {createPushFromIterable} from "./lib/createPushFromIterable";
 
 interface EventBufferOptions {
 	/**
@@ -136,6 +138,33 @@ class EventBuffer {
 
 		return this;
 	};
+
+	/**
+	 * Pipe readable stream data as a series of events to the client.
+	 *
+	 * This uses the `push` method under the hood.
+	 *
+	 * If no event name is given in the `options` object, the event name is set to `"stream"`.
+	 *
+	 * @param stream - Readable stream to consume data from.
+	 * @param options - Options to alter how the stream is flushed to the client.
+	 *
+	 * @returns A promise that resolves or rejects based on the success of the stream write finishing.
+	 */
+	stream = createPushFromStream(this.push);
+
+	/**
+	 * Iterate over an iterable and send yielded values as events to the client.
+	 *
+	 * This uses the `push` method under the hood.
+	 *
+	 * If no event name is given in the `options` object, the event name is set to `"iteration"`.
+	 *
+	 * @param iterable - Iterable to consume data from.
+	 *
+	 * @returns A promise that resolves once all data has been successfully yielded from the iterable.
+	 */
+	iterate = createPushFromIterable(this.push);
 
 	/**
 	 * Clear the contents of the buffer.

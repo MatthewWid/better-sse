@@ -1,32 +1,17 @@
-import {Buffer} from "buffer";
-import {Readable} from "stream";
 import {
 	IncomingMessage as Http1ServerRequest,
 	ServerResponse as Http1ServerResponse,
 	OutgoingHttpHeaders,
 } from "http";
 import {Http2ServerRequest, Http2ServerResponse} from "http2";
-import {EventBuffer} from "./EventBuffer";
+import {EventBuffer, EventBufferOptions} from "./EventBuffer";
 import {TypedEmitter, EventMap} from "./lib/TypedEmitter";
-import {SerializerFunction} from "./lib/serialize";
-import {SanitizerFunction} from "./lib/sanitize";
 import {generateId} from "./lib/generateId";
+import {createPushFromStream} from "./lib/createPushFromStream";
+import {createPushFromIterable} from "./lib/createPushFromIterable";
 
-interface SessionOptions {
-	/**
-	 * Serialize data to a string that can be written.
-	 *
-	 * Defaults to `JSON.stringify`.
-	 */
-	serializer?: SerializerFunction;
-
-	/**
-	 * Sanitize values so as to not prematurely dispatch events when writing fields whose text inadvertently contains newlines.
-	 *
-	 * By default, CR, LF and CRLF characters are replaced with a single LF character (`\n`) and then any trailing LF characters are stripped so as to prevent a blank line being written and accidentally dispatching the event before `.dispatch()` is called.
-	 */
-	sanitizer?: SanitizerFunction;
-
+interface SessionOptions
+	extends Pick<EventBufferOptions, "serializer" | "sanitizer"> {
 	/**
 	 * Whether to trust or ignore the last event ID given by the client in the `Last-Event-ID` request header.
 	 *
@@ -76,24 +61,6 @@ interface SessionOptions {
 	 * Additional headers to be sent along with the response.
 	 */
 	headers?: OutgoingHttpHeaders;
-}
-
-interface StreamOptions {
-	/**
-	 * Event name/type to be emitted when stream data is sent to the client.
-	 *
-	 * Defaults to `"stream"`.
-	 */
-	eventName?: string;
-}
-
-interface IterateOptions {
-	/**
-	 * Event name/type to be emitted when iterable data is sent to the client.
-	 *
-	 * Defaults to `"iteration"`.
-	 */
-	eventName?: string;
 }
 
 interface DefaultSessionState {
@@ -396,30 +363,7 @@ class Session<
 	 *
 	 * @returns A promise that resolves or rejects based on the success of the stream write finishing.
 	 */
-	stream = async (
-		stream: Readable,
-		options: StreamOptions = {}
-	): Promise<boolean> => {
-		const {eventName = "stream"} = options;
-
-		return new Promise<boolean>((resolve, reject) => {
-			stream.on("data", (chunk) => {
-				let data: string;
-
-				if (Buffer.isBuffer(chunk)) {
-					data = chunk.toString();
-				} else {
-					data = chunk;
-				}
-
-				this.push(data, eventName);
-			});
-
-			stream.once("end", () => resolve(true));
-			stream.once("close", () => resolve(true));
-			stream.once("error", (err) => reject(err));
-		});
-	};
+	stream = createPushFromStream(this.push);
 
 	/**
 	 * Iterate over an iterable and send yielded values as events to the client.
@@ -432,23 +376,8 @@ class Session<
 	 *
 	 * @returns A promise that resolves once all data has been successfully yielded from the iterable.
 	 */
-	iterate = async <DataType = unknown>(
-		iterable: Iterable<DataType> | AsyncIterable<DataType>,
-		options: IterateOptions = {}
-	): Promise<void> => {
-		const {eventName = "iteration"} = options;
-
-		for await (const data of iterable) {
-			this.push(data, eventName);
-		}
-	};
+	iterate = createPushFromIterable(this.push);
 }
 
-export type {
-	SessionOptions,
-	StreamOptions,
-	IterateOptions,
-	SessionEvents,
-	DefaultSessionState,
-};
+export type {SessionOptions, SessionEvents, DefaultSessionState};
 export {Session};
