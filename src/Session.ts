@@ -9,6 +9,8 @@ import {TypedEmitter, EventMap} from "./lib/TypedEmitter";
 import {generateId} from "./lib/generateId";
 import {createPushFromStream} from "./lib/createPushFromStream";
 import {createPushFromIterable} from "./lib/createPushFromIterable";
+import {serialize, SerializerFunction} from "./lib/serialize";
+import {sanitize, SanitizerFunction} from "./lib/sanitize";
 
 interface SessionOptions
 	extends Pick<EventBufferOptions, "serializer" | "sanitizer"> {
@@ -135,6 +137,8 @@ class Session<
 		write: (chunk: string) => void;
 	};
 
+	private serialize: SerializerFunction;
+	private sanitize: SanitizerFunction;
 	private trustClientEventId: boolean;
 	private initialRetry: number | null;
 	private keepAliveInterval: number | null;
@@ -153,10 +157,13 @@ class Session<
 
 		this.res = res;
 
-		this.buffer = new EventBuffer({
-			serializer: options.serializer,
-			sanitizer: options.sanitizer,
-		});
+		const serializer = options.serializer ?? serialize;
+		const sanitizer = options.sanitizer ?? sanitize;
+
+		this.serialize = serializer;
+		this.sanitize = sanitizer;
+
+		this.buffer = new EventBuffer({serializer, sanitizer});
 
 		this.trustClientEventId = options.trustClientEventId ?? true;
 
@@ -377,6 +384,37 @@ class Session<
 	 * @returns A promise that resolves once all data has been successfully yielded from the iterable.
 	 */
 	iterate = createPushFromIterable(this.push);
+
+	/**
+	 * Batch and send multiple events at once.
+	 *
+	 * If given an `EventBuffer` instance, its contents will be sent to the client.
+	 *
+	 * If given a callback, it will be passed an instance of `EventBuffer` which uses the same serializer and sanitizer as the session.
+	 * Once its execution completes - or once it resolves if it returns a promise - the contents of the passed `EventBuffer` will be sent to the client.
+	 *
+	 * @param batcher - Event buffer to get contents from, or callback that takes an event buffer to write to.
+	 *
+	 * @returns A promise that resolves once all data from the event buffer has been successfully sent to the client.
+	 *
+	 * @see EventBuffer
+	 */
+	batch = async (
+		batcher: EventBuffer | ((buffer: EventBuffer) => void | Promise<void>)
+	) => {
+		if (batcher instanceof EventBuffer) {
+			this.res.write(batcher.read());
+		} else {
+			const buffer = new EventBuffer({
+				serializer: this.serialize,
+				sanitizer: this.sanitize,
+			});
+
+			await batcher(buffer);
+
+			this.res.write(buffer.read());
+		}
+	};
 }
 
 export type {SessionOptions, SessionEvents, DefaultSessionState};

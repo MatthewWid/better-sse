@@ -12,6 +12,7 @@ import {
 	getBuffer,
 } from "./lib/testUtils";
 import {Session} from "./Session";
+import {EventBuffer} from "./EventBuffer";
 
 let server: http.Server;
 let url: string;
@@ -513,6 +514,75 @@ describe("push", () => {
 				session.push(...args);
 
 				expect(flush).toHaveBeenCalled();
+
+				done();
+			});
+
+			eventsource = new EventSource(url);
+		}));
+});
+
+describe("batching", () => {
+	const data = "test-data";
+
+	it("given a synchronous callback, creates a new event buffer and writes its contents to the response after execution has finished", () =>
+		new Promise<void>((done) => {
+			server.on("request", async (req, res) => {
+				const session = new Session(req, res);
+
+				await waitForConnect(session);
+
+				const write = vi.spyOn(res, "write");
+
+				await session.batch((buffer) => {
+					buffer.push(data);
+				});
+
+				expect(write.mock.calls[0][0]).toContain(data);
+
+				done();
+			});
+
+			eventsource = new EventSource(url);
+		}));
+
+	it("given an asynchronous callback, creates a new event buffer and writes its contents to the response after the returned promise has resolved", () =>
+		new Promise<void>((done) => {
+			server.on("request", async (req, res) => {
+				const session = new Session(req, res);
+
+				await waitForConnect(session);
+
+				const write = vi.spyOn(res, "write");
+
+				await session.batch(async (buffer) => {
+					buffer.push(data);
+				});
+
+				expect(write.mock.calls[0][0]).toContain(data);
+
+				done();
+			});
+
+			eventsource = new EventSource(url);
+		}));
+
+	it("given an event buffer, writes its contents to the response", () =>
+		new Promise<void>((done) => {
+			server.on("request", async (req, res) => {
+				const session = new Session(req, res);
+
+				await waitForConnect(session);
+
+				const write = vi.spyOn(res, "write");
+
+				const buffer = new EventBuffer();
+
+				buffer.push(data);
+
+				await session.batch(buffer);
+
+				expect(write.mock.calls[0][0]).toContain(data);
 
 				done();
 			});

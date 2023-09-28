@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.10.0 - 2023-09-28
+
 ### Added
 
+* Added the [`Session#batch`](./docs/api.md#sessionbatch-batcher-eventbuffer--buffer-eventbuffer--void--promisevoid--promisevoid) method that can be used to batch multiple events into a single transmission over the wire.
 * Added the [`EventBuffer`](./docs/api.md#eventbuffer) class that can be used to write raw spec-compliant SSE fields into a text buffer that can be sent directly over the wire.
 
 ### Deprecated
