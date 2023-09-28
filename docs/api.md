@@ -8,6 +8,8 @@
 * [createSession](#createsession%3A-(constructorparameters<typeof-session>)-%3D>-promise<session>)
 * [Channel](#channel)
 * [createChannel](#createchannel%3A-(...args%3A-constructorparameters<typeof-channel>)-%3D>-channel)
+* [EventBuffer](#eventbuffer)
+* [createEventBuffer](#createeventbuffer-args-constructorparameterstypeof-eventbuffer--eventbuffer)
 
 ## Documentation
 
@@ -20,8 +22,6 @@ A `Session` represents an open connection between the server and the client.
 It emits the `connected` event after it has connected and sent all headers to the client, and the `disconnected` event after the connection has been closed.
 
 Note that creating a new session will immediately send the initial status code and headers to the client. Attempting to write additional headers after you have created a new session will result in an error.
-
-As a performance optimisation, all events and data are first written to an internal buffer where it is stored until it is flushed to the client by calling the [`flush` method](#sessionflush---this). This is done for you when using the `push` helper method.
 
 #### `new Session<State = DefaultSessionState>(req: IncomingMessage | Http2ServerRequest, res: ServerResponse | Http2ServerResponse[, options = {}])`
 
@@ -47,7 +47,7 @@ The last event ID sent to the client.
 
 This is initialized to the last event ID given by the user (in the `Last-Event-ID` header), and otherwise is equal to the last number given to the `.id` method.
 
-For security reasons, keep in mind that the client can provide *any* initial ID here. Use the `trustClientEventId` to ignore the client-given initial ID.
+For security reasons, keep in mind that the client can provide *any* initial ID here. Use the `trustClientEventId` constructor option to ignore the client-given initial ID.
 
 #### `Session#isConnected`: `boolean`
 
@@ -61,47 +61,9 @@ Use this object to safely store information related to the session and user.
 
 Use [module augmentation and declaration merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation) to safely add new properties to the `DefaultSessionState` interface.
 
-#### `Session#event`: `(type: string) => this`
-
-Set the event to the given name (also referred to as the event "type" in the specification).
-
-#### `Session#data`: `(data: any) => this`
-
-Write arbitrary data with the last event.
-
-The given value is automatically serialized to a string using the `serializer` function which defaults to [JSON stringification](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
-
-#### `Session#id`: `([id: string]) => this`
-
-Set the event ID to the given string.
-
-Defaults to an empty string if no argument is given.
-
-#### `Session#retry`: `(time: number) => this`
-
-Set the suggested reconnection time to the given milliseconds.
-
-#### `Session#comment`: `([text: string]) => this`
-
-Write a comment (an ignored field).
-
-This will not fire an event, but is often used to keep the connection alive.
-
-#### `Session#dispatch`: `() => this`
-
-Indicate that the event has finished being created by writing an additional newline character.
-
-Note that this does **not** send the written data to the client. To do so, use the [`flush` method](#sessionflush---this) to flush the internal buffer over the wire.
-
-#### `Session#flush`: `() => this`
-
-Flush the buffered data to the client and clear the buffer.
-
 #### `Session#push`: `(data: unknown[, eventName: string[, eventId: string]]) => this`
 
-Create, write, dispatch and flush an event with the given data to the client all at once.
-
-This is equivalent to calling the methods `event`, `id`, `data`, `dispatch` and `flush` in that order.
+Push an event to the client.
 
 If no event name is given, the event name is set to `"message"`.
 
@@ -133,11 +95,61 @@ This uses the [`push`](#session%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-
 |-|-|-|-|
 |`eventName`|`string`|`"iteration"`|Event name to use when dispatching a data event from the yielded value to the client.|
 
+#### `Session#event`: `(type: string) => this`
+
+**⚠ DEPRECATED:** This method is deprecated. [See here](https://github.com/MatthewWid/better-sse/issues/52). 
+
+Set the event to the given name (also referred to as the event "type" in the specification).
+
+#### `Session#data`: `(data: unknown) => this`
+
+**⚠ DEPRECATED:** This method is deprecated. [See here](https://github.com/MatthewWid/better-sse/issues/52). 
+
+Write arbitrary data with the last event.
+
+The given value is automatically serialized to a string using the `serializer` function which defaults to [JSON stringification](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
+
+#### `Session#id`: `([id: string]) => this`
+
+**⚠ DEPRECATED:** This method is deprecated. [See here](https://github.com/MatthewWid/better-sse/issues/52). 
+
+Set the event ID to the given string.
+
+Defaults to an empty string if no argument is given.
+
+#### `Session#retry`: `(time: number) => this`
+
+**⚠ DEPRECATED:** This method is deprecated. [See here](https://github.com/MatthewWid/better-sse/issues/52). 
+
+Set the suggested reconnection time to the given milliseconds.
+
+#### `Session#comment`: `([text: string]) => this`
+
+**⚠ DEPRECATED:** This method is deprecated. [See here](https://github.com/MatthewWid/better-sse/issues/52). 
+
+Write a comment (an ignored field).
+
+This will not fire an event, but is often used to keep the connection alive.
+
+#### `Session#dispatch`: `() => this`
+
+**⚠ DEPRECATED:** This method is deprecated. [See here](https://github.com/MatthewWid/better-sse/issues/52). 
+
+Indicate that the event has finished being created by writing an additional newline character.
+
+Note that this does **not** send the written data to the client. To do so, use the [`flush` method](#sessionflush---this) to flush the internal buffer over the wire.
+
+#### `Session#flush`: `() => this`
+
+**⚠ DEPRECATED:** This method is deprecated. [See here](https://github.com/MatthewWid/better-sse/issues/52). 
+
+Flush the buffered data to the client and clear the buffer.
+
 ### `createSession`: `<State>(ConstructorParameters<typeof Session>) => Promise<Session>`
 
 Creates and returns a promise that resolves to an instance of a [Session](#session) once it has connected.
 
-It takes the [same arguments as the Session class constructor](#new-session(req%3A-incomingmessage%2C-res%3A-serverresponse%2C-%5Boptions%5D-%3D-%7B%7D)).
+Takes the [same arguments as the Session class constructor](#new-session(req%3A-incomingmessage%2C-res%3A-serverresponse%2C-%5Boptions%5D-%3D-%7B%7D)).
 
 ### `Channel`
 
@@ -210,4 +222,93 @@ Note that the broadcasted event will have the same ID across all receiving sessi
 
 Creates and returns an instance of a [Channel](#channel).
 
-It takes the [same arguments as the Channel class constructor](#new-channel()).
+Takes the [same arguments as the Channel class constructor](#new-channel()).
+
+### `EventBuffer`
+
+An `EventBuffer` allows you to write [raw spec-compliant SSE fields](https://html.spec.whatwg.org/multipage/server-sent-events.html#processField) into a text buffer that can be sent directly over the wire.
+
+This is made available for users with more advanced use-cases who need to create an event text stream from scratch themselves. Most users will not need to access this directly and can use the simplified helper methods provided by the [`Session`](#session) class instead.
+
+#### `new EventBuffer([options = {}])`
+
+`options` is an object with the following properties:
+
+|Property|Type|Default|Description|
+|-|-|-|-|
+|`serializer`|`function`|`JSON.stringify`|Serialize data to a string that can be written over the wire.<br><br>Note that only values written with `.data()` or `.push()` are serialized, as everything else is assumed to already be a string.|
+|`sanitizer`|`function`||Sanitize values so as to not prematurely dispatch events when writing fields whose text inadvertently contains newlines.<br><br>By default, CR, LF and CRLF characters are replaced with a single LF character (`\n`) and then any trailing LF characters are stripped so as to prevent a blank line being written and accidentally dispatching the event before `.dispatch()` is called.|
+
+#### `EventBuffer#event`: `(type: string) => this`
+
+Write an event name field (also referred to as the event "type" in the specification).
+
+#### `EventBuffer#data`: `(data: unknown) => this`
+
+Write arbitrary data into a data field.
+
+Data is serialized to a string using the given `serializer` function option or [JSON stringification](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify) by default.
+
+#### `EventBuffer#id`: `([id: string]) => this`
+
+Write an event ID field.
+
+Defaults to an empty string if no argument is given.
+
+#### `EventBuffer#retry`: `(time: number) => this`
+
+Write a retry field that suggests a reconnection time with the given milliseconds.
+
+#### `EventBuffer#comment`: `([text: string]) => this`
+
+Write a comment (an ignored field).
+
+This will not fire an event but is often used to keep the connection alive.
+
+#### `EventBuffer#dispatch`: `() => this`
+
+Indicate that the event has finished being created by writing an additional newline character.
+
+#### `EventBuffer#push`: `(data: unknown[, eventName: string[, eventId: string]]) => this`
+
+Create, write and dispatch an event with the given data all at once.
+
+This is equivalent to calling the methods `event`, `id`, `data` and `dispatch` in that order.
+
+If no event name is given, the event name is set to `"message"`.
+
+If no event ID is given, the event ID is set to a unique string generated using a [cryptographic pseudorandom number generator](https://nodejs.org/api/crypto.html#cryptorandomuuidoptions).
+
+#### `EventBuffer#stream`: `(stream: Readable[, options: object]) => Promise<boolean>`
+
+Pipe readable stream data as a series of events into the buffer.
+
+This uses the [`push`](#eventbuffer%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-this-%7C-(data%3A-any)-%3D>-this) method under the hood.
+
+|`options.`|Type|Default|Description|
+|-|-|-|-|
+|`eventName`|`string`|`"stream"`|Event name to use for each event created.|
+
+#### `EventBuffer#iterate`: `(iterable: Iterable | AsyncIterable[, options: object]) => Promise<void>`
+
+Iterate over an iterable and write yielded values as events into the buffer.
+
+This uses the [`push`](#eventbuffer%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-this-%7C-(data%3A-any)-%3D>-this) method under the hood.
+
+|`options.`|Type|Default|Description|
+|-|-|-|-|
+|`eventName`|`string`|`"iteration"`|Event name to use for each event created.|
+
+#### `EventBuffer#clear`: `() => this`
+
+Clear the contents of the buffer.
+
+#### `EventBuffer#read`: `() => string`
+
+Get a copy of the buffer contents.
+
+### `createEventBuffer`: `(...args: ConstructorParameters<typeof EventBuffer>) => EventBuffer`
+
+Creates and returns an instance of an [EventBuffer](#eventbuffer).
+
+Takes the [same arguments as the EventBuffer class constructor](#new-eventbufferoptions--).

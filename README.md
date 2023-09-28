@@ -36,7 +36,7 @@ Compared to WebSockets it has comparable performance and bandwidth usage, especi
 * Trust or ignore the client-given last event ID.
 * Automatically send keep-alive pings to keep connections open.
 * Add or override the response status code and headers.
-* Fine-grained control by either sending [individual fields](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#fields) of events or by sending full events with simple helpers.
+* Fine-grained control by either sending [individual fields](./docs/api.md#eventbuffer) of events or by sending [full events with simple helpers](./docs/api.md#sessionpush-data-unknown-eventname-string-eventid-string--this).
 * Pipe [streams](https://nodejs.org/api/stream.html#stream_readable_streams) and [iterables](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators) directly from the server to the client as a series of events.
 * Support for popular EventStream polyfills [`event-source-polyfill`](https://www.npmjs.com/package/event-source-polyfill) and [`eventsource-polyfill`](https://www.npmjs.com/package/eventsource-polyfill).
 
@@ -139,11 +139,11 @@ API documentation, getting started guides and usage with other frameworks is [av
 
 # Contributing
 
-This library is always open to contributions, whether it be code, bug reports, documentation or anything else.
+This library is always open to contributions whether it be code, bug reports, documentation or anything else.
 
 Please submit suggestions, bugs and issues to the [GitHub issues page](https://github.com/MatthewWid/better-sse/issues).
 
-For code or documentation changes, [submit a pull request on GitHub](https://github.com/MatthewWid/better-sse/pulls).
+For code or documentation changes [submit a pull request on GitHub](https://github.com/MatthewWid/better-sse/pulls).
 
 ## Local Development
 

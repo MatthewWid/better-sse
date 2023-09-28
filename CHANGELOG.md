@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+* Added the [`EventBuffer`](./docs/api.md#eventbuffer) class that can be used to write raw spec-compliant SSE fields into a text buffer that can be sent directly over the wire.
+
+### Deprecated
+
+* Deprecate the [Session](./docs/api.md#session) `.event`, `.data`, `.id`, `.retry`, `.comment`, `.dispatch` and `.flush` methods in favour of using [event buffers](./docs/api.md#eventbuffer) instead.
+
 ## 0.9.0 - 2023-08-14
 
 ### Added
