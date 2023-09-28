@@ -113,9 +113,16 @@ class Channel<
 	}
 
 	/**
-	 * Broadcast an event with the given data and name to every active session registered with this channel.
+	 * Broadcast an event to every active session registered with this channel.
+	 *
+	 * Under the hood this calls the `push` method on every active session.
+	 *
+	 * If no event name is given, the event name is set to `"message"`.
 	 *
 	 * Note that the broadcasted event will have the same ID across all receiving sessions instead of generating a unique ID for each.
+	 *
+	 * @param data - Data to write.
+	 * @param eventName - Event name to write.
 	 */
 	broadcast = (
 		data: unknown,
@@ -124,13 +131,9 @@ class Channel<
 	): this => {
 		const eventId = generateId();
 
-		let sessions: Iterable<Session<SessionState>>;
-
-		if (options.filter) {
-			sessions = Array.from(this.sessions).filter(options.filter);
-		} else {
-			sessions = this.sessions;
-		}
+		const sessions = options.filter
+			? this.activeSessions.filter(options.filter)
+			: this.sessions;
 
 		for (const session of sessions) {
 			session.push(data, eventName, eventId);
