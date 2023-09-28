@@ -95,6 +95,17 @@ This uses the [`push`](#session%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-
 |-|-|-|-|
 |`eventName`|`string`|`"iteration"`|Event name to use when dispatching a data event from the yielded value to the client.|
 
+#### `Session#batch`: `(batcher: EventBuffer | ((buffer: EventBuffer) => void | Promise<void>)) => Promise<void>`
+
+Batch and send multiple events at once.
+
+If given an [`EventBuffer`](#eventbuffer) instance, its contents will be sent to the client.
+
+If given a callback, it will be passed an instance of [`EventBuffer`](#eventbuffer) which uses the same serializer and sanitizer as the session.  
+Once its execution completes - or once it resolves if it returns a promise - the contents of the passed [`EventBuffer`](#eventbuffer) will be sent to the client.
+
+Returns a promise that resolves once all data from the event buffer has been successfully sent to the client.
+
 #### `Session#event`: `(type: string) => this`
 
 **⚠ DEPRECATED:** This method is deprecated. [See here](https://github.com/MatthewWid/better-sse/issues/52). 
@@ -227,8 +238,6 @@ Takes the [same arguments as the Channel class constructor](#new-channel()).
 ### `EventBuffer`
 
 An `EventBuffer` allows you to write [raw spec-compliant SSE fields](https://html.spec.whatwg.org/multipage/server-sent-events.html#processField) into a text buffer that can be sent directly over the wire.
-
-This is made available for users with more advanced use-cases who need to create an event text stream from scratch themselves. Most users will not need to access this directly and can use the simplified helper methods provided by the [`Session`](#session) class instead.
 
 #### `new EventBuffer([options = {}])`
 

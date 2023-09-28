@@ -22,8 +22,6 @@ interface EventBufferOptions {
 
 /**
  * An `EventBuffer` allows you to write raw spec-compliant SSE fields into a text buffer that can be sent directly over the wire.
- *
- * This is made available for users with more advanced use-cases who need to create an event text stream from scratch themselves. Most users will not need to access this directly and can use the simplified helper methods provided by the `Session` class instead.
  */
 class EventBuffer {
 	private buffer = "";
@@ -121,7 +119,7 @@ class EventBuffer {
 	};
 
 	/**
-	 * Create, write and dispatch an event with the given data to the client all at once.
+	 * Create, write and dispatch an event with the given data all at once.
 	 *
 	 * This is equivalent to calling the methods `event`, `id`, `data` and `dispatch` in that order.
 	 *
@@ -151,7 +149,7 @@ class EventBuffer {
 	 * If no event name is given in the `options` object, the event name is set to `"stream"`.
 	 *
 	 * @param stream - Readable stream to consume data from.
-	 * @param options - Options to alter how the stream is flushed to the client.
+	 * @param options - Event name to use for each event created.
 	 *
 	 * @returns A promise that resolves or rejects based on the success of the stream write finishing.
 	 */
