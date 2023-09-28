@@ -96,7 +96,7 @@ class Session<
 	 *
 	 * This is initialized to the last event ID given by the user, and otherwise is equal to the last number given to the `.id` method.
 	 *
-	 * For security reasons, keep in mind that the client can provide *any* initial ID here. Use the `trustClientEventId` to ignore the client-given initial ID.
+	 * For security reasons, keep in mind that the client can provide *any* initial ID here. Use the `trustClientEventId` constructor option to ignore the client-given initial ID.
 	 *
 	 * @readonly
 	 */

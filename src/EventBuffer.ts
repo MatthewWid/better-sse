@@ -21,7 +21,9 @@ interface EventBufferOptions {
 }
 
 /**
- * An `EventBuffer` allows you to write raw spec-compliant SSE fields into a buffer that can be sent directly over the wire.
+ * An `EventBuffer` allows you to write raw spec-compliant SSE fields into a text buffer that can be sent directly over the wire.
+ *
+ * This is made available for users with more advanced use-cases who need to create an event text stream from scratch themselves. Most users will not need to access this directly and can use the simplified helper methods provided by the `Session` class instead.
  */
 class EventBuffer {
 	private buffer = "";
@@ -45,7 +47,7 @@ class EventBuffer {
 	};
 
 	/**
-	 * Set the event to the given name (also referred to as the event "type" in the specification).
+	 * Write an event name field (also referred to as the event "type" in the specification).
 	 *
 	 * @param type - Event name/type.
 	 */
@@ -56,7 +58,9 @@ class EventBuffer {
 	}
 
 	/**
-	 * Write an arbitrary data field that is automatically serialized to a string using the given `serializer` function option or JSON stringification by default.
+	 * Write arbitrary data into a data field.
+	 *
+	 * Data is serialized to a string using the given `serializer` function option or JSON stringification by default.
 	 *
 	 * @param data - Data to serialize and write.
 	 */
@@ -69,7 +73,7 @@ class EventBuffer {
 	};
 
 	/**
-	 * Set the event ID to the given string.
+	 * Write an event ID field.
 	 *
 	 * Defaults to an empty string if no argument is given.
 	 *
@@ -82,7 +86,7 @@ class EventBuffer {
 	};
 
 	/**
-	 * Set the suggested reconnection time to the given milliseconds.
+	 * Write a retry field that suggests a reconnection time with the given milliseconds.
 	 *
 	 * @param time - Time in milliseconds to retry.
 	 */
@@ -97,7 +101,7 @@ class EventBuffer {
 	/**
 	 * Write a comment (an ignored field).
 	 *
-	 * This will not fire an event, but is often used to keep the connection alive.
+	 * This will not fire an event but is often used to keep the connection alive.
 	 *
 	 * @param text - Text of the comment. Otherwise writes an empty field value.
 	 */
@@ -123,7 +127,7 @@ class EventBuffer {
 	 *
 	 * If no event name is given, the event name is set to `"message"`.
 	 *
-	 * If no event ID is given, the event ID (and thus the `lastId` property) is set to a unique string generated using a cryptographic pseudorandom number generator.
+	 * If no event ID is given, the event ID is set to a unique string generated using a cryptographic pseudorandom number generator.
 	 *
 	 * @param data - Data to write.
 	 * @param eventName - Event name to write.
@@ -140,7 +144,7 @@ class EventBuffer {
 	};
 
 	/**
-	 * Pipe readable stream data as a series of events to the client.
+	 * Pipe readable stream data as a series of events into the buffer.
 	 *
 	 * This uses the `push` method under the hood.
 	 *
@@ -154,7 +158,7 @@ class EventBuffer {
 	stream = createPushFromStream(this.push);
 
 	/**
-	 * Iterate over an iterable and send yielded values as events to the client.
+	 * Iterate over an iterable and write yielded values as events into the buffer.
 	 *
 	 * This uses the `push` method under the hood.
 	 *
