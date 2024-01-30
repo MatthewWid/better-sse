@@ -132,10 +132,7 @@ class Session<
 	 * Raw HTTP response that is the minimal interface needed and forms the
 	 * intersection between the HTTP/1.1 and HTTP/2 server response interfaces.
 	 */
-	private res: {
-		writeHead: (statusCode: number, headers: OutgoingHttpHeaders) => void;
-		write: (chunk: string) => void;
-	};
+	private res: Http1ServerResponse | Http2ServerResponse
 
 	private serialize: SerializerFunction;
 	private sanitize: SanitizerFunction;
@@ -178,6 +175,7 @@ class Session<
 		this.headers = options.headers ?? {};
 
 		this.req.once("close", this.onDisconnected);
+		this.res.once("close", this.onDisconnected);
 
 		setImmediate(this.initialize);
 	}
@@ -322,7 +320,12 @@ class Session<
 	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
 	 */
 	flush = (): this => {
-		this.res.write(this.buffer.read());
+		if(this.res instanceof Http1ServerResponse){
+			this.res.write(this.buffer.read());
+		} else {
+			this.res.write(this.buffer.read());
+		}
+
 
 		this.buffer.clear();
 
@@ -347,6 +350,9 @@ class Session<
 		eventName = "message",
 		eventId = generateId()
 	): this => {
+		if(!this.isConnected){
+			throw new Error("Cannot push on a non-active session.");
+		}
 		this.buffer.push(data, eventName, eventId);
 
 		this.flush();
@@ -403,7 +409,11 @@ class Session<
 		batcher: EventBuffer | ((buffer: EventBuffer) => void | Promise<void>)
 	) => {
 		if (batcher instanceof EventBuffer) {
-			this.res.write(batcher.read());
+			if(this.res instanceof Http1ServerResponse){
+				this.res.write(batcher.read());
+			} else {
+				this.res.write(batcher.read());
+			}
 		} else {
 			const buffer = new EventBuffer({
 				serializer: this.serialize,
@@ -412,7 +422,11 @@ class Session<
 
 			await batcher(buffer);
 
-			this.res.write(buffer.read());
+			if(this.res instanceof Http1ServerResponse){
+				this.res.write(buffer.read());
+			} else {
+				this.res.write(buffer.read());
+			}
 		}
 	};
 }
