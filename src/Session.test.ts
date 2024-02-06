@@ -561,7 +561,7 @@ describe("push", () => {
 						expect(() => {
 							session.push('test')
 						}).not.toThrow()
-						res.emit('close')
+						res.end();
 					});
 				});
 

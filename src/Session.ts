@@ -132,7 +132,9 @@ class Session<
 	 * Raw HTTP response that is the minimal interface needed and forms the
 	 * intersection between the HTTP/1.1 and HTTP/2 server response interfaces.
 	 */
-	private res: Http1ServerResponse | Http2ServerResponse
+	private res: Http1ServerResponse | Http2ServerResponse & {
+		write: (chunk: string) => void;
+	};
 
 	private serialize: SerializerFunction;
 	private sanitize: SanitizerFunction;
@@ -244,6 +246,8 @@ class Session<
 	};
 
 	private onDisconnected = () => {
+		this.req.removeListener("close", this.onDisconnected);
+		this.res.removeListener("close", this.onDisconnected);
 		if (this.keepAliveTimer) {
 			clearInterval(this.keepAliveTimer);
 		}
@@ -320,12 +324,7 @@ class Session<
 	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
 	 */
 	flush = (): this => {
-		if(this.res instanceof Http1ServerResponse){
-			this.res.write(this.buffer.read());
-		} else {
-			this.res.write(this.buffer.read());
-		}
-
+		this.res.write(this.buffer.read());
 
 		this.buffer.clear();
 
@@ -409,11 +408,7 @@ class Session<
 		batcher: EventBuffer | ((buffer: EventBuffer) => void | Promise<void>)
 	) => {
 		if (batcher instanceof EventBuffer) {
-			if(this.res instanceof Http1ServerResponse){
-				this.res.write(batcher.read());
-			} else {
-				this.res.write(batcher.read());
-			}
+			this.res.write(batcher.read());
 		} else {
 			const buffer = new EventBuffer({
 				serializer: this.serialize,
@@ -422,11 +417,7 @@ class Session<
 
 			await batcher(buffer);
 
-			if(this.res instanceof Http1ServerResponse){
-				this.res.write(buffer.read());
-			} else {
-				this.res.write(buffer.read());
-			}
+			this.res.write(buffer.read());
 		}
 	};
 }
