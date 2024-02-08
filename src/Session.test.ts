@@ -129,7 +129,7 @@ describe("connection", () => {
 			eventsource = new EventSource(url);
 		}));
 
-	it("sets the isConnected boolean based on whether the response emit close", () =>
+	it("initiates disconnect when the response is closed", () =>
 		new Promise<void>((done) => {
 			server.on("request", (req, res) => {
 				const session = new Session(req, res);
@@ -145,7 +145,7 @@ describe("connection", () => {
 				session.on("connected", () => {
 					expect(session.isConnected).toBeTruthy();
 
-					res.emit('close')
+					res.emit("close");
 				});
 			});
 
@@ -544,29 +544,30 @@ describe("push", () => {
 			eventsource = new EventSource(url);
 		}));
 
-		it("Throw if session is not connected", () =>
-			new Promise<void>((done) => {
-				server.on("request", (req, res) => {
-					const session = new Session(req, res);
+	it("throws when pushing after the session has disconnected", () =>
+		new Promise<void>((done) => {
+			server.on("request", (req, res) => {
+				const session = new Session(req, res);
 
-					session.on("disconnected", () => {
-						expect(() => {
-							session.push('test')
-						}).toThrow()
+				session.on("disconnected", () => {
+					expect(() => {
+						session.push(null);
+					}).toThrow();
 
-						done();
-					});
-
-					session.on("connected", () => {
-						expect(() => {
-							session.push('test')
-						}).not.toThrow()
-						res.end();
-					});
+					done();
 				});
 
-				eventsource = new EventSource(url);
-			}));
+				session.on("connected", () => {
+					expect(() => {
+						session.push(null);
+					}).not.toThrow();
+
+					res.end();
+				});
+			});
+
+			eventsource = new EventSource(url);
+		}));
 });
 
 describe("batching", () => {

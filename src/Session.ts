@@ -132,9 +132,11 @@ class Session<
 	 * Raw HTTP response that is the minimal interface needed and forms the
 	 * intersection between the HTTP/1.1 and HTTP/2 server response interfaces.
 	 */
-	private res: Http1ServerResponse | Http2ServerResponse & {
-		write: (chunk: string) => void;
-	};
+	private res:
+		| Http1ServerResponse
+		| (Http2ServerResponse & {
+				write: (chunk: string) => void;
+		  });
 
 	private serialize: SerializerFunction;
 	private sanitize: SanitizerFunction;
@@ -248,6 +250,7 @@ class Session<
 	private onDisconnected = () => {
 		this.req.removeListener("close", this.onDisconnected);
 		this.res.removeListener("close", this.onDisconnected);
+
 		if (this.keepAliveTimer) {
 			clearInterval(this.keepAliveTimer);
 		}
@@ -349,9 +352,10 @@ class Session<
 		eventName = "message",
 		eventId = generateId()
 	): this => {
-		if(!this.isConnected){
-			throw new Error("Cannot push on a non-active session.");
+		if (!this.isConnected) {
+			throw new Error("Cannot push data to a non-active session.");
 		}
+
 		this.buffer.push(data, eventName, eventId);
 
 		this.flush();
