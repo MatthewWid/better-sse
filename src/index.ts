@@ -9,3 +9,5 @@ export * from "./createEventBuffer";
 
 export type {StreamOptions} from "./lib/createPushFromStream";
 export type {IterateOptions} from "./lib/createPushFromIterable";
+
+export * from "./lib/SseError";

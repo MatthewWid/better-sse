@@ -4,12 +4,13 @@
 
 ### Exports
 
-* [Session](#session)
-* [createSession](#createsession%3A-(constructorparameters<typeof-session>)-%3D>-promise<session>)
-* [Channel](#channel)
-* [createChannel](#createchannel%3A-(...args%3A-constructorparameters<typeof-channel>)-%3D>-channel)
-* [EventBuffer](#eventbuffer)
-* [createEventBuffer](#createeventbuffer-args-constructorparameterstypeof-eventbuffer--eventbuffer)
+* [`Session`](#session)
+* [`createSession`](#createsession%3A-(constructorparameters<typeof-session>)-%3D>-promise<session>)
+* [`Channel`](#channel)
+* [`createChannel`](#createchannel%3A-(...args%3A-constructorparameters<typeof-channel>)-%3D>-channel)
+* [`EventBuffer`](#eventbuffer)
+* [`createEventBuffer`](#createeventbuffer-args-constructorparameterstypeof-eventbuffer--eventbuffer)
+* [`SseError`](#sseerror)
 
 ## Documentation
 
@@ -68,6 +69,8 @@ Push an event to the client.
 If no event name is given, the event name is set to `"message"`.
 
 If no event ID is given, the event ID (and thus the [`lastId` property](#session%23lastid%3A-string)) is set to a unique string generated using a [cryptographic pseudorandom number generator](https://nodejs.org/api/crypto.html#cryptorandomuuidoptions).
+
+If the session has disconnected, an [`SseError`](#sseerror) will be thrown.
 
 Emits the `push` event with the given data, event name and event ID in that order.
 
@@ -321,3 +324,7 @@ Get a copy of the buffer contents.
 Creates and returns an instance of an [EventBuffer](#eventbuffer).
 
 Takes the [same arguments as the EventBuffer class constructor](#new-eventbufferoptions--).
+
+### `SseError`
+
+Represents an SSE-related error thrown from within Better SSE.

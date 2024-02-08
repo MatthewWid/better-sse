@@ -11,6 +11,7 @@ import {createPushFromStream} from "./lib/createPushFromStream";
 import {createPushFromIterable} from "./lib/createPushFromIterable";
 import {serialize, SerializerFunction} from "./lib/serialize";
 import {sanitize, SanitizerFunction} from "./lib/sanitize";
+import {SseError} from "./lib/SseError";
 
 interface SessionOptions
 	extends Pick<EventBufferOptions, "serializer" | "sanitizer"> {
@@ -353,7 +354,7 @@ class Session<
 		eventId = generateId()
 	): this => {
 		if (!this.isConnected) {
-			throw new Error("Cannot push data to a non-active session.");
+			throw new SseError("Cannot push data to a non-active session.");
 		}
 
 		this.buffer.push(data, eventName, eventId);

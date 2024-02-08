@@ -1,6 +1,7 @@
+import {Session, DefaultSessionState} from "./Session";
 import {TypedEmitter, EventMap} from "./lib/TypedEmitter";
 import {generateId} from "./lib/generateId";
-import {Session, DefaultSessionState} from "./Session";
+import {SseError} from "./lib/SseError";
 
 interface BroadcastOptions<
 	SessionState extends Record<string, unknown> = DefaultSessionState
@@ -77,7 +78,7 @@ class Channel<
 		}
 
 		if (!session.isConnected) {
-			throw new Error("Cannot register a non-active session.");
+			throw new SseError("Cannot register a non-active session.");
 		}
 
 		session.once("disconnected", () => {
