@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.11.0 - 2024-02-08
+
+### Added
+
+* Added the [`SseError`](./docs/api.md#sseerror) custom error object that wraps all thrown errors.
+
+### Changed
+
+* Update the [`Session#push`](./docs/api.md#sessionpush-data-unknown-eventname-string-eventid-string--this) method to throw if the session is not connected.
+
+### Fixed
+
+* Fixed session not detecting a response stream disconnect.
+
 ## 0.10.0 - 2023-09-28
 
 ### Added
