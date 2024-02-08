@@ -129,6 +129,29 @@ describe("connection", () => {
 			eventsource = new EventSource(url);
 		}));
 
+	it("sets the isConnected boolean based on whether the response emit close", () =>
+		new Promise<void>((done) => {
+			server.on("request", (req, res) => {
+				const session = new Session(req, res);
+
+				expect(session.isConnected).toBeFalsy();
+
+				session.on("disconnected", () => {
+					expect(session.isConnected).toBeFalsy();
+
+					done();
+				});
+
+				session.on("connected", () => {
+					expect(session.isConnected).toBeTruthy();
+
+					res.emit('close')
+				});
+			});
+
+			eventsource = new EventSource(url);
+		}));
+
 	it("returns the correct response status code and headers", () =>
 		new Promise<void>((done) => {
 			server.on("request", (req, res) => {
@@ -520,6 +543,30 @@ describe("push", () => {
 
 			eventsource = new EventSource(url);
 		}));
+
+		it("Throw if session is not connected", () =>
+			new Promise<void>((done) => {
+				server.on("request", (req, res) => {
+					const session = new Session(req, res);
+
+					session.on("disconnected", () => {
+						expect(() => {
+							session.push('test')
+						}).toThrow()
+
+						done();
+					});
+
+					session.on("connected", () => {
+						expect(() => {
+							session.push('test')
+						}).not.toThrow()
+						res.end();
+					});
+				});
+
+				eventsource = new EventSource(url);
+			}));
 });
 
 describe("batching", () => {
