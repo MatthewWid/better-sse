@@ -38,7 +38,7 @@ Compared to WebSockets it has comparable performance and bandwidth usage, especi
 * Add or override the response status code and headers.
 * Fine-grained control by either sending [individual fields](./docs/api.md#eventbuffer) of events or by sending [full events with simple helpers](./docs/api.md#sessionpush-data-unknown-eventname-string-eventid-string--this).
 * Pipe [streams](https://nodejs.org/api/stream.html#stream_readable_streams) and [iterables](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators) directly from the server to the client as a series of events.
-* Support for popular EventStream polyfills [`event-source-polyfill`](https://www.npmjs.com/package/event-source-polyfill) and [`eventsource-polyfill`](https://www.npmjs.com/package/eventsource-polyfill).
+* Support for popular EventSource polyfills [`event-source-polyfill`](https://www.npmjs.com/package/event-source-polyfill) and [`eventsource-polyfill`](https://www.npmjs.com/package/eventsource-polyfill).
 
 [See a comparison with other Node SSE libraries in the documentation.](./docs/comparison.md)
 

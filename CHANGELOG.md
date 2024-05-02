@@ -107,7 +107,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 * Added [broadcast channels](./docs/channels.md) that allow pushing events to multiple sessions at once.
-* Added support for EventStream polyfills [`event-source-polyfill`](https://www.npmjs.com/package/event-source-polyfill) and [`eventsource-polyfill`](https://www.npmjs.com/package/eventsource-polyfill).
+* Added support for EventSource polyfills [`event-source-polyfill`](https://www.npmjs.com/package/event-source-polyfill) and [`eventsource-polyfill`](https://www.npmjs.com/package/eventsource-polyfill).
 * Added the [`Session#state`](./docs/api.md#sessionstate-) property to have a safe namespace for keeping information attached to the session.
 
 ### Fixed
