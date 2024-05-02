@@ -327,4 +327,6 @@ Takes the [same arguments as the EventBuffer class constructor](#new-eventbuffer
 
 ### `SseError`
 
+*Extends from [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)*.
+
 Represents an SSE-related error thrown from within Better SSE.
