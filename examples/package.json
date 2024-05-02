@@ -9,7 +9,7 @@
 	},
 	"dependencies": {
 		"benchmark": "^2.1.4",
-		"better-sse": "^0.8.0",
+		"better-sse": "^0.11.0",
 		"easy-server-sent-events": "^1.0.14",
 		"eventsource": "^2.0.2",
 		"express": "^4.18.2",
