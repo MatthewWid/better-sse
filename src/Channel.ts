@@ -7,12 +7,17 @@ interface BroadcastOptions<
 	SessionState extends Record<string, unknown> = DefaultSessionState
 > {
 	/**
+	 * Unique ID for the event being broadcast.
+	 *
+	 * If no event ID is given, the event ID is set to a unique string generated using a cryptographic pseudorandom number generator.
+	 */
+	eventId?: string;
+	/**
 	 * Filter sessions that should receive the event.
 	 *
 	 * Called with each session and should return `true` to allow the event to be sent and otherwise return `false` to prevent the session from receiving the event.
 	 */
 	filter?: (session: Session<SessionState>) => boolean;
-	eventId?: string;
 }
 
 interface ChannelEvents<

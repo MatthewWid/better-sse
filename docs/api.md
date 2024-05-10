@@ -230,6 +230,7 @@ Note that the broadcasted event will have the same ID across all receiving sessi
 
 |`options.`|Type|Default|Description|
 |-|-|-|-|
+|`eventId`|`string`||Unique ID for the event being broadcast.<br><br>If no event ID is given, the event ID is set to a unique string generated using a [cryptographic pseudorandom number generator](https://nodejs.org/api/crypto.html#cryptorandomuuidoptions).|
 |`filter`|`(session: Session) => boolean`||Filter sessions that should receive the event.<br><br>Called with each session and should return `true` to allow the event to be sent and otherwise return `false` to prevent the session from receiving the event.|
 
 ### `createChannel`: `<State>(...args: ConstructorParameters<typeof Channel>) => Channel`
