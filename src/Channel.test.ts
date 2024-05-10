@@ -351,6 +351,33 @@ describe("broadcasting", () => {
 			eventsource = new EventSource(url);
 		}));
 
+	it("can set a custom event id when broadcasting", () =>
+		new Promise<void>((done) => {
+			const eventId = "test-event-id";
+
+			const channel = new Channel();
+
+			server.on("request", async (req, res) => {
+				const session = new Session(req, res);
+
+				const push = vi.spyOn(session, "push");
+
+				await waitForConnect(session);
+
+				channel.register(session);
+
+				channel.broadcast(...args, {
+					eventId,
+				});
+
+				expect(push).toHaveBeenCalledWith(...args, eventId);
+
+				done();
+			});
+
+			eventsource = new EventSource(url);
+		}));
+
 	it("can filter sessions when broadcasting", () =>
 		new Promise<void>((done) => {
 			type AuthSessionState = {isTrusted: boolean};
