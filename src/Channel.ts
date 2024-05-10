@@ -12,6 +12,7 @@ interface BroadcastOptions<
 	 * Called with each session and should return `true` to allow the event to be sent and otherwise return `false` to prevent the session from receiving the event.
 	 */
 	filter?: (session: Session<SessionState>) => boolean;
+	eventId?: string;
 }
 
 interface ChannelEvents<
@@ -130,7 +131,7 @@ class Channel<
 		eventName = "message",
 		options: BroadcastOptions<SessionState> = {}
 	): this => {
-		const eventId = generateId();
+		const eventId = options.eventId ?? generateId();
 
 		const sessions = options.filter
 			? this.activeSessions.filter(options.filter)
