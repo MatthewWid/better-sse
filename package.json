@@ -31,7 +31,7 @@
 	],
 	"engines": {
 		"node": ">=12",
-		"pnpm": ">=6"
+		"pnpm": ">=9"
 	},
 	"devDependencies": {
 		"@types/eventsource": "^1.1.11",
@@ -58,5 +58,6 @@
 			"url-parse@<1.5.8": ">=1.5.8",
 			"url-parse@<1.5.7": ">=1.5.7"
 		}
-	}
+	},
+	"packageManager": "pnpm@9.1.0"
 }
