@@ -7,9 +7,9 @@
 	<a href="https://github.com/MatthewWid/better-sse"><img src="https://img.shields.io/github/stars/MatthewWid/better-sse?style=social" /></a>
 </p>
 
-A dead simple, dependency-less, spec-compliant server-side events implementation for Node, written in TypeScript.
+A dead simple, dependency-less, spec-compliant server-sent events implementation for Node, written in TypeScript.
 
-This package aims to be the easiest to use, most compliant and most streamlined solution to server-side events with Node that is framework-agnostic and feature-rich.
+This package aims to be the easiest to use, most compliant and most streamlined solution to server-sent events with Node that is framework-agnostic and feature-rich.
 
 Please consider starring the project [on GitHub ⭐](https://github.com/MatthewWid/better-sse).
 
