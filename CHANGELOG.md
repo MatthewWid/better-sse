@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.12.0 - 2024-05-10
+
+### Added
+
+* Added the ability to set a custom event ID when using [`Channel#broadcast`](./docs/api.md#channelbroadcast-data-unknown-eventname-string-options-object--this).
+
 ## 0.11.0 - 2024-02-08
 
 ### Added
