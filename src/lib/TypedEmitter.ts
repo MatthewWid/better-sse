@@ -16,7 +16,8 @@ type EventNames<T> =
 				? never
 				: K]: never;
 	  }
-	| (NonNullable<unknown> & string);
+	// eslint-disable-next-line @typescript-eslint/ban-types
+	| (string & {});
 
 /**
  * Wraps the EventEmitter class to add types that map event names
