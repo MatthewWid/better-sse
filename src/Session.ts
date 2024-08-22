@@ -13,8 +13,9 @@ import {serialize, SerializerFunction} from "./lib/serialize";
 import {sanitize, SanitizerFunction} from "./lib/sanitize";
 import {SseError} from "./lib/SseError";
 
-interface SessionOptions
-	extends Pick<EventBufferOptions, "serializer" | "sanitizer"> {
+interface SessionOptions<
+	State extends Record<string, unknown> = DefaultSessionState
+> extends Pick<EventBufferOptions, "serializer" | "sanitizer"> {
 	/**
 	 * Whether to trust or ignore the last event ID given by the client in the `Last-Event-ID` request header.
 	 *
@@ -64,6 +65,13 @@ interface SessionOptions
 	 * Additional headers to be sent along with the response.
 	 */
 	headers?: OutgoingHttpHeaders;
+
+	/**
+	 * Custom state for this session.
+	 *
+	 * Use this object to safely store information related to the session and user.
+	 */
+	state?: State;
 }
 
 interface DefaultSessionState {
@@ -120,7 +128,7 @@ class Session<
 	 * Use [module augmentation and declaration merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation)
 	 * to safely add new properties to the `DefaultSessionState` interface.
 	 */
-	state = {} as State;
+	state: State;
 
 	private buffer: EventBuffer;
 
@@ -151,12 +159,11 @@ class Session<
 	constructor(
 		req: Http1ServerRequest | Http2ServerRequest,
 		res: Http1ServerResponse | Http2ServerResponse,
-		options: SessionOptions = {}
+		options: SessionOptions<State> = {}
 	) {
 		super();
 
 		this.req = req;
-
 		this.res = res;
 
 		const serializer = options.serializer ?? serialize;
@@ -178,6 +185,8 @@ class Session<
 		this.statusCode = options.statusCode ?? 200;
 
 		this.headers = options.headers ?? {};
+
+		this.state = options.state ?? ({} as State);
 
 		this.req.once("close", this.onDisconnected);
 		this.res.once("close", this.onDisconnected);

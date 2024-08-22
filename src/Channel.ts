@@ -3,6 +3,17 @@ import {TypedEmitter, EventMap} from "./lib/TypedEmitter";
 import {generateId} from "./lib/generateId";
 import {SseError} from "./lib/SseError";
 
+interface ChannelOptions<
+	State extends Record<string, unknown> = DefaultChannelState
+> {
+	/**
+	 * Custom state for this channel.
+	 *
+	 * Use this object to safely store information related to the channel.
+	 */
+	state?: State;
+}
+
 interface BroadcastOptions<
 	SessionState extends Record<string, unknown> = DefaultSessionState
 > {
@@ -49,12 +60,14 @@ class Channel<
 	 *
 	 * Use this object to safely store information related to the channel.
 	 */
-	state = {} as State;
+	state: State;
 
 	private sessions = new Set<Session<SessionState>>();
 
-	constructor() {
+	constructor(options: ChannelOptions<State> = {}) {
 		super();
+
+		this.state = options.state ?? ({} as State);
 	}
 
 	/**
