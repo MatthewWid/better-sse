@@ -13,9 +13,8 @@ import {serialize, SerializerFunction} from "./lib/serialize";
 import {sanitize, SanitizerFunction} from "./lib/sanitize";
 import {SseError} from "./lib/SseError";
 
-interface SessionOptions<
-	State extends Record<string, unknown> = DefaultSessionState
-> extends Pick<EventBufferOptions, "serializer" | "sanitizer"> {
+interface SessionOptions<State = DefaultSessionState>
+	extends Pick<EventBufferOptions, "serializer" | "sanitizer"> {
 	/**
 	 * Whether to trust or ignore the last event ID given by the client in the `Last-Event-ID` request header.
 	 *
@@ -99,9 +98,7 @@ interface SessionEvents extends EventMap {
  * @param res - The Node HTTP {@link https://nodejs.org/api/http.html#http_class_http_serverresponse | IncomingMessage} object.
  * @param options - Options given to the session instance.
  */
-class Session<
-	State extends Record<string, unknown> = DefaultSessionState
-> extends TypedEmitter<SessionEvents> {
+class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	/**
 	 * The last event ID sent to the client.
 	 *

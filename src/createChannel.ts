@@ -1,10 +1,7 @@
 import {Channel} from "./Channel";
 
-const createChannel = <
-	State extends Record<string, unknown>,
-	SessionState extends Record<string, unknown>
->(
-	...args: ConstructorParameters<typeof Channel>
+const createChannel = <State, SessionState>(
+	...args: ConstructorParameters<typeof Channel<State, SessionState>>
 ): Channel<State, SessionState> => new Channel<State, SessionState>(...args);
 
 export {createChannel};

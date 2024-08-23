@@ -3,9 +3,7 @@ import {TypedEmitter, EventMap} from "./lib/TypedEmitter";
 import {generateId} from "./lib/generateId";
 import {SseError} from "./lib/SseError";
 
-interface ChannelOptions<
-	State extends Record<string, unknown> = DefaultChannelState
-> {
+interface ChannelOptions<State = DefaultChannelState> {
 	/**
 	 * Custom state for this channel.
 	 *
@@ -14,9 +12,7 @@ interface ChannelOptions<
 	state?: State;
 }
 
-interface BroadcastOptions<
-	SessionState extends Record<string, unknown> = DefaultSessionState
-> {
+interface BroadcastOptions<SessionState = DefaultSessionState> {
 	/**
 	 * Unique ID for the event being broadcast.
 	 *
@@ -31,9 +27,7 @@ interface BroadcastOptions<
 	filter?: (session: Session<SessionState>) => boolean;
 }
 
-interface ChannelEvents<
-	SessionState extends Record<string, unknown> = DefaultSessionState
-> extends EventMap {
+interface ChannelEvents<SessionState = DefaultSessionState> extends EventMap {
 	"session-registered": (session: Session<SessionState>) => void;
 	"session-deregistered": (session: Session<SessionState>) => void;
 	"session-disconnected": (session: Session<SessionState>) => void;
@@ -52,8 +46,8 @@ interface DefaultChannelState {
  * You may use the second generic argument `SessionState` to enforce that only sessions with the same state type may be registered with this channel.
  */
 class Channel<
-	State extends Record<string, unknown> = DefaultChannelState,
-	SessionState extends Record<string, unknown> = DefaultSessionState
+	State = DefaultChannelState,
+	SessionState = DefaultSessionState
 > extends TypedEmitter<ChannelEvents<SessionState>> {
 	/**
 	 * Custom state for this channel.
