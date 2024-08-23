@@ -41,6 +41,7 @@ Note that creating a new session will immediately send the initial status code a
 |`keepAlive`|`number` \| `null`|`10000`|Time in milliseconds interval for the session to send a comment to keep the connection alive.<br><br>Give as `null` to disable the keep-alive mechanism.|
 |`statusCode`|`number`|`200`|Status code to be sent to the client.<br><br>Event stream requests can be redirected using HTTP 301 and 307 status codes. Make sure to set `Location` header when using these status codes (301/307) using the `headers` property.<br><br>A client can be asked to stop reconnecting by send a 204 status code.|
 |`headers`|`object`|`{}`|Additional headers to be sent along with the response.|
+|`state`|`object`|`{}`|Initial custom state for the session.<br><br>Accessed via the [`state`](#sessionstate-state) property.<br><br>When using TypeScript, providing the initial state structure allows the type of the `state` property to be automatically inferred.|
 
 #### `Session#lastId`: `string`
 
@@ -59,6 +60,8 @@ Indicates whether the session and underlying connection is open or not.
 Custom state for this session.
 
 Use this object to safely store information related to the session and user.
+
+You may set an initial value for this property using the `state` property in the [constructor `options` object](#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest-res-serverresponse--http2serverresponse-options--), allowing its type to be automatically inferred.
 
 Use [module augmentation and declaration merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation) to safely add new properties to the `DefaultSessionState` interface.
 
@@ -174,13 +177,23 @@ A `Channel` is used to broadcast events to many sessions at once.
 You may use the second generic argument `SessionState` to enforce that only sessions
 with the same state type may be registered with this channel.
 
-#### `new Channel<State, SessionState>()`
+#### `new Channel<State, SessionState>([options = {}])`
+
+`options` is an object with the following properties:
+
+|Property|Type|Default|Description|
+|-|-|-|-|
+|`state`|`object`|`{}`|Initial custom state for the channel.<br><br>Accessed via the [`state`](#channelstate-state) property.<br><br>When using TypeScript, providing the initial state structure allows the type of the `state` property to be automatically inferred.|
 
 #### `Channel#state`: `State`
 
 Custom state for this channel.
 
 Use this object to safely store information related to the channel.
+
+You may set an initial value for this property using the `state` property in the [constructor `options` object](#new-channelstate-sessionstate), allowing its type to be automatically inferred.
+
+Use [module augmentation and declaration merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation) to safely add new properties to the `DefaultChannelState` interface.
 
 #### `Channel#activeSessions`: `ReadonlyArray<Session>`
 
