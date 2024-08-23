@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.13.0 - 2024-08-23
+
+### Added
+
+* Added the ability to set an initial value for the `state` property in the `Session` and `Channel` constructor `options` objects.
+
+### Removed
+
+* Removed constraints that enforced that `State` generics passed to `Session` and `Channel` extend from `Record<string, unknown>`.
+
 ## 0.12.1 - 2024-05-24
 
 ### Fixed
