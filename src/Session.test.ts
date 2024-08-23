@@ -265,6 +265,25 @@ describe("connection", () => {
 		}));
 });
 
+describe("state", () => {
+	const givenState = {id: "123"};
+
+	it("can set the initial state in options", () =>
+		new Promise<void>((done) => {
+			server.on("request", async (req, res) => {
+				const session = new Session(req, res, {state: givenState});
+
+				await waitForConnect(session);
+
+				expect(session.state.id).toBe(givenState.id);
+
+				done();
+			});
+
+			eventsource = new EventSource(url);
+		}));
+});
+
 describe("retry", () => {
 	it("writes an initial retry field by default", () =>
 		new Promise<void>((done) => {

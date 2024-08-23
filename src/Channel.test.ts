@@ -45,6 +45,16 @@ describe("construction", () => {
 	});
 });
 
+describe("state", () => {
+	const givenState = {id: "123"};
+
+	it("can set the initial state in options", () => {
+		const channel = new Channel({state: givenState});
+
+		expect(channel.state.id).toBe(givenState.id);
+	});
+});
+
 describe("registering", () => {
 	it("can register and store an active session", () =>
 		new Promise<void>((done) => {
