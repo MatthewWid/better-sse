@@ -165,5 +165,10 @@ class Channel<
 	};
 }
 
-export type {BroadcastOptions, ChannelEvents, DefaultChannelState};
+export type {
+	ChannelOptions,
+	BroadcastOptions,
+	ChannelEvents,
+	DefaultChannelState,
+};
 export {Channel};
