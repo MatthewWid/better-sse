@@ -6,7 +6,7 @@ import {
 	CertificateCreationResult,
 	createCertificate as createCertificateCallback,
 } from "pem";
-import {Http2Session} from "better-sse";
+import {Http2CompatSession} from "better-sse";
 
 (async () => {
 	const createCertificate = promisify<
@@ -22,10 +22,9 @@ import {Http2Session} from "better-sse";
 		days: 1,
 	});
 
-	const server = createSecureServer({key, cert});
-
-	server.on("stream", (stream, headers) => {
-		const {":path": path, ":method": method} = headers;
+	const server = createSecureServer({key, cert}, async (req, res) => {
+		const {":path": path, ":method": method} = req.headers;
+		const {stream} = res;
 
 		if (method !== "GET") {
 			stream.respond({":status": 405});
@@ -43,7 +42,7 @@ import {Http2Session} from "better-sse";
 				break;
 			}
 			case "/sse": {
-				const session = new Http2Session(stream, headers);
+				const session = new Http2CompatSession(req, res);
 
 				session.once("connected", () => {
 					session.push("Hello world", "ping");

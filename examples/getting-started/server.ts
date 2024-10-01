@@ -1,6 +1,8 @@
 import path from "path";
 import express from "express";
-import {createSession, Session} from "better-sse";
+import * as SSE from "better-sse/http2";
+
+console.log(SSE);
 
 const app = express();
 
@@ -11,7 +13,7 @@ app.use(express.static(path.resolve(__dirname, "./public")));
  */
 declare module "express-serve-static-core" {
 	interface Response {
-		sse: Session;
+		// sse: Session;
 	}
 }
 
@@ -21,9 +23,9 @@ app.get(
 	 * Attach the session instance to the response.
 	 */
 	async (req, res, next) => {
-		const session = await createSession(req, res);
+		// const session = await createSession(req, res);
 
-		res.sse = session;
+		// res.sse = session;
 
 		next();
 	},
@@ -31,7 +33,7 @@ app.get(
 	 * Push a message with the event name "ping".
 	 */
 	(_, res) => {
-		res.sse.push("Hello world!", "ping");
+		// res.sse.push("Hello world!", "ping");
 	}
 );
 

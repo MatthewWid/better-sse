@@ -8,7 +8,8 @@ const config = (): Configuration => ({
 	mode: "production",
 	devtool: "source-map",
 	entry: {
-		index: "./src/index.ts",
+		http1: "./src/adapters/http1/index.ts",
+		http2: "./src/adapters/http2/index.ts",
 	},
 	output: {
 		filename: "[name].js",

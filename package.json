@@ -2,8 +2,6 @@
 	"name": "better-sse",
 	"description": "Dead simple, dependency-less, spec-compliant server-sent events implementation for Node, written in TypeScript.",
 	"version": "0.13.0",
-	"main": "./build/index.js",
-	"types": "./build/index.d.ts",
 	"license": "MIT",
 	"author": "Matthew W. <matthew.widdi@gmail.com>",
 	"repository": "github:MatthewWid/better-sse",
@@ -17,6 +15,10 @@
 		"tcp",
 		"events"
 	],
+	"engines": {
+		"node": ">=12",
+		"pnpm": ">=9"
+	},
 	"scripts": {
 		"build": "webpack --env production",
 		"test": "vitest",
@@ -25,14 +27,16 @@
 		"lint": "eslint \"./src/**/*.ts\"",
 		"prepublishOnly": "npm-run-all clean format test build"
 	},
+	"main": "./build/http1.js",
+	"types": "./build/adapters/http1/index.d.ts",
+	"exports": {
+		".": "./build/http1.js",
+		"./http2": "./build/http2.js"
+	},
 	"files": [
 		"build",
 		"!build/**/*.map"
 	],
-	"engines": {
-		"node": ">=12",
-		"pnpm": ">=9"
-	},
 	"devDependencies": {
 		"@types/eventsource": "^1.1.11",
 		"@types/express": "^4.17.16",
