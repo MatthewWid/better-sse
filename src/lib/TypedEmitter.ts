@@ -13,10 +13,9 @@ type EventNames<T> =
 			[K in keyof T as string extends K
 				? never
 				: number extends K
-				? never
-				: K]: never;
+					? never
+					: K]: never;
 	  }
-	// eslint-disable-next-line @typescript-eslint/ban-types
 	| (string & {});
 
 /**
