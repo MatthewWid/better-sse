@@ -30,34 +30,28 @@
 		"!build/**/*.map"
 	],
 	"engines": {
-		"node": ">=12",
+		"node": ">=20",
 		"pnpm": ">=9"
 	},
 	"devDependencies": {
-		"@types/eventsource": "^1.1.11",
-		"@types/express": "^4.17.16",
-		"@types/node": "^18.11.18",
-		"@typescript-eslint/eslint-plugin": "^5.49.0",
-		"@typescript-eslint/parser": "^5.49.0",
-		"eslint": "^8.32.0",
-		"eslint-plugin-tsdoc": "^0.2.17",
+		"@tsconfig/node20": "^20.1.4",
+		"@types/eventsource": "^1.1.15",
+		"@types/express": "^5.0.0",
+		"@types/node": "^22.7.6",
+		"@typescript-eslint/eslint-plugin": "^8.9.0",
+		"@typescript-eslint/parser": "^8.9.0",
+		"eslint": "^8.57.1",
+		"eslint-plugin-tsdoc": "^0.3.0",
 		"eventsource": "^2.0.2",
 		"npm-run-all": "^4.1.5",
-		"prettier": "^2.8.3",
-		"rimraf": "^4.1.2",
-		"ts-loader": "^9.4.2",
-		"ts-node": "^10.9.1",
-		"typescript": "^4.9.4",
-		"vitest": "^0.28.2",
-		"webpack": "^5.75.0",
-		"webpack-cli": "^5.0.1"
+		"prettier": "^3.3.3",
+		"rimraf": "^6.0.1",
+		"ts-loader": "^9.5.1",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.6.3",
+		"vitest": "^2.1.3",
+		"webpack": "^5.95.0",
+		"webpack-cli": "^5.1.4"
 	},
-	"pnpm": {
-		"overrides": {
-			"url-parse@<1.5.6": ">=1.5.6",
-			"url-parse@<1.5.8": ">=1.5.8",
-			"url-parse@<1.5.7": ">=1.5.7"
-		}
-	},
-	"packageManager": "pnpm@9.1.0"
+	"packageManager": "pnpm@9.12.2"
 }
