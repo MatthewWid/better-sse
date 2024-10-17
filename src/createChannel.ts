@@ -1,6 +1,10 @@
-import {Channel} from "./Channel";
+import {Channel, DefaultChannelState} from "./Channel";
+import {DefaultSessionState} from "./Session";
 
-const createChannel = <State, SessionState>(
+const createChannel = <
+	State = DefaultChannelState,
+	SessionState = DefaultSessionState,
+>(
 	...args: ConstructorParameters<typeof Channel<State, SessionState>>
 ): Channel<State, SessionState> => new Channel<State, SessionState>(...args);
 

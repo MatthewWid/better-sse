@@ -1,9 +1,9 @@
-import {Session} from "./Session";
+import {Session, DefaultSessionState} from "./Session";
 
 /**
  * Create a new session and return the session instance once it has connected.
  */
-const createSession = <State>(
+const createSession = <State = DefaultSessionState>(
 	...args: ConstructorParameters<typeof Session<State>>
 ): Promise<Session<State>> =>
 	new Promise((resolve) => {
