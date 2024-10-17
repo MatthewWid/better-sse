@@ -1,14 +1,11 @@
 {
+	"extends": "@tsconfig/node20/tsconfig.json",
 	"compilerOptions": {
-		"target": "ES2019",
-		"strict": true,
-		"moduleResolution": "node",
+		"sourceMap": true,
 		"declaration": true,
 		"declarationDir": "./build",
 		"isolatedModules": true,
-		"allowSyntheticDefaultImports": true,
-		"esModuleInterop": true,
-		"sourceMap": true
+		"allowSyntheticDefaultImports": true
 	},
 	"include": ["./src/**/*"]
 }
