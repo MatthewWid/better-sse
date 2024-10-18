@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 * Fixed default state type when creating sessions and channels with `createSession` and `createChannel` being set to `unknown` instead of `DefaultSessionState` and `DefaultChannelState`, respectively.
+* Fixed package directly exporting a single object containing exports, breaking named imports when using ESModules, and instead dual-export two separate builds to support both ESM and CJS.
 
 ### Removed
 
