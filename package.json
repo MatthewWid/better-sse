@@ -2,8 +2,6 @@
 	"name": "better-sse",
 	"description": "Dead simple, dependency-less, spec-compliant server-sent events implementation for Node, written in TypeScript.",
 	"version": "0.13.0",
-	"main": "./build/index.js",
-	"types": "./build/index.d.ts",
 	"license": "MIT",
 	"author": "Matthew W. <matthew.widdi@gmail.com>",
 	"repository": "github:MatthewWid/better-sse",
@@ -18,12 +16,21 @@
 		"events"
 	],
 	"scripts": {
-		"build": "webpack --env production",
+		"build": "tsup",
 		"test": "vitest",
-		"clean": "rimraf ./build",
 		"format": "prettier --write ./src/**/*.ts",
 		"lint": "eslint \"./src/**/*.ts\"",
-		"prepublishOnly": "npm-run-all clean format test build"
+		"prepublishOnly": "npm-run-all format test build"
+	},
+	"main": "./build/index.js",
+	"module": "./build/index.mjs",
+	"types": "./build/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./build/index.d.ts",
+			"require": "./build/index.js",
+			"import": "./build/index.mjs"
+		}
 	},
 	"files": [
 		"build",
@@ -45,13 +52,10 @@
 		"eventsource": "^2.0.2",
 		"npm-run-all": "^4.1.5",
 		"prettier": "^3.3.3",
-		"rimraf": "^6.0.1",
-		"ts-loader": "^9.5.1",
 		"ts-node": "^10.9.2",
+		"tsup": "^8.3.0",
 		"typescript": "^5.6.3",
-		"vitest": "^2.1.3",
-		"webpack": "^5.95.0",
-		"webpack-cli": "^5.1.4"
+		"vitest": "^2.1.3"
 	},
 	"packageManager": "pnpm@9.12.2"
 }
