@@ -27,7 +27,7 @@ Compared to WebSockets it has comparable performance and bandwidth usage, especi
 
 ## Highlights
 
-* Compatible with all popular Node HTTP frameworks ([http](https://nodejs.org/api/http.html), [Express](https://nodejs.org/api/http.html), [Koa](https://www.npmjs.com/package/koa), [Fastify](https://www.npmjs.com/package/fastify), etc.)
+* Compatible with all popular Node HTTP frameworks ([Express](https://nodejs.org/api/http.html), [Fastify](https://fastify.dev/), [Nest](https://nestjs.com/), [Next.js](https://nextjs.org/), etc.)
 * Fully written in TypeScript (+ ships with types directly).
 * [Thoroughly tested](./src/Session.test.ts) (+ 100% code coverage!).
 * [Comprehensively documented](./docs) with guides and API documentation.
@@ -36,7 +36,7 @@ Compared to WebSockets it has comparable performance and bandwidth usage, especi
 * Trust or ignore the client-given last event ID.
 * Automatically send keep-alive pings to keep connections open.
 * Add or override the response status code and headers.
-* Fine-grained control by either sending [individual fields](./docs/api.md#eventbuffer) of events or by sending [full events with simple helpers](./docs/api.md#sessionpush-data-unknown-eventname-string-eventid-string--this).
+* Send [individual fields](./docs/api.md#eventbuffer) of events or send [full events with simple helpers](./docs/api.md#sessionpush-data-unknown-eventname-string-eventid-string--this).
 * Pipe [streams](https://nodejs.org/api/stream.html#stream_readable_streams) and [iterables](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators) directly from the server to the client as a series of events.
 * Support for popular EventSource polyfills [`event-source-polyfill`](https://www.npmjs.com/package/event-source-polyfill) and [`eventsource-polyfill`](https://www.npmjs.com/package/eventsource-polyfill).
 
@@ -83,11 +83,9 @@ app.get("/sse", async (req, res) => {
 const sse = new EventSource("/sse");
 
 sse.addEventListener("message", ({ data }) => {
-	console.log(data);
+	console.log(JSON.parse(data));
 });
 ```
-
----
 
 Use [channels](./docs/channels.md) to send events to many clients at once:
 
@@ -105,8 +103,6 @@ app.get("/sse", async (req, res) => {
 });
 ```
 
----
-
 Loop over sync and async [iterables](./docs/api.md#sessioniterate-iterable-iterable--asynciterable-options-object--promisevoid) and send each value as an event:
 
 ```typescript
@@ -117,9 +113,7 @@ const list = [1, 2, 3];
 await session.iterate(list);
 ```
 
----
-
-Pipe [readable stream](#sessionstream-stream-readable-options-object--promiseboolean) data to the client as a stream of events:
+Pipe [readable stream](./docs/api.md#sessionstream-stream-readable-options-object--promiseboolean) data to the client as a stream of events:
 
 ```typescript
 const session = await createSession(req, res);
