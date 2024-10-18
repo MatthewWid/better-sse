@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.14.0 - 2024-10-18
+
 ### Fixed
 
 * Fixed default state type when creating sessions and channels with `createSession` and `createChannel` being set to `unknown` instead of `DefaultSessionState` and `DefaultChannelState`, respectively.
