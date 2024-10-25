@@ -1,0 +1,5 @@
+/* Fix line breaks on comparisons and constructor option tables making text unreadable */
+.sl-markdown-content td code,
+.sl-markdown-content th code {
+	overflow-wrap: normal;
+}

@@ -1,0 +1,124 @@
+---
+title: Getting Started
+description: Get started using Better SSE.
+sidebar:
+    order: 1
+---
+
+import {Tabs, TabItem, Code, Aside, Steps, LinkCard} from "@astrojs/starlight/components";
+
+## Introduction
+
+[Server-sent events (SSE)](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events) is a standardised protocol that allows web-servers to push data (characterized as _events_) to a client without the client having to request it immediately before.
+
+Using SSE can allow for significant savings in bandwidth and battery life on portable devices and will work with your existing infrastructure as it operates directly over the HTTP protocol without the need for the connection upgrade that [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) and [HTTP/2](https://developer.mozilla.org/en-US/docs/Glossary/HTTP_2) do (but can also be used with HTTP/2!).
+
+Compared to WebSockets it has comparable performance and bandwidth usage, especially over HTTP/2, and natively includes event ID generation and automatic reconnection when clients are disconnected.
+
+* [Comparison: Server-sent Events vs WebSockets vs Polling](https://medium.com/dailyjs/a-comparison-between-websockets-server-sent-events-and-polling-7a27c98cb1e3)
+* [WHATWG standards section for server-sent events](https://html.spec.whatwg.org/multipage/server-sent-events.html)
+* [MDN guide to server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
+
+<Aside title="Use your own framework">
+    This guide uses the [Express web-server](https://expressjs.com/) in its code examples, but Better SSE works with any web-server framework that uses the underlying [Node HTTP module](https://nodejs.org/api/http.html). For example usage with other popular frameworks, see the [Recipes](/reference/recipes) section.
+</Aside>
+
+### How does it work?
+
+SSE works by a client connecting to a server using the [EventSource](https://developer.mozilla.org/en-US/docs/Web/API/EventSource) interface. The server then indicates in its response headers that it will send back data in a stream of events and keeps the connection open indefinitely until it is closed by the client. From this point the server is free to continuously write data to the open connection and the EventSource will emit events with the sent data.
+
+<Steps>
+    1. Client makes a request to the server using [EventSource](https://developer.mozilla.org/en-US/docs/Web/API/EventSource).
+    2. Server responds with the `Content-Type` header set to `text/event-stream`.
+    3. Client emits the `open` event and is ready to receive data.
+    4. Server continually writes text data to the open connection.
+    5. Client receives data and emits events on the `EventSource` instance.
+    6. Client terminates connection by calling the `close` method.
+</Steps>
+
+The technology can be used for things for things such as live notifications, news tickers, chat rooms, shout-boxes, event logs, progress bars, etc.
+
+### Install
+
+Better SSE is shipped [as a package on npm](https://www.npmjs.com/package/better-sse). You can install it with any Node package manager.
+
+<Tabs>
+    <TabItem label="npm">
+        <Code code={`npm install better-sse`} lang="shellscript" />
+    </TabItem>
+    <TabItem label="Yarn">
+        <Code code={`yarn add better-sse`} lang="shellscript" />
+    </TabItem>
+    <TabItem label="pnpm">
+        <Code code={`pnpm add better-sse`} lang="shellscript" />
+    </TabItem>
+</Tabs>
+
+TypeScript types are included in the package distribution. No need to install from DefinitelyTyped for TypeScript users!
+
+## Create a session
+
+*Sessions* simply represent an open connection between a client and the server. The client will first make a request to the server, and the server will open a session that it will push data to the client with.
+
+First import the module:
+
+<Tabs>
+    <TabItem label="ESModules / TypeScript">
+        <Code code={`import { createSession } from "better-sse";`} lang="typescript" />
+    </TabItem>
+    <TabItem label="CommonJS">
+        <Code code={`const { createSession } = require("better-sse");`} lang="javascript" />
+    </TabItem>
+</Tabs>
+
+Then create a session when the client makes a request on the specified route (`GET /sse` in this case):
+
+```typescript
+app.get("/sse", async (req, res) => {
+	const session = await createSession(req, res);
+});
+```
+
+Now that we have an active session we can use it to push an event to the client:
+
+```typescript
+session.push("Hello world!", "ping");
+```
+
+This will push an event named `ping` (but this can be any string) with the string `Hello world!` as its associated data.
+
+<Aside>
+    If you do not specify an event name, the event name is set to `message`.
+</Aside>
+
+### Connect from the client
+
+From your client-side code you can now connect to the server at the defined path.
+
+<Aside type="tip">
+    It is highly recommended you use an [EventSource polyfill](https://www.npmjs.com/package/eventsource) that allows for backwards compatibility with older browsers as well as giving you extra features such as request header modification and improved error handling.
+</Aside>
+
+First we open a connection to the server to begin receiving events from it:
+
+```javascript
+const eventSource = new EventSource("/sse");
+```
+
+Then we can attach an event listener to listen for the event our server is going to send:
+
+```javascript
+eventSource.addEventListener("ping", (event) => {
+	console.log(`${event.type} | ${event.data}`);
+});
+```
+
+If you check your browser console you will now see `ping | "Hello world!"` logged to the console. Easy!
+
+<Aside>
+    Data is [serialized as JSON](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify) by default. You can use `JSON.parse(data)` to get the real value of the event data.
+</Aside>
+
+You can find a reference to the received event object interface under the [`MessageEvent` page on MDN](https://developer.mozilla.org/en-US/docs/Web/API/EventSource/message_event).
+
+<LinkCard title="Examples" description="See the full code from this guide and other demo projects using Better SSE." href="https://github.com/MatthewWid/better-sse/tree/master/examples" />

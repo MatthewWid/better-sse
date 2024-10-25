@@ -1,17 +1,17 @@
-# Recipes
+---
+title: Usage Recipes
+description: See examples of using Better SSE with various Node HTTP frameworks.
+sidebar:
+    order: 3
+---
 
 Better SSE can be used with any web-server framework that uses the underlying [Node HTTP module](https://nodejs.org/api/http.html). This section shows example usage with some popular HTTP frameworks.
 
-Feel free to submit a PR with a minimal example for more frameworks!
+Feel free to [submit a PR](https://github.com/MatthewWid/better-sse/pulls) with a minimal example for another framework!
 
-* [HTTP](#http)
-* [Express](#express)
-* [Koa](#koa)
-* [Nest](#nest)
+### [HTTP](https://nodejs.org/api/http.html)
 
-## [HTTP](https://nodejs.org/api/http.html)
-
-```javascript
+```javascript title="server.js"
 import {createServer} from "http";
 import {createSession} from "better-sse";
 
@@ -33,9 +33,9 @@ const server = createServer(async (req, res) => {
 server.listen(8080);
 ```
 
-## [Express](https://expressjs.com/)
+### [Express](https://expressjs.com/)
 
-```javascript
+```javascript title="server.js"
 import express from "express";
 import {createSession} from "better-sse";
 
@@ -46,21 +46,16 @@ app.get(
 	async (req, res, next) => {
 		const session = await createSession(req, res);
 
-		res.sse = session;
-
-		next();
-	},
-	(req, res) => {
-		res.sse.push("Hello world!");
+		session.push("Hello world!");
 	}
 );
 
 app.listen(8080);
 ```
 
-## [Koa](https://koajs.com/)
+### [Koa](https://koajs.com/)
 
-```javascript
+```javascript title="server.js"
 import Koa from "koa";
 import Router from "@koa/router";
 import {createSession} from "better-sse";
@@ -76,12 +71,7 @@ router.get(
 
 		const session = await createSession(ctx.req, ctx.res);
 
-		ctx.sse = session;
-
-		next();
-	},
-	(ctx) => {
-		ctx.sse.push("Hello world!");
+		session.push("Hello world!");
 	}
 );
 
@@ -90,7 +80,7 @@ app.use(router.routes());
 app.listen(8080);
 ```
 
-## [Nest](https://nestjs.com/)
+### [Nest](https://nestjs.com/)
 
 Assuming you are using [`@nestjs/platform-express`](https://www.npmjs.com/package/@nestjs/platform-express) (the default).
 
