@@ -30,17 +30,17 @@ Compared to WebSockets it has comparable performance and bandwidth usage, especi
 * Compatible with all popular Node HTTP frameworks ([Express](https://nodejs.org/api/http.html), [Fastify](https://fastify.dev/), [Nest](https://nestjs.com/), [Next.js](https://nextjs.org/), etc.)
 * Fully written in TypeScript (+ ships with types directly).
 * [Thoroughly tested](./src/Session.test.ts) (+ 100% code coverage!).
-* [Comprehensively documented](./docs) with guides and API documentation.
-* [Channels](./docs/channels.md) allow you to broadcast events to many clients at once.
+* [Comprehensively documented](https://matthewwid.github.io/better-sse) with guides and API documentation.
+* [Channels](https://matthewwid.github.io/better-sse/guides/channels) allow you to broadcast events to many clients at once.
 * Configurable reconnection time, message serialization and data sanitization (with good defaults).
 * Trust or ignore the client-given last event ID.
 * Automatically send keep-alive pings to keep connections open.
 * Add or override the response status code and headers.
-* Send [individual fields](./docs/api.md#eventbuffer) of events or send [full events with simple helpers](./docs/api.md#sessionpush-data-unknown-eventname-string-eventid-string--this).
+* Send [individual fields](https://matthewwid.github.io/better-sse/guides/batching#send-individual-event-fields) of events or send [full events with simple helpers](https://matthewwid.github.io/better-sse/reference/api/#sessionpush-data-unknown-eventname-string-eventid-string--this).
 * Pipe [streams](https://nodejs.org/api/stream.html#stream_readable_streams) and [iterables](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators) directly from the server to the client as a series of events.
 * Support for popular EventSource polyfills [`event-source-polyfill`](https://www.npmjs.com/package/event-source-polyfill) and [`eventsource-polyfill`](https://www.npmjs.com/package/eventsource-polyfill).
 
-[See a comparison with other Node SSE libraries in the documentation.](./docs/comparison.md)
+[See a comparison with other Node SSE libraries in the documentation.](https://matthewwid.github.io/better-sse/reference/comparison)
 
 # Installation
 
@@ -61,11 +61,11 @@ _Better SSE ships with types built in. No need to install from DefinitelyTyped f
 
 The following example shows usage with [Express](http://expressjs.com/), but Better SSE works with any web-server framework that uses the underlying Node [HTTP module](https://nodejs.org/api/http.html).
 
-See the [Recipes](./docs/recipes.md) section of the documentation for use with other frameworks and libraries.
+See the [Recipes](https://matthewwid.github.io/better-sse/reference/recipes/) section of the documentation for use with other frameworks and libraries.
 
 ---
 
-Use [sessions](./docs/api.md#session) to push events to clients:
+Use [sessions](https://matthewwid.github.io/better-sse/reference/api/#sessionstate) to push events to clients:
 
 ```typescript
 // Server
@@ -87,7 +87,7 @@ sse.addEventListener("message", ({ data }) => {
 });
 ```
 
-Use [channels](./docs/channels.md) to send events to many clients at once:
+Use [channels](https://matthewwid.github.io/better-sse/reference/api/#channelstate-sessionstate) to send events to many clients at once:
 
 ```typescript
 import { createSession, createChannel } from "better-sse";
@@ -103,7 +103,7 @@ app.get("/sse", async (req, res) => {
 });
 ```
 
-Loop over sync and async [iterables](./docs/api.md#sessioniterate-iterable-iterable--asynciterable-options-object--promisevoid) and send each value as an event:
+Loop over sync and async [iterables](https://matthewwid.github.io/better-sse/reference/api/#sessioniterate-iterable-iterable--asynciterable-options-object--promisevoid) and send each value as an event:
 
 ```typescript
 const session = await createSession(req, res);
@@ -113,7 +113,7 @@ const list = [1, 2, 3];
 await session.iterate(list);
 ```
 
-Pipe [readable stream](./docs/api.md#sessionstream-stream-readable-options-object--promiseboolean) data to the client as a stream of events:
+Pipe [readable stream](https://matthewwid.github.io/better-sse/reference/api/#sessionstream-stream-readable-options-object--promiseboolean) data to the client as a stream of events:
 
 ```typescript
 const session = await createSession(req, res);
@@ -125,11 +125,11 @@ await session.stream(stream);
 
 ---
 
-Check the [API documentation](./docs/api.md) and [live examples](./examples) for information on getting more fine-tuned control over your data such as managing event IDs, data serialization, event filtering, dispatch controls and more!
+Check the [API documentation](https://matthewwid.github.io/better-sse/reference/api) and [live examples](./examples) for information on getting more fine-tuned control over your data such as managing event IDs, data serialization, event filtering, dispatch controls and more!
 
 # Documentation
 
-API documentation, getting started guides and usage with other frameworks is [available on GitHub](./docs).
+API documentation, getting started guides and usage with other frameworks is [available on the documentation website](https://matthewwid.github.io/better-sse/).
 
 # Contributing
 
