@@ -1,6 +1,6 @@
 const es = new EventSource("/sse")
 
-es.addEventListener("message", (event) => {
-	const data = JSON.parse(event.data)
-	console.log(data)
+es.addEventListener("message", ({ data })) => {
+	const contents = JSON.parse(data)
+	console.log(contents)
 })
