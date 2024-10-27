@@ -1,5 +1,5 @@
 ---
-title: Usage Recipes
+title: Usage recipes
 description: See examples of using Better SSE with various Node HTTP frameworks.
 sidebar:
     order: 3
@@ -11,16 +11,16 @@ Feel free to [submit a PR](https://github.com/MatthewWid/better-sse/pulls) with 
 
 ### [HTTP](https://nodejs.org/api/http.html)
 
-```javascript title="server.js"
-import {createServer} from "http";
-import {createSession} from "better-sse";
+```typescript title="server.ts"
+import { createServer } from "http";
+import { createSession } from "better-sse";
 
 const server = createServer(async (req, res) => {
 	switch (req.url) {
 		case "/sse": {
-			const sse = await createSession(req, res);
+			const session = await createSession(req, res);
 
-			sse.push("Hello world!");
+			session.push("Hello world!");
 
 			break;
 		}
@@ -35,45 +35,38 @@ server.listen(8080);
 
 ### [Express](https://expressjs.com/)
 
-```javascript title="server.js"
+```typescript title="server.ts"
 import express from "express";
-import {createSession} from "better-sse";
+import { createSession } from "better-sse";
 
 const app = express();
 
-app.get(
-	"/sse",
-	async (req, res, next) => {
-		const session = await createSession(req, res);
-
-		session.push("Hello world!");
-	}
-);
+app.get("/sse", async (req, res) => {
+    const session = await createSession(req, res);
+    session.push("Hello world!");
+});
 
 app.listen(8080);
 ```
 
 ### [Koa](https://koajs.com/)
 
-```javascript title="server.js"
+```typescript title="server.ts"
 import Koa from "koa";
 import Router from "@koa/router";
-import {createSession} from "better-sse";
+import { createSession } from "better-sse";
 
 const app = new Koa();
 const router = new Router();
 
-router.get(
-	"/sse",
-	async (ctx, next) => {
-		// Prevent Koa sending a response and closing the connection
-		ctx.respond = false;
+router.get( "/sse", async (ctx) => {
+    // Prevent Koa sending a response and closing the connection
+    ctx.respond = false;
 
-		const session = await createSession(ctx.req, ctx.res);
+    const session = await createSession(ctx.req, ctx.res);
 
-		session.push("Hello world!");
-	}
-);
+    session.push("Hello world!");
+});
 
 app.use(router.routes());
 
@@ -84,7 +77,7 @@ app.listen(8080);
 
 Assuming you are using [`@nestjs/platform-express`](https://www.npmjs.com/package/@nestjs/platform-express) (the default).
 
-```typescript
+```typescript title="server.ts"
 import { Controller, Get, Req, Res } from "@nestjs/common";
 import { Request, Response } from "express";
 import { createSession } from "better-sse";
@@ -98,4 +91,32 @@ export class SseController {
     sse.push("Hello world!");
   }
 }
+```
+
+### [Fastify](https://fastify.dev/)
+
+```typescript title="server.ts"
+import Fastify from "fastify";
+import { createSession } from "better-sse";
+
+const fastify = Fastify();
+
+fastify.get("/sse", async (request, reply) => {
+        const session = await createSession(request.raw, reply.raw);
+        session.push("Hello world!");
+});
+
+fastify.listen({ port: 8080 });
+```
+
+### [Adonis](https://adonisjs.com/)
+
+```typescript title="server.ts"
+import router from "@adonisjs/core/services/router";
+import { createSession } from "better-sse";
+
+router.get("/sse", async ({ request, response }) => {
+  const session = await createSession(request.request, response.response);
+  session.push("Hello world!");
+});
 ```
