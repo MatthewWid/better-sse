@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.14.1 - 2024-10-27
+
+### Changed
+
+* Update links to point to [new documentation website](https://matthewwid.github.io/better-sse).
+
 ## 0.14.0 - 2024-10-18
 
 ### Fixed
