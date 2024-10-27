@@ -1,0 +1,83 @@
+---
+title: Batching with event buffers
+description: Learn how to batch and send multiple events at a time with event buffers.
+sidebar:
+    order: 3
+---
+
+import {Tabs, TabItem, Code, Aside, Steps, LinkCard} from "@astrojs/starlight/components";
+
+While SSE is already performant and bandwidth-efficient, sending many events at a time by repeatedly calling [`Session#push`](/reference/api#sessionpush-data-unknown-eventname-string-eventid-string--this) can be wasteful as every call will initiate a full TCP round trip where the client must send acknowledgement packets back for every event it receives.
+
+*Event buffers* improve this process by allowing you to batch and send multiple events in a single network transmission, greatly improving performance and lowering overall bandwidth usage.
+
+## Using the `batch` method
+
+To batch and send multiple events at a time, simply invoke [`Session#batch`](/reference/api#sessionbatch-batcher-eventbuffer--buffer-eventbuffer--void--promisevoid--promisevoid) method and pass a callback that takes an [event buffer](/reference/api#eventbuffer) as its first argument:
+
+```typescript title="server.ts"
+await session.batch(async (buffer) => {
+    await buffer.push("Hello world!");
+});
+```
+
+You can use the same helper methods as you would with the session itself ([`push`](/reference/api#sessionpush-data-unknown-eventname-string-eventid-string--this), [`stream`](/reference/api#sessionstream-stream-readable-options-object--promiseboolean) and [`iterate`](/reference/api#sessioniterate-iterable-iterable--asynciterable-options-object--promisevoid)) with the buffer.
+
+When the callback finishes execution - or resolves if it returns a promise - every event created with the buffer will be sent to the client all at once in a single network transmission.
+
+<Aside>
+    Events created with event buffers do not use the underlying `Session#push` method and will *not* trigger the `push` event to be emitted on the session instance.
+</Aside>
+
+## Create your own event buffer
+
+You can also create an event buffer outside of the context of a single session and then write its contents to one or many sessions later on. To do so, create an event buffer and then pass it directly to the `batch` method:
+
+```typescript title="server.ts"
+import { createEventBuffer } from "better-sse";
+
+const buffer = createEventBuffer();
+
+buffer.iterate(["My", "huge", "event", "list"]);
+
+session.batch(buffer);
+```
+
+Or send the buffer contents to every session on a [channel](/guides/channels), for example:
+
+```typescript title="server.ts"
+channel.activeSessions.forEach((session) => {
+    session.batch(buffer);
+});
+```
+
+<Aside title="Sanitize your data" type="caution" >
+    Keep in mind that, unless you explicitly pass them via [the `sanitizer` and/or `serializer` constructor arguments](#new-eventbufferoptions-), event buffers do *not* have the same data serializer and sanitizer functions as the session being called.
+
+    This does not apply when you use the [`Session#batch`](/reference/api(sessionbatch-batcher-eventbuffer--buffer-eventbuffer--void--promisevoid--promisevoid)) method as it will automatically copy the serializer and sanitizer from the session to the event buffer instance it creates for you.
+</Aside>
+
+### Send individual event fields
+
+For users needing more fine-grained control over the exact data being sent over the wire, event buffers also allow you to write [raw spec-compliant SSE fields](https://html.spec.whatwg.org/multipage/server-sent-events.html#processField) into a string that can be read and sent over the wire as-is.
+
+```typescript title="server.ts"
+import { createEventBuffer } from "better-sse";
+
+const buffer = createEventBuffer();
+
+buffer
+  .retry(2400)
+  .event("my-event")
+  .id("123")
+  .data("one")
+  .data("two")
+  .data("three")
+  .dispatch();
+
+res.write(buffer.read());
+
+buffer.clear();
+```
+
+This is an advanced use-case. For most users, you should still stick with using [`Session`](/reference/api#sessionstate) by default.
