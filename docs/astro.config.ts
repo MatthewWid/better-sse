@@ -3,6 +3,7 @@ import starlight from "@astrojs/starlight";
 
 export default defineConfig({
 	site: "https://matthewwid.github.io",
+	base: "better-sse",
 	integrations: [
 		starlight({
 			title: "Better SSE",
