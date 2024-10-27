@@ -10,14 +10,14 @@ sidebar:
 import {Tabs, TabItem, Code, Aside, Steps, LinkCard} from "@astrojs/starlight/components";
 
 <Aside>
-	You should read the [Getting Started](/guides/getting-started) guide first if you haven't already.
+	You should read the [Getting Started](/better-sse/guides/getting-started) guide first if you haven't already.
 </Aside>
 
 *Channels* are an abstraction that make it easy to broadcast events to many clients at once.
 
 When a client first connects, you register its session to one or many channels and from then-on any events broadcast on those channels will also be sent to that client.
 
-Don't worry about *de*registering the session from the channel; that is automatically handled for you when the session disconnects, [but you can also do it manually](/reference/api/#channelderegister-session-session--this) if you no longer wish to listen for events on a channel at any time.
+Don't worry about *de*registering the session from the channel; that is automatically handled for you when the session disconnects, [but you can also do it manually](/better-sse/reference/api/#channelderegister-session-session--this) if you no longer wish to listen for events on a channel at any time.
 
 Channels can be used for things such as notification systems, chat rooms and synchronizing data between multiple clients.
 
