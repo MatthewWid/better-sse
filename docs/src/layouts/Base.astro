@@ -1,0 +1,14 @@
+---
+const ANALYTICS_SCRIPT_URL = import.meta.env.PUBLIC_ANALYTICS_SCRIPT_URL;
+const ANALYTICS_WEBSITE_ID = import.meta.env.PUBLIC_ANALYTICS_WEBSITE_ID;
+---
+{
+	ANALYTICS_SCRIPT_URL && ANALYTICS_WEBSITE_ID && (
+		<script
+			defer
+			src={ANALYTICS_SCRIPT_URL}
+			data-website-id={ANALYTICS_WEBSITE_ID}
+		/>
+	)
+}
+<slot />

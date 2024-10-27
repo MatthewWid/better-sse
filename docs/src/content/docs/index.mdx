@@ -1,0 +1,63 @@
+---
+layout: ../../layouts/Base.astro
+title: Better SSE
+description: Dead simple, dependency-less, spec-compliant server-sent events implementation for Node, written in TypeScript.
+template: splash
+hero:
+    tagline: Dead-simple real-time server-to-client communication without WebSockets.
+    actions:
+        - text: Get started
+          link: /better-sse/guides/getting-started
+          icon: right-arrow
+        - text: API reference
+          link: /better-sse/reference/api
+          icon: document
+          variant: minimal
+---
+
+import {Tabs, TabItem, Code, CardGrid, Card, LinkCard} from "@astrojs/starlight/components";
+import serverCode from "/src/content/snippets/home-server.ts?raw";
+import clientCode from "/src/content/snippets/home-client.ts?raw";
+
+## Features
+
+<CardGrid stagger>
+	<Card title="Easy real-time communication" icon="rocket">
+		Operates directly over HTTP.<br />No pinging, long-polling or WebSockets required.
+	</Card>
+	<Card title="Multi-client broadcasting" icon="rss">
+		Send events to individual clients or to many at once using broadcast channels.
+	</Card>
+	<Card title="Highly configurable" icon="setting">
+		Modify reconnection time, message serialization, data sanitization, response headers and more (with good defaults).
+	</Card>
+	<Card title="Event batching" icon="seti:default">
+		Batch and send multiple events in a single transmission to improve performance and lower bandwidth usage.
+	</Card>
+	<Card title="First-class TypeScript" icon="seti:typescript">
+		Fully written in TypeScript and ships with types directly.<br />Define types for state and event data.
+	</Card>
+	<Card title="Pipe streams and iterables" icon="seti:pipeline">
+		Automatically pipe stream and iterable data to the client as a series of events.
+	</Card>
+</CardGrid>
+
+## Set up in 10 lines of code
+
+<Tabs>
+    <TabItem label="Server">
+        <Code title="server.ts" code={serverCode} lang="typescript" />
+    </TabItem>
+    <TabItem label="Client">
+        <Code title="client.ts" code={clientCode} lang="typescript" />
+    </TabItem>
+</Tabs>
+
+## Get started
+
+<CardGrid>
+	<LinkCard title="Getting started guide" description="Learn about using SSE to send events to your clients in real time" href="/better-sse/guides/getting-started" />
+	<LinkCard title="API reference" description="Read the reference documentation for all package exports" href="/better-sse/reference/api" />
+	<LinkCard title="Compare with other tools" description="Compare the features of Better SSE with other Node SSE libraries" href="/better-sse/reference/comparison" />
+	<LinkCard title="Usage recipes" description="See examples of using Better SSE with popular HTTP frameworks" href="/better-sse/reference/recipes" />
+</CardGrid>

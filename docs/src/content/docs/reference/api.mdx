@@ -1,20 +1,16 @@
-# API Documentation
+---
+layout: ../../../layouts/Base.astro
+title: API Reference
+description: API reference for each Better SSE package export.
+sidebar:
+    order: 1
+tableOfContents:
+    maxHeadingLevel: 4
+---
 
-## Table of Contents
+import {Aside} from "@astrojs/starlight/components";
 
-### Exports
-
-* [`Session`](#session)
-* [`createSession`](#createsession%3A-(constructorparameters<typeof-session>)-%3D>-promise<session>)
-* [`Channel`](#channel)
-* [`createChannel`](#createchannel%3A-(...args%3A-constructorparameters<typeof-channel>)-%3D>-channel)
-* [`EventBuffer`](#eventbuffer)
-* [`createEventBuffer`](#createeventbuffer-args-constructorparameterstypeof-eventbuffer--eventbuffer)
-* [`SseError`](#sseerror)
-
-## Documentation
-
-### `Session`
+### `Session<State>`
 
 *Extends from [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter)*.
 
@@ -34,14 +30,14 @@ Note that creating a new session will immediately send the initial status code a
 
 |Property|Type|Default|Description|
 |-|-|-|-|
-|`serializer`|`function`|`JSON.stringify`|Serialize data to a string that can be written over the wire.<br><br>Note that only values written with `.data()` or `.push()` are serialized, as everything else is assumed to already be a string.|
-|`sanitizer`|`function`||Sanitize values so as to not prematurely dispatch events when writing fields whose text inadvertently contains newlines.<br><br>By default, CR, LF and CRLF characters are replaced with a single LF character (`\n`) and then any trailing LF characters are stripped so as to prevent a blank line being written and accidentally dispatching the event before `.dispatch()` is called.|
-|`trustClientEventId`|`boolean`|`true`|Whether to trust or ignore the last event ID given by the client in the `Last-Event-ID` request header.<br><br>When set to `false`, the `lastId` property will always be initialized to an empty string.|
-|`retry`|`number` \| `null`|`2000`|Time in milliseconds for the client to wait before attempting to reconnect if the connection is closed.<br><br>This is equivalent to immediately calling `.retry().dispatch().flush()` after a connection is made.<br><br>Give as `null` to avoid sending an explicit reconnection time and allow the client browser to decide itself.|
-|`keepAlive`|`number` \| `null`|`10000`|Time in milliseconds interval for the session to send a comment to keep the connection alive.<br><br>Give as `null` to disable the keep-alive mechanism.|
-|`statusCode`|`number`|`200`|Status code to be sent to the client.<br><br>Event stream requests can be redirected using HTTP 301 and 307 status codes. Make sure to set `Location` header when using these status codes (301/307) using the `headers` property.<br><br>A client can be asked to stop reconnecting by send a 204 status code.|
+|`serializer`|`function`|`JSON.stringify`|Serialize data to a string that can be written over the wire.<br /><br />Note that only values written with `.data()` or `.push()` are serialized, as everything else is assumed to already be a string.|
+|`sanitizer`|`function`||Sanitize values so as to not prematurely dispatch events when writing fields whose text inadvertently contains newlines.<br /><br />By default, CR, LF and CRLF characters are replaced with a single LF character (`\n`) and then any trailing LF characters are stripped so as to prevent a blank line being written and accidentally dispatching the event before `.dispatch()` is called.|
+|`trustClientEventId`|`boolean`|`true`|Whether to trust or ignore the last event ID given by the client in the `Last-Event-ID` request header.<br /><br />When set to `false`, the `lastId` property will always be initialized to an empty string.|
+|`retry`|`number` \| `null`|`2000`|Time in milliseconds for the client to wait before attempting to reconnect if the connection is closed.<br /><br />This is equivalent to immediately calling `.retry().dispatch().flush()` after a connection is made.<br /><br />Give as `null` to avoid sending an explicit reconnection time and allow the client browser to decide itself.|
+|`keepAlive`|`number` \| `null`|`10000`|Time in milliseconds interval for the session to send a comment to keep the connection alive.<br /><br />Give as `null` to disable the keep-alive mechanism.|
+|`statusCode`|`number`|`200`|Status code to be sent to the client.<br /><br />Event stream requests can be redirected using HTTP 301 and 307 status codes. Make sure to set `Location` header when using these status codes (301/307) using the `headers` property.<br /><br />A client can be asked to stop reconnecting by send a 204 status code.|
 |`headers`|`object`|`{}`|Additional headers to be sent along with the response.|
-|`state`|`object`|`{}`|Initial custom state for the session.<br><br>Accessed via the [`state`](#sessionstate-state) property.<br><br>When using TypeScript, providing the initial state structure allows the type of the `state` property to be automatically inferred.|
+|`state`|`State`|`DefaultSessionState`|Initial custom state for the session.<br /><br />Accessed via the [`state`](#sessionstate-state) property.<br /><br />When using TypeScript, providing the initial state structure allows the type of the `state` property to be automatically inferred.|
 
 #### `Session#lastId`: `string`
 
@@ -61,7 +57,7 @@ Custom state for this session.
 
 Use this object to safely store information related to the session and user.
 
-You may set an initial value for this property using the `state` property in the [constructor `options` object](#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest-res-serverresponse--http2serverresponse-options--), allowing its type to be automatically inferred.
+You may set an initial value for this property using the `state` property in the [constructor `options` object](#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest-res-serverresponse--http2serverresponse-options-), allowing its type to be automatically inferred.
 
 Use [module augmentation and declaration merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation) to safely add new properties to the `DefaultSessionState` interface.
 
@@ -71,7 +67,7 @@ Push an event to the client.
 
 If no event name is given, the event name is set to `"message"`.
 
-If no event ID is given, the event ID (and thus the [`lastId` property](#session%23lastid%3A-string)) is set to a unique string generated using a [cryptographic pseudorandom number generator](https://nodejs.org/api/crypto.html#cryptorandomuuidoptions).
+If no event ID is given, the event ID (and thus the [`lastId` property](#sessionlastid-string)) is set to a unique string generated using a [cryptographic pseudorandom number generator](https://nodejs.org/api/crypto.html#cryptorandomuuidoptions).
 
 If the session has disconnected, an [`SseError`](#sseerror) will be thrown.
 
@@ -83,7 +79,7 @@ Pipe readable stream data to the client.
 
 Each data emission by the stream pushes a new event to the client.
 
-This uses the [`push`](#session%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-this-%7C-(data%3A-any)-%3D>-this) method under the hood.
+This uses the [`push`](#sessionpush-data-unknown-eventname-string-eventid-string--this) method under the hood.
 
 |`options.`|Type|Default|Description|
 |-|-|-|-|
@@ -95,7 +91,7 @@ Iterate over an iterable and send yielded values to the client.
 
 Each yield pushes a new event to the client.
 
-This uses the [`push`](#session%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-this-%7C-(data%3A-any)-%3D>-this) method under the hood.
+This uses the [`push`](#sessionpush-data-unknown-eventname-string-eventid-string--this) method under the hood.
 
 |`options.`|Type|Default|Description|
 |-|-|-|-|
@@ -114,13 +110,17 @@ Returns a promise that resolves once all data from the event buffer has been suc
 
 #### `Session#event`: `(type: string) => this`
 
-**⚠ DEPRECATED:** This method is deprecated. [See here](https://github.com/MatthewWid/better-sse/issues/52). 
+<Aside type="caution" title="DEPRECATED">
+    This method is deprecated and should no longer be used. [See here](https://github.com/MatthewWid/better-sse/issues/52) for more information.
+</Aside>
 
 Set the event to the given name (also referred to as the event "type" in the specification).
 
 #### `Session#data`: `(data: unknown) => this`
 
-**⚠ DEPRECATED:** This method is deprecated. [See here](https://github.com/MatthewWid/better-sse/issues/52). 
+<Aside type="caution" title="DEPRECATED">
+    This method is deprecated and should no longer be used. [See here](https://github.com/MatthewWid/better-sse/issues/52) for more information.
+</Aside>
 
 Write arbitrary data with the last event.
 
@@ -128,7 +128,9 @@ The given value is automatically serialized to a string using the `serializer` f
 
 #### `Session#id`: `([id: string]) => this`
 
-**⚠ DEPRECATED:** This method is deprecated. [See here](https://github.com/MatthewWid/better-sse/issues/52). 
+<Aside type="caution" title="DEPRECATED">
+    This method is deprecated and should no longer be used. [See here](https://github.com/MatthewWid/better-sse/issues/52) for more information.
+</Aside>
 
 Set the event ID to the given string.
 
@@ -136,13 +138,17 @@ Defaults to an empty string if no argument is given.
 
 #### `Session#retry`: `(time: number) => this`
 
-**⚠ DEPRECATED:** This method is deprecated. [See here](https://github.com/MatthewWid/better-sse/issues/52). 
+<Aside type="caution" title="DEPRECATED">
+    This method is deprecated and should no longer be used. [See here](https://github.com/MatthewWid/better-sse/issues/52) for more information.
+</Aside>
 
 Set the suggested reconnection time to the given milliseconds.
 
 #### `Session#comment`: `([text: string]) => this`
 
-**⚠ DEPRECATED:** This method is deprecated. [See here](https://github.com/MatthewWid/better-sse/issues/52). 
+<Aside type="caution" title="DEPRECATED">
+    This method is deprecated and should no longer be used. [See here](https://github.com/MatthewWid/better-sse/issues/52) for more information.
+</Aside>
 
 Write a comment (an ignored field).
 
@@ -150,7 +156,9 @@ This will not fire an event, but is often used to keep the connection alive.
 
 #### `Session#dispatch`: `() => this`
 
-**⚠ DEPRECATED:** This method is deprecated. [See here](https://github.com/MatthewWid/better-sse/issues/52). 
+<Aside type="caution" title="DEPRECATED">
+    This method is deprecated and should no longer be used. [See here](https://github.com/MatthewWid/better-sse/issues/52) for more information.
+</Aside>
 
 Indicate that the event has finished being created by writing an additional newline character.
 
@@ -158,17 +166,19 @@ Note that this does **not** send the written data to the client. To do so, use t
 
 #### `Session#flush`: `() => this`
 
-**⚠ DEPRECATED:** This method is deprecated. [See here](https://github.com/MatthewWid/better-sse/issues/52). 
+<Aside type="caution" title="DEPRECATED">
+    This method is deprecated and should no longer be used. [See here](https://github.com/MatthewWid/better-sse/issues/52) for more information.
+</Aside>
 
 Flush the buffered data to the client and clear the buffer.
 
-### `createSession`: `<State>(ConstructorParameters<typeof Session>) => Promise<Session>`
+### `createSession`: `<State>(ConstructorParameters<typeof Session>) => Promise<Session<State>>`
 
 Creates and returns a promise that resolves to an instance of a [Session](#session) once it has connected.
 
-Takes the [same arguments as the Session class constructor](#new-session(req%3A-incomingmessage%2C-res%3A-serverresponse%2C-%5Boptions%5D-%3D-%7B%7D)).
+Takes the [same arguments as the Session class constructor](#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest-res-serverresponse--http2serverresponse-options-).
 
-### `Channel`
+### `Channel<State, SessionState>`
 
 *Extends from [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter)*.
 
@@ -183,7 +193,7 @@ with the same state type may be registered with this channel.
 
 |Property|Type|Default|Description|
 |-|-|-|-|
-|`state`|`object`|`{}`|Initial custom state for the channel.<br><br>Accessed via the [`state`](#channelstate-state) property.<br><br>When using TypeScript, providing the initial state structure allows the type of the `state` property to be automatically inferred.|
+|`state`|`State`|`DefaultChannelState`|Initial custom state for the channel.<br /><br />Accessed via the [`state`](#channelstate-state) property.<br /><br />When using TypeScript, providing the initial state structure allows the type of the `state` property to be automatically inferred.|
 
 #### `Channel#state`: `State`
 
@@ -243,14 +253,14 @@ Note that the broadcasted event will have the same ID across all receiving sessi
 
 |`options.`|Type|Default|Description|
 |-|-|-|-|
-|`eventId`|`string`||Unique ID for the event being broadcast.<br><br>If no event ID is given, the event ID is set to a unique string generated using a [cryptographic pseudorandom number generator](https://nodejs.org/api/crypto.html#cryptorandomuuidoptions).|
-|`filter`|`(session: Session) => boolean`||Filter sessions that should receive the event.<br><br>Called with each session and should return `true` to allow the event to be sent and otherwise return `false` to prevent the session from receiving the event.|
+|`eventId`|`string`||Unique ID for the event being broadcast.<br /><br />If no event ID is given, the event ID is set to a unique string generated using a [cryptographic pseudorandom number generator](https://nodejs.org/api/crypto.html#cryptorandomuuidoptions).|
+|`filter`|`(session: Session) => boolean`||Filter sessions that should receive the event.<br /><br />Called with each session and should return `true` to allow the event to be sent and otherwise return `false` to prevent the session from receiving the event.|
 
-### `createChannel`: `<State>(...args: ConstructorParameters<typeof Channel>) => Channel`
+### `createChannel`: `<State, SessionState>(...args: ConstructorParameters<typeof Channel>) => Channel<State>`
 
-Creates and returns an instance of a [Channel](#channel).
+Creates and returns an instance of a [Channel](#channelstate-sessionstate).
 
-Takes the [same arguments as the Channel class constructor](#new-channel()).
+Takes the [same arguments as the Channel class constructor](#channelstate-sessionstate).
 
 ### `EventBuffer`
 
@@ -262,8 +272,8 @@ An `EventBuffer` allows you to write [raw spec-compliant SSE fields](https://htm
 
 |Property|Type|Default|Description|
 |-|-|-|-|
-|`serializer`|`function`|`JSON.stringify`|Serialize data to a string that can be written over the wire.<br><br>Note that only values written with `.data()` or `.push()` are serialized, as everything else is assumed to already be a string.|
-|`sanitizer`|`function`||Sanitize values so as to not prematurely dispatch events when writing fields whose text inadvertently contains newlines.<br><br>By default, CR, LF and CRLF characters are replaced with a single LF character (`\n`) and then any trailing LF characters are stripped so as to prevent a blank line being written and accidentally dispatching the event before `.dispatch()` is called.|
+|`serializer`|`function`|`JSON.stringify`|Serialize data to a string that can be written over the wire.<br /><br />Note that only values written with `.data()` or `.push()` are serialized, as everything else is assumed to already be a string.|
+|`sanitizer`|`function`||Sanitize values so as to not prematurely dispatch events when writing fields whose text inadvertently contains newlines.<br /><br />By default, CR, LF and CRLF characters are replaced with a single LF character (`\n`) and then any trailing LF characters are stripped so as to prevent a blank line being written and accidentally dispatching the event before `.dispatch()` is called.|
 
 #### `EventBuffer#event`: `(type: string) => this`
 
@@ -309,7 +319,7 @@ If no event ID is given, the event ID is set to a unique string generated using 
 
 Pipe readable stream data as a series of events into the buffer.
 
-This uses the [`push`](#eventbuffer%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-this-%7C-(data%3A-any)-%3D>-this) method under the hood.
+This uses the [`push`](#eventbufferpush-data-unknown-eventname-string-eventid-string--this) method under the hood.
 
 |`options.`|Type|Default|Description|
 |-|-|-|-|
@@ -319,7 +329,7 @@ This uses the [`push`](#eventbuffer%23push%3A-(event%3A-string%2C-data%3A-any)-%
 
 Iterate over an iterable and write yielded values as events into the buffer.
 
-This uses the [`push`](#eventbuffer%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-this-%7C-(data%3A-any)-%3D>-this) method under the hood.
+This uses the [`push`](#eventbufferpush-data-unknown-eventname-string-eventid-string--this) method under the hood.
 
 |`options.`|Type|Default|Description|
 |-|-|-|-|
@@ -337,7 +347,7 @@ Get a copy of the buffer contents.
 
 Creates and returns an instance of an [EventBuffer](#eventbuffer).
 
-Takes the [same arguments as the EventBuffer class constructor](#new-eventbufferoptions--).
+Takes the [same arguments as the EventBuffer class constructor](#new-eventbufferoptions-).
 
 ### `SseError`
 

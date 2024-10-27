@@ -1,0 +1,27 @@
+name: Deploy docs to GitHub Pages
+on:
+    push:
+        branches: [master]
+permissions:
+    contents: read
+    pages: write
+    id-token: write
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: withastro/action@v3
+              env:
+                PUBLIC_ANALYTICS_SCRIPT_URL: ${{ vars.PUBLIC_ANALYTICS_SCRIPT_URL }}
+                PUBLIC_ANALYTICS_WEBSITE_ID: ${{ vars.PUBLIC_ANALYTICS_WEBSITE_ID }}
+              with:
+                path: ./docs
+    deploy:
+      needs: build
+      runs-on: ubuntu-latest
+      environment:
+        name: github-pages
+        url: ${{ steps.deployment.outputs.page_url }}
+      steps:
+        - uses: actions/deploy-pages@v4
