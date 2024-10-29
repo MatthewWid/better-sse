@@ -121,3 +121,33 @@ router.get("/sse", async ({ request, response }) => {
   session.push("Hello world!");
 });
 ```
+
+### [Hapi](https://hapi.dev/)
+
+```typescript title="server.ts"
+import Hapi from "@hapi/hapi";
+import { createSession } from "better-sse";
+
+const init = async () => {
+    const server = Hapi.server({
+        port: 8080,
+        host: "localhost",
+    });
+
+    server.route({
+        method: "GET",
+        path: "/sse",
+        handler: async ({ raw }, { abandon }) => {
+            const session = await createSession(raw.req, raw.res);
+
+            session.push("Hello world!");
+
+            return abandon;
+        },
+    });
+
+    await server.start();
+};
+
+init();
+```
