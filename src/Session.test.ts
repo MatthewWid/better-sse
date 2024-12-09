@@ -1,7 +1,7 @@
-import {vi, describe, it, expect, beforeEach, afterEach} from "vitest";
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import type http from "http";
 import http2 from "http2";
-import type {AddressInfo} from "net";
+import type { AddressInfo } from "net";
 import EventSource from "eventsource";
 import {
 	createHttpServer,
@@ -11,8 +11,8 @@ import {
 	waitForConnect,
 	getBuffer,
 } from "./lib/testUtils";
-import {Session} from "./Session";
-import {EventBuffer} from "./EventBuffer";
+import { Session } from "./Session";
+import { EventBuffer } from "./EventBuffer";
 
 let server: http.Server;
 let url: string;
@@ -172,7 +172,7 @@ describe("connection", () => {
 	it("can set the status code in options", () =>
 		new Promise<void>((done) => {
 			server.on("request", (req, res) => {
-				const session = new Session(req, res, {statusCode: 201});
+				const session = new Session(req, res, { statusCode: 201 });
 
 				session.on("connected", () => {
 					expect(res.statusCode).toBe(201);
@@ -266,12 +266,12 @@ describe("connection", () => {
 });
 
 describe("state", () => {
-	const givenState = {id: "123"};
+	const givenState = { id: "123" };
 
 	it("can set the initial state in options", () =>
 		new Promise<void>((done) => {
 			server.on("request", async (req, res) => {
-				const session = new Session(req, res, {state: givenState});
+				const session = new Session(req, res, { state: givenState });
 
 				await waitForConnect(session);
 
@@ -352,7 +352,7 @@ describe("keep-alive", () => {
 		vi.useFakeTimers();
 	});
 
-	beforeEach(() => {
+	afterEach(() => {
 		vi.restoreAllMocks();
 	});
 
@@ -379,7 +379,7 @@ describe("keep-alive", () => {
 	it("can set the keep-alive interval in options", () =>
 		new Promise<void>((done) => {
 			server.on("request", async (req, res) => {
-				const session = new Session(req, res, {keepAlive: 30000});
+				const session = new Session(req, res, { keepAlive: 30000 });
 
 				// @ts-expect-error spying on private method
 				const keepAlive = vi.spyOn(session, "keepAlive");
@@ -407,7 +407,7 @@ describe("keep-alive", () => {
 	it("can disable the keep-alive mechanism in options", () =>
 		new Promise<void>((done) => {
 			server.on("request", async (req, res) => {
-				const session = new Session(req, res, {keepAlive: null});
+				const session = new Session(req, res, { keepAlive: null });
 
 				// @ts-expect-error spying on private method
 				const keepAlive = vi.spyOn(session, "keepAlive");
@@ -456,7 +456,7 @@ describe("event ID management", () => {
 			});
 
 			eventsource = new EventSource(url, {
-				headers: {"Last-Event-ID": givenLastId},
+				headers: { "Last-Event-ID": givenLastId },
 			});
 		}));
 
@@ -475,7 +475,7 @@ describe("event ID management", () => {
 			});
 
 			eventsource = new EventSource(url, {
-				headers: {"Last-Event-ID": givenLastId},
+				headers: { "Last-Event-ID": givenLastId },
 			});
 		}));
 });
