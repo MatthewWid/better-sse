@@ -1,4 +1,4 @@
-import {vi, describe, it, expect} from "vitest";
+import {describe, expect, it, vi} from "vitest";
 import {EventBuffer} from "./EventBuffer";
 
 describe("serializer", () => {
@@ -21,7 +21,7 @@ describe("sanitizer", () => {
 
 		buffer.data("test-data");
 
-		expect(buffer.read()).toBe(`data:sanitized\n`);
+		expect(buffer.read()).toBe("data:sanitized\n");
 	});
 
 	it("sanitizes all fields with custom-given values", () => {

@@ -1,18 +1,18 @@
-import {vi, describe, it, expect, beforeEach, afterEach} from "vitest";
-import http from "http";
-import http2 from "http2";
-import {AddressInfo} from "net";
+import type http from "node:http";
+import http2 from "node:http2";
+import type {AddressInfo} from "node:net";
 import EventSource from "eventsource";
+import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
+import {EventBuffer} from "./EventBuffer";
+import {Session} from "./Session";
 import {
-	createHttpServer,
-	createHttp2Server,
 	closeServer,
+	createHttp2Server,
+	createHttpServer,
+	getBuffer,
 	getUrl,
 	waitForConnect,
-	getBuffer,
 } from "./lib/testUtils";
-import {Session} from "./Session";
-import {EventBuffer} from "./EventBuffer";
 
 let server: http.Server;
 let url: string;
@@ -352,7 +352,7 @@ describe("keep-alive", () => {
 		vi.useFakeTimers();
 	});
 
-	beforeEach(() => {
+	afterEach(() => {
 		vi.restoreAllMocks();
 	});
 
@@ -709,9 +709,7 @@ describe("polyfill support", () => {
 				done();
 			});
 
-			eventsource = new EventSource(
-				`${url}/?evs_last_event_id=${lastEventId}`
-			);
+			eventsource = new EventSource(`${url}/?evs_last_event_id=${lastEventId}`);
 		}));
 
 	it("writes a preamble comment when indicated to by the 'eventsource-polyfill' URL query", () =>

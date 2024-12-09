@@ -1,6 +1,6 @@
-import path from "path";
-import express from "express";
+import path from "node:path";
 import {createSession} from "better-sse";
+import express from "express";
 import {resource} from "./channels/resource";
 
 const app = express();

@@ -18,9 +18,10 @@
 	"scripts": {
 		"build": "tsup",
 		"test": "vitest",
-		"format": "prettier --write ./src/**/*.ts",
-		"lint": "eslint \"./src/**/*.ts\"",
-		"prepublishOnly": "npm-run-all format test build"
+		"format": "biome check --linter-enabled=false --write",
+		"lint": "biome lint --write",
+		"ci": "biome ci",
+		"prepublishOnly": "npm-run-all ci build"
 	},
 	"main": "./build/index.js",
 	"module": "./build/index.mjs",
@@ -32,27 +33,19 @@
 			"import": "./build/index.mjs"
 		}
 	},
-	"files": [
-		"build",
-		"!build/**/*.map"
-	],
+	"files": ["build", "!build/**/*.map"],
 	"engines": {
 		"node": ">=20",
 		"pnpm": ">=9"
 	},
 	"devDependencies": {
+		"@biomejs/biome": "1.9.4",
 		"@tsconfig/node20": "^20.1.4",
 		"@types/eventsource": "^1.1.15",
 		"@types/express": "^5.0.0",
 		"@types/node": "^22.7.6",
-		"@typescript-eslint/eslint-plugin": "^8.9.0",
-		"@typescript-eslint/parser": "^8.9.0",
-		"eslint": "^8.57.1",
-		"eslint-plugin-tsdoc": "^0.3.0",
 		"eventsource": "^2.0.2",
 		"npm-run-all": "^4.1.5",
-		"prettier": "^3.3.3",
-		"ts-node": "^10.9.2",
 		"tsup": "^8.3.0",
 		"typescript": "^5.6.3",
 		"vitest": "^2.1.3"

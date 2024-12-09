@@ -1,9 +1,9 @@
-import {it, expect, beforeEach, afterEach} from "vitest";
-import http from "http";
+import type http from "node:http";
 import EventSource from "eventsource";
-import {createHttpServer, closeServer, getUrl} from "./lib/testUtils";
+import {afterEach, beforeEach, expect, it} from "vitest";
 import {Session} from "./Session";
 import {createSession} from "./createSession";
+import {closeServer, createHttpServer, getUrl} from "./lib/testUtils";
 
 let server: http.Server;
 let url: string;

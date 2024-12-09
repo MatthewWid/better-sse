@@ -1,12 +1,12 @@
-import {resolve} from "path";
-import {promisify} from "util";
-import {createSecureServer} from "http2";
+import {createSecureServer} from "node:http2";
+import {resolve} from "node:path";
+import {promisify} from "node:util";
+import {createSession} from "better-sse";
 import {
-	CertificateCreationOptions,
-	CertificateCreationResult,
+	type CertificateCreationOptions,
+	type CertificateCreationResult,
 	createCertificate as createCertificateCallback,
 } from "pem";
-import {createSession} from "better-sse";
 
 (async () => {
 	const createCertificate = promisify<

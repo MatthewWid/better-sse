@@ -1,22 +1,22 @@
-import {
-	vi,
-	describe,
-	it,
-	expect,
-	beforeEach,
-	afterEach,
-	SpyInstance,
-} from "vitest";
-import http from "http";
+import type http from "node:http";
 import EventSource from "eventsource";
 import {
-	createHttpServer,
+	type SpyInstance,
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from "vitest";
+import {Channel} from "./Channel";
+import {Session} from "./Session";
+import {
 	closeServer,
+	createHttpServer,
 	getUrl,
 	waitForConnect,
 } from "./lib/testUtils";
-import {Session} from "./Session";
-import {Channel} from "./Channel";
 
 let server: http.Server;
 let url: string;
@@ -350,10 +350,7 @@ describe("broadcasting", () => {
 
 				channel.broadcast(...args);
 
-				expect(callback).toHaveBeenCalledWith(
-					...args,
-					expect.any(String)
-				);
+				expect(callback).toHaveBeenCalledWith(...args, expect.any(String));
 
 				done();
 			});
@@ -392,10 +389,7 @@ describe("broadcasting", () => {
 		new Promise<void>((done) => {
 			type AuthSessionState = {isTrusted: boolean};
 
-			const channel = new Channel<
-				Record<string, unknown>,
-				AuthSessionState
-			>();
+			const channel = new Channel<Record<string, unknown>, AuthSessionState>();
 
 			const sessionPushMocks: SpyInstance[] = [];
 

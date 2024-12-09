@@ -1,4 +1,4 @@
-import {it, expect} from "vitest";
+import {expect, it} from "vitest";
 import {EventBuffer} from "./EventBuffer";
 import {createEventBuffer} from "./createEventBuffer";
 

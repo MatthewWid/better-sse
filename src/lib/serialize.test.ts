@@ -1,4 +1,4 @@
-import {it, expect} from "vitest";
+import {expect, it} from "vitest";
 import {serialize} from "./serialize";
 
 it("JSON-stringifies input", () => {

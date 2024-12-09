@@ -1,5 +1,5 @@
 import {Suite as BenchmarkSuite} from "benchmark";
-import express, {Express} from "express";
+import express, {type Express} from "express";
 
 /**
  * Wrap the Benchmark.js Suite with a much nicer and more
@@ -8,7 +8,10 @@ import express, {Express} from "express";
 export class Suite extends BenchmarkSuite {
 	static port = 8000;
 
-	constructor(name: string, private createBenchmarks: () => Promise<void>) {
+	constructor(
+		name: string,
+		private createBenchmarks: () => Promise<void>
+	) {
 		super(name, {async: true});
 
 		this.on("start", () => {

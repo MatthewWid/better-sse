@@ -1,5 +1,5 @@
-import osu, {NetStatMetrics} from "node-os-utils";
 import {createChannel} from "better-sse";
+import osu, {type NetStatMetrics} from "node-os-utils";
 
 const resource = createChannel();
 
@@ -11,10 +11,13 @@ const broadcastSystemStats = async () => {
 	const {totalMemMb, freeMemMb} = await osu.mem.info();
 	const memoryUsage = (freeMemMb / totalMemMb) * 100;
 
-	resource.broadcast({
-		cpuUsage,
-		memoryUsage,
-	}, "system-stats");
+	resource.broadcast(
+		{
+			cpuUsage,
+			memoryUsage,
+		},
+		"system-stats"
+	);
 
 	setTimeout(broadcastSystemStats, interval);
 };
@@ -27,10 +30,13 @@ const broadcastNetStats = async () => {
 		total: {inputMb, outputMb},
 	} = netStats as NetStatMetrics;
 
-	resource.broadcast({
-		inputMb,
-		outputMb,
-	}, "net-stats");
+	resource.broadcast(
+		{
+			inputMb,
+			outputMb,
+		},
+		"net-stats"
+	);
 
 	setTimeout(broadcastNetStats, interval);
 };

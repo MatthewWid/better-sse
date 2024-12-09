@@ -1,4 +1,4 @@
-import {randomUUID, randomBytes} from "crypto";
+import {randomBytes, randomUUID} from "node:crypto";
 
 let generateId: () => string;
 

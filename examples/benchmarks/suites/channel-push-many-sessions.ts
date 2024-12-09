@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
-import {createSession, createChannel} from "better-sse";
-// @ts-ignore
-import SseChannel from "sse-channel";
+import {createChannel, createSession} from "better-sse";
 // @ts-ignore
 import EasySse from "easy-server-sent-events";
+// @ts-ignore
+import SseChannel from "sse-channel";
 import {createClientPool} from "../lib/createClientPool";
 import {Suite} from "./Suite";
 
