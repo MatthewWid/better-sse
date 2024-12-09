@@ -69,58 +69,58 @@ Use [sessions](https://matthewwid.github.io/better-sse/reference/api/#sessionsta
 
 ```typescript
 // Server
-import { createSession } from "better-sse";
+import { createSession } from "better-sse"
 
 app.get("/sse", async (req, res) => {
-	const session = await createSession(req, res);
-
-	session.push("Hello world!");
-});
+	const session = await createSession(req, res)
+	session.push("Hello world!", "message")
+})
 ```
 
 ```typescript
 // Client
-const sse = new EventSource("/sse");
+const eventSource = new EventSource("/sse")
 
-sse.addEventListener("message", ({ data }) => {
-	console.log(JSON.parse(data));
-});
+eventSource.addEventListener("message", ({ data })) => {
+	const contents = JSON.parse(data)
+	console.log(contents) // Hello world!
+})
 ```
 
 Use [channels](https://matthewwid.github.io/better-sse/reference/api/#channelstate-sessionstate) to send events to many clients at once:
 
 ```typescript
-import { createSession, createChannel } from "better-sse";
+import { createSession, createChannel } from "better-sse"
 
-const channel = createChannel();
+const channel = createChannel()
 
 app.get("/sse", async (req, res) => {
-	const session = await createSession(req, res);
+	const session = await createSession(req, res)
 
-	channel.register(session);
+	channel.register(session)
 
-	channel.broadcast("A user has joined.", "join-notification");
-});
+	channel.broadcast("A user has joined.", "join-notification")
+})
 ```
 
 Loop over sync and async [iterables](https://matthewwid.github.io/better-sse/reference/api/#sessioniterate-iterable-iterable--asynciterable-options-object--promisevoid) and send each value as an event:
 
 ```typescript
-const session = await createSession(req, res);
+const session = await createSession(req, res)
 
-const list = [1, 2, 3];
+const list = [1, 2, 3]
 
-await session.iterate(list);
+await session.iterate(list)
 ```
 
 Pipe [readable stream](https://matthewwid.github.io/better-sse/reference/api/#sessionstream-stream-readable-options-object--promiseboolean) data to the client as a stream of events:
 
 ```typescript
-const session = await createSession(req, res);
+const session = await createSession(req, res)
 
-const stream = Readable.from([1, 2, 3]);
+const stream = Readable.from([1, 2, 3])
 
-await session.stream(stream);
+await session.stream(stream)
 ```
 
 ---
