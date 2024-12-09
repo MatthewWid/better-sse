@@ -1,5 +1,5 @@
 import {it, expect, beforeEach, afterEach} from "vitest";
-import type http from "http";
+import type http from "node:http";
 import EventSource from "eventsource";
 import {createHttpServer, closeServer, getUrl} from "./lib/testUtils";
 import {Session} from "./Session";

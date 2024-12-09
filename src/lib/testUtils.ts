@@ -1,7 +1,7 @@
-import http from "http";
-import http2 from "http2";
-import type net from "net";
-import type {AddressInfo} from "net";
+import http from "node:http";
+import http2 from "node:http2";
+import type net from "node:net";
+import type {AddressInfo} from "node:net";
 import type {Session} from "../Session";
 import type {EventBuffer} from "../EventBuffer";
 

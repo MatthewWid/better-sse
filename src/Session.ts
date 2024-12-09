@@ -2,8 +2,8 @@ import {
 	type IncomingMessage as Http1ServerRequest,
 	ServerResponse as Http1ServerResponse,
 	type OutgoingHttpHeaders,
-} from "http";
-import type {Http2ServerRequest, Http2ServerResponse} from "http2";
+} from "node:http";
+import type {Http2ServerRequest, Http2ServerResponse} from "node:http2";
 import {EventBuffer, type EventBufferOptions} from "./EventBuffer";
 import {TypedEmitter, type EventMap} from "./lib/TypedEmitter";
 import {generateId} from "./lib/generateId";

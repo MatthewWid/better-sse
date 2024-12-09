@@ -1,6 +1,6 @@
-import {resolve} from "path";
-import {promisify} from "util";
-import {createSecureServer} from "http2";
+import {resolve} from "node:path";
+import {promisify} from "node:util";
+import {createSecureServer} from "node:http2";
 import {
 	type CertificateCreationOptions,
 	type CertificateCreationResult,

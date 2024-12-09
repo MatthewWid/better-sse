@@ -25,6 +25,8 @@ export const createClientPool = async ({
 	await Promise.all(listeners);
 
 	return () => {
-		sources.forEach((eventsource) => eventsource.close());
+		for (const eventsource of sources) {
+			eventsource.close();
+		}
 	};
 };

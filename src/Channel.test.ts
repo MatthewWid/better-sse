@@ -7,7 +7,7 @@ import {
 	afterEach,
 	type SpyInstance,
 } from "vitest";
-import type http from "http";
+import type http from "node:http";
 import EventSource from "eventsource";
 import {
 	createHttpServer,

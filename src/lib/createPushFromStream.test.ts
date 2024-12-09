@@ -1,4 +1,4 @@
-import {Readable} from "stream";
+import {Readable} from "node:stream";
 import {vi, it, expect, beforeEach, type Mock} from "vitest";
 import {createPushFromStream} from "./createPushFromStream";
 

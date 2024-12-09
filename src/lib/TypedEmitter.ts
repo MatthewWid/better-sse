@@ -1,7 +1,7 @@
-import {EventEmitter} from "events";
+import {EventEmitter} from "node:events";
 
 export interface EventMap {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	// biome-ignore lint/suspicious/noExplicitAny: must be `any` to allow coercion, `unknown` does not work
 	[name: string | symbol]: (...args: any[]) => void;
 }
 

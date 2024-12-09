@@ -21,7 +21,7 @@ describe("sanitizer", () => {
 
 		buffer.data("test-data");
 
-		expect(buffer.read()).toBe(`data:sanitized\n`);
+		expect(buffer.read()).toBe("data:sanitized\n");
 	});
 
 	it("sanitizes all fields with custom-given values", () => {
