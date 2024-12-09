@@ -1,18 +1,18 @@
-import {vi, describe, it, expect, beforeEach, afterEach} from "vitest";
 import type http from "node:http";
 import http2 from "node:http2";
 import type {AddressInfo} from "node:net";
 import EventSource from "eventsource";
+import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
+import {EventBuffer} from "./EventBuffer";
+import {Session} from "./Session";
 import {
-	createHttpServer,
-	createHttp2Server,
 	closeServer,
+	createHttp2Server,
+	createHttpServer,
+	getBuffer,
 	getUrl,
 	waitForConnect,
-	getBuffer,
 } from "./lib/testUtils";
-import {Session} from "./Session";
-import {EventBuffer} from "./EventBuffer";
 
 let server: http.Server;
 let url: string;

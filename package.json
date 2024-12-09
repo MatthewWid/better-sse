@@ -18,7 +18,7 @@
 	"scripts": {
 		"build": "tsup",
 		"test": "vitest",
-		"format": "biome format --write",
+		"format": "biome check --linter-enabled=false --write",
 		"lint": "biome lint --write",
 		"ci": "biome ci",
 		"prepublishOnly": "npm-run-all ci build"

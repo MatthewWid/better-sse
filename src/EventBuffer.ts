@@ -1,8 +1,8 @@
-import {serialize, type SerializerFunction} from "./lib/serialize";
-import {sanitize, type SanitizerFunction} from "./lib/sanitize";
-import {generateId} from "./lib/generateId";
-import {createPushFromStream} from "./lib/createPushFromStream";
 import {createPushFromIterable} from "./lib/createPushFromIterable";
+import {createPushFromStream} from "./lib/createPushFromStream";
+import {generateId} from "./lib/generateId";
+import {type SanitizerFunction, sanitize} from "./lib/sanitize";
+import {type SerializerFunction, serialize} from "./lib/serialize";
 
 interface EventBufferOptions {
 	/**

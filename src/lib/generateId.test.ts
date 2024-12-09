@@ -1,4 +1,4 @@
-import {it, expect} from "vitest";
+import {expect, it} from "vitest";
 import {generateId} from "./generateId";
 
 it("returns a string", () => {

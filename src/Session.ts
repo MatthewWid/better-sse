@@ -5,13 +5,13 @@ import {
 } from "node:http";
 import type {Http2ServerRequest, Http2ServerResponse} from "node:http2";
 import {EventBuffer, type EventBufferOptions} from "./EventBuffer";
-import {TypedEmitter, type EventMap} from "./lib/TypedEmitter";
-import {generateId} from "./lib/generateId";
-import {createPushFromStream} from "./lib/createPushFromStream";
-import {createPushFromIterable} from "./lib/createPushFromIterable";
-import {serialize, type SerializerFunction} from "./lib/serialize";
-import {sanitize, type SanitizerFunction} from "./lib/sanitize";
 import {SseError} from "./lib/SseError";
+import {type EventMap, TypedEmitter} from "./lib/TypedEmitter";
+import {createPushFromIterable} from "./lib/createPushFromIterable";
+import {createPushFromStream} from "./lib/createPushFromStream";
+import {generateId} from "./lib/generateId";
+import {type SanitizerFunction, sanitize} from "./lib/sanitize";
+import {type SerializerFunction, serialize} from "./lib/serialize";
 
 interface SessionOptions<State = DefaultSessionState>
 	extends Pick<EventBufferOptions, "serializer" | "sanitizer"> {

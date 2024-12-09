@@ -1,4 +1,4 @@
-import {Session, type DefaultSessionState} from "./Session";
+import {type DefaultSessionState, Session} from "./Session";
 
 /**
  * Create a new session and return the session instance once it has connected.

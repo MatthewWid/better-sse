@@ -1,22 +1,22 @@
-import {
-	vi,
-	describe,
-	it,
-	expect,
-	beforeEach,
-	afterEach,
-	type SpyInstance,
-} from "vitest";
 import type http from "node:http";
 import EventSource from "eventsource";
 import {
-	createHttpServer,
+	type SpyInstance,
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from "vitest";
+import {Channel} from "./Channel";
+import {Session} from "./Session";
+import {
 	closeServer,
+	createHttpServer,
 	getUrl,
 	waitForConnect,
 } from "./lib/testUtils";
-import {Session} from "./Session";
-import {Channel} from "./Channel";
 
 let server: http.Server;
 let url: string;
