@@ -141,29 +141,37 @@ For code or documentation changes [submit a pull request on GitHub](https://gith
 
 ## Local Development
 
-Install Node:
+Install [Node](https://nodejs.org/en) (with [n](https://github.com/tj/n)):
 
 ```bash
 curl -L https://git.io/n-install | bash
 n auto
 ```
 
-Install pnpm:
+Install dependencies (with [pnpm](https://pnpm.io/)):
 
 ```bash
 npm i -g pnpm
-```
-
-Install dependencies:
-
-```bash
 pnpm i
 ```
 
-Run tests:
+Run tests (with [Vitest](https://vitest.dev/)):
 
 ```bash
 pnpm t
+```
+
+Lint and format (with [Biome](https://biomejs.dev/)):
+
+```bash
+pnpm lint
+pnpm format
+```
+
+Bundle for distribution (with [tsup](https://tsup.egoist.dev/)):
+
+```bash
+pnpm build
 ```
 
 # License
