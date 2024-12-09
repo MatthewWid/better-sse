@@ -2,8 +2,8 @@ import {resolve} from "path";
 import {promisify} from "util";
 import {createSecureServer} from "http2";
 import {
-	CertificateCreationOptions,
-	CertificateCreationResult,
+	type CertificateCreationOptions,
+	type CertificateCreationResult,
 	createCertificate as createCertificateCallback,
 } from "pem";
 import {createSession} from "better-sse";

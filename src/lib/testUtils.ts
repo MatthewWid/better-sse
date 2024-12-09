@@ -1,8 +1,9 @@
 import http from "http";
 import http2 from "http2";
-import net, {AddressInfo} from "net";
-import {Session} from "../Session";
-import {EventBuffer} from "../EventBuffer";
+import type net from "net";
+import type {AddressInfo} from "net";
+import type {Session} from "../Session";
+import type {EventBuffer} from "../EventBuffer";
 
 const createHttpServer = (): Promise<http.Server> =>
 	new Promise<http.Server>((resolve, reject) => {

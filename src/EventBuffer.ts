@@ -1,5 +1,5 @@
-import {serialize, SerializerFunction} from "./lib/serialize";
-import {sanitize, SanitizerFunction} from "./lib/sanitize";
+import {serialize, type SerializerFunction} from "./lib/serialize";
+import {sanitize, type SanitizerFunction} from "./lib/sanitize";
 import {generateId} from "./lib/generateId";
 import {createPushFromStream} from "./lib/createPushFromStream";
 import {createPushFromIterable} from "./lib/createPushFromIterable";

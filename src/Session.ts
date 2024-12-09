@@ -1,16 +1,16 @@
 import {
-	IncomingMessage as Http1ServerRequest,
+	type IncomingMessage as Http1ServerRequest,
 	ServerResponse as Http1ServerResponse,
-	OutgoingHttpHeaders,
+	type OutgoingHttpHeaders,
 } from "http";
-import {Http2ServerRequest, Http2ServerResponse} from "http2";
-import {EventBuffer, EventBufferOptions} from "./EventBuffer";
-import {TypedEmitter, EventMap} from "./lib/TypedEmitter";
+import type {Http2ServerRequest, Http2ServerResponse} from "http2";
+import {EventBuffer, type EventBufferOptions} from "./EventBuffer";
+import {TypedEmitter, type EventMap} from "./lib/TypedEmitter";
 import {generateId} from "./lib/generateId";
 import {createPushFromStream} from "./lib/createPushFromStream";
 import {createPushFromIterable} from "./lib/createPushFromIterable";
-import {serialize, SerializerFunction} from "./lib/serialize";
-import {sanitize, SanitizerFunction} from "./lib/sanitize";
+import {serialize, type SerializerFunction} from "./lib/serialize";
+import {sanitize, type SanitizerFunction} from "./lib/sanitize";
 import {SseError} from "./lib/SseError";
 
 interface SessionOptions<State = DefaultSessionState>
@@ -173,11 +173,10 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 
 		this.trustClientEventId = options.trustClientEventId ?? true;
 
-		this.initialRetry =
-			options.retry === null ? null : options.retry ?? 2000;
+		this.initialRetry = options.retry === null ? null : (options.retry ?? 2000);
 
 		this.keepAliveInterval =
-			options.keepAlive === null ? null : options.keepAlive ?? 10000;
+			options.keepAlive === null ? null : (options.keepAlive ?? 10000);
 
 		this.statusCode = options.statusCode ?? 200;
 
@@ -243,10 +242,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 		this.flush();
 
 		if (this.keepAliveInterval !== null) {
-			this.keepAliveTimer = setInterval(
-				this.keepAlive,
-				this.keepAliveInterval
-			);
+			this.keepAliveTimer = setInterval(this.keepAlive, this.keepAliveInterval);
 		}
 
 		this.isConnected = true;

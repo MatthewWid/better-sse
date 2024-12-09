@@ -5,9 +5,9 @@ import {
 	expect,
 	beforeEach,
 	afterEach,
-	SpyInstance,
+	type SpyInstance,
 } from "vitest";
-import http from "http";
+import type http from "http";
 import EventSource from "eventsource";
 import {
 	createHttpServer,
@@ -350,10 +350,7 @@ describe("broadcasting", () => {
 
 				channel.broadcast(...args);
 
-				expect(callback).toHaveBeenCalledWith(
-					...args,
-					expect.any(String)
-				);
+				expect(callback).toHaveBeenCalledWith(...args, expect.any(String));
 
 				done();
 			});
@@ -392,10 +389,7 @@ describe("broadcasting", () => {
 		new Promise<void>((done) => {
 			type AuthSessionState = {isTrusted: boolean};
 
-			const channel = new Channel<
-				Record<string, unknown>,
-				AuthSessionState
-			>();
+			const channel = new Channel<Record<string, unknown>, AuthSessionState>();
 
 			const sessionPushMocks: SpyInstance[] = [];
 

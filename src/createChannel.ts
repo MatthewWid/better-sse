@@ -1,5 +1,5 @@
-import {Channel, DefaultChannelState} from "./Channel";
-import {DefaultSessionState} from "./Session";
+import {Channel, type DefaultChannelState} from "./Channel";
+import type {DefaultSessionState} from "./Session";
 
 const createChannel = <
 	State = DefaultChannelState,

@@ -1,6 +1,4 @@
-interface SanitizerFunction {
-	(text: string): string;
-}
+type SanitizerFunction = (text: string) => string;
 
 const newlineVariantsRegex = /(\r\n|\r|\n)/g;
 

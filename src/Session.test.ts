@@ -1,7 +1,7 @@
 import {vi, describe, it, expect, beforeEach, afterEach} from "vitest";
-import http from "http";
+import type http from "http";
 import http2 from "http2";
-import {AddressInfo} from "net";
+import type {AddressInfo} from "net";
 import EventSource from "eventsource";
 import {
 	createHttpServer,
@@ -709,9 +709,7 @@ describe("polyfill support", () => {
 				done();
 			});
 
-			eventsource = new EventSource(
-				`${url}/?evs_last_event_id=${lastEventId}`
-			);
+			eventsource = new EventSource(`${url}/?evs_last_event_id=${lastEventId}`);
 		}));
 
 	it("writes a preamble comment when indicated to by the 'eventsource-polyfill' URL query", () =>

@@ -1,6 +1,6 @@
 import path from "path";
 import express from "express";
-import {createSession, Session} from "better-sse";
+import {createSession, type Session} from "better-sse";
 
 const app = express();
 

@@ -1,5 +1,5 @@
-import {Session, DefaultSessionState} from "./Session";
-import {TypedEmitter, EventMap} from "./lib/TypedEmitter";
+import type {Session, DefaultSessionState} from "./Session";
+import {TypedEmitter, type EventMap} from "./lib/TypedEmitter";
 import {generateId} from "./lib/generateId";
 import {SseError} from "./lib/SseError";
 
@@ -47,7 +47,7 @@ interface DefaultChannelState {
  */
 class Channel<
 	State = DefaultChannelState,
-	SessionState = DefaultSessionState
+	SessionState = DefaultSessionState,
 > extends TypedEmitter<ChannelEvents<SessionState>> {
 	/**
 	 * Custom state for this channel.
