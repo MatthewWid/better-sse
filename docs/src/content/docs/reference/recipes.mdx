@@ -94,6 +94,26 @@ export class SseController {
 }
 ```
 
+### [Next.js](https://nextjs.org/)
+
+Currently only [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) under the [Pages Router](https://nextjs.org/docs/pages) is supported.
+
+```typescript title="pages/api/sse.ts"
+import { NextApiRequest, NextApiResponse } from "next";
+import { createSession } from "better-sse";
+
+export default async function handler(
+        req: NextApiRequest,
+        res: NextApiResponse
+) {
+        const session = await createSession(req, res);
+
+        session.push("Hello, world!");
+}
+```
+
+[Issue #79](https://github.com/MatthewWid/better-sse/issues/79) tracks support for the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) objects which will enable compatibility with [Route Handlers](https://nextjs.org/docs/app/building-your-application/routing/route-handlers) under the [App Router](https://nextjs.org/docs/app).
+
 ### [Fastify](https://fastify.dev/)
 
 ```typescript title="server.ts"
