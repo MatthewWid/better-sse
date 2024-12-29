@@ -9,9 +9,9 @@
 	},
 	"dependencies": {
 		"benchmark": "^2.1.4",
-		"better-sse": "^0.13.0",
+		"better-sse": "^0.14.1",
 		"easy-server-sent-events": "^1.0.14",
-		"eventsource": "^2.0.2",
+		"eventsource": "^3.0.2",
 		"express": "^4.21.1",
 		"node-os-utils": "^1.3.7",
 		"pem": "^1.14.8",
