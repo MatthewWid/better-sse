@@ -1,7 +1,7 @@
-import {EventSource} from "eventsource";
+import { EventSource } from "eventsource";
 
-const createEventSource = (port: number) => {
-	const url = `http://localhost:${port}`;
+const createEventSource = (port: number, path = "/sse") => {
+	const url = `http://localhost:${port}${path}`;
 	const eventSource = new EventSource(url);
 
 	return new Promise<EventSource>((resolve, reject) => {
@@ -10,4 +10,4 @@ const createEventSource = (port: number) => {
 	});
 };
 
-export {createEventSource};
+export { createEventSource };
