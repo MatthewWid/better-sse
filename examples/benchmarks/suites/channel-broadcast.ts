@@ -8,7 +8,7 @@ import SseChannel from "sse-channel";
 import {createClientPool} from "../lib/createClientPool";
 import {Suite} from "./Suite";
 
-export const suite = new Suite("Push events with channels", async () => {
+export const suite = new Suite("Broadcast events with channels", async () => {
 	const numberOfClients = 10;
 
 	await suite.addBenchmark("better-sse", async (server, port, listen) => {
@@ -26,7 +26,7 @@ export const suite = new Suite("Push events with channels", async () => {
 			run: () => {
 				channel.broadcast(++count);
 			},
-			teardown: await createClientPool({port, numberOfClients}),
+			teardown: await createClientPool(port, numberOfClients),
 		};
 	});
 
@@ -51,7 +51,7 @@ export const suite = new Suite("Push events with channels", async () => {
 					id: count,
 				});
 			},
-			teardown: await createClientPool({port, numberOfClients}),
+			teardown: await createClientPool(port, numberOfClients),
 		};
 	});
 
@@ -73,7 +73,7 @@ export const suite = new Suite("Push events with channels", async () => {
 				run: () => {
 					send("all", "message", ++count);
 				},
-				teardown: await createClientPool({port, numberOfClients}),
+				teardown: await createClientPool(port, numberOfClients),
 			};
 		}
 	);

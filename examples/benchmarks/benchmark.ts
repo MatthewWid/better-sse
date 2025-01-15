@@ -1,6 +1,6 @@
-import {suite as suiteChannelPushManySessions} from "./suites/channel-push-many-sessions";
+import { suite as suiteChannelBroadcast } from "./suites/channel-broadcast";
 
-Promise.all([suiteChannelPushManySessions.setup()]).then((suites) => {
+Promise.all([suiteChannelBroadcast.setup()]).then((suites) => {
 	for (const suite of suites) {
 		suite.run();
 	}
