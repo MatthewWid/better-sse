@@ -1,28 +1,19 @@
-import EventSource from "eventsource";
+import type {EventSource} from "eventsource";
+import {createEventSource} from "./createEventSource";
 
-export interface ClientPoolOptions {
-	port: number;
-	numberOfClients?: number;
-}
+export type CleanupClientPool = () => void;
 
-export const createClientPool = async ({
-	port,
-	numberOfClients = 1,
-}: ClientPoolOptions): Promise<() => void> => {
-	const sources = new Set<EventSource>();
-	const listeners = new Set<Promise<unknown>>();
+export const createClientPool = async (
+	port: number,
+	numberOfClients = 1
+): Promise<CleanupClientPool> => {
+	const listeners = new Set<Promise<EventSource>>();
 
 	for (let index = 0; index < numberOfClients; ++index) {
-		const eventsource = new EventSource(`http://localhost:${port}`);
-		const listener = new Promise((resolve) =>
-			eventsource.addEventListener("open", resolve)
-		);
-
-		sources.add(eventsource);
-		listeners.add(listener);
+		listeners.add(createEventSource(port));
 	}
 
-	await Promise.all(listeners);
+	const sources = await Promise.all(listeners);
 
 	return () => {
 		for (const eventsource of sources) {
