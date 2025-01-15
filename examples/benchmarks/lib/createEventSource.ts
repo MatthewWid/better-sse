@@ -1,4 +1,4 @@
-import { EventSource } from "eventsource";
+import {EventSource} from "eventsource";
 
 const createEventSource = (port: number, path = "/sse") => {
 	const url = `http://localhost:${port}${path}`;
@@ -10,4 +10,4 @@ const createEventSource = (port: number, path = "/sse") => {
 	});
 };
 
-export { createEventSource };
+export {createEventSource};

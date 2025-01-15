@@ -1,19 +1,15 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-
-import { createChannel, createSession } from "better-sse";
+import {createChannel, createSession} from "better-sse";
 // @ts-ignore
 import EasySse from "easy-server-sent-events";
 // @ts-ignore
 import SseChannel from "sse-channel";
-import { createClientPool } from "../lib/createClientPool";
-import { Suite } from "./Suite";
+import {createClientPool} from "../lib/createClientPool";
+import {Suite} from "./Suite";
 
 export const suite = new Suite("Broadcast events with channels", async () => {
 	const numberOfClients = 10;
 
 	await suite.addBenchmark("better-sse", async (server, port, listen) => {
-		let count = 0;
-
 		const channel = createChannel();
 
 		server.get("/sse", async (req, res) => {
@@ -21,6 +17,8 @@ export const suite = new Suite("Broadcast events with channels", async () => {
 		});
 
 		await listen();
+
+		let count = 0;
 
 		return {
 			run: () => {
@@ -33,7 +31,7 @@ export const suite = new Suite("Broadcast events with channels", async () => {
 	await suite.addBenchmark("sse-channel", async (server, port, listen) => {
 		let count = 0;
 
-		const channel = new SseChannel({ jsonEncode: true });
+		const channel = new SseChannel({jsonEncode: true});
 
 		server.get("/sse", (req, res) => {
 			channel.addClient(req, res);
@@ -58,9 +56,7 @@ export const suite = new Suite("Broadcast events with channels", async () => {
 	await suite.addBenchmark(
 		"easy-server-sent-events",
 		async (server, port, listen) => {
-			let count = 0;
-
-			const { SSE, send } = EasySse({ endpoint: "/sse" });
+			const {SSE, send} = EasySse({endpoint: "/sse"});
 
 			server.get("/sse", (req, res, next) => {
 				SSE(req, res, next);
@@ -68,6 +64,8 @@ export const suite = new Suite("Broadcast events with channels", async () => {
 			});
 
 			await listen();
+
+			let count = 0;
 
 			return {
 				run: () => {
