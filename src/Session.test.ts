@@ -5,6 +5,7 @@ import EventSource from "eventsource";
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {EventBuffer} from "./EventBuffer";
 import {Session} from "./Session";
+import {DEFAULT_RESPONSE_CODE, DEFAULT_RESPONSE_HEADERS} from "./lib/constants";
 import {
 	closeServer,
 	createHttp2Server,
@@ -35,15 +36,6 @@ afterEach(async () => {
 });
 
 describe("connection", () => {
-	const defaultHeaders: http.OutgoingHttpHeaders = {
-		"Content-Type": "text/event-stream",
-		"Cache-Control":
-			"private, no-cache, no-store, no-transform, must-revalidate, max-age=0",
-		Connection: "keep-alive",
-		Pragma: "no-cache",
-		"X-Accel-Buffering": "no",
-	};
-
 	it("constructs without errors when giving no options", () =>
 		new Promise<void>((done) => {
 			server.on("request", (req, res) => {
@@ -152,7 +144,7 @@ describe("connection", () => {
 			eventsource = new EventSource(url);
 		}));
 
-	it("returns the correct response status code and headers", () =>
+	it("returns the correct response status code and headers by default", () =>
 		new Promise<void>((done) => {
 			server.on("request", (req, res) => {
 				const writeHead = vi.spyOn(res, "writeHead");
@@ -160,7 +152,16 @@ describe("connection", () => {
 				const session = new Session(req, res);
 
 				session.on("connected", () => {
-					expect(writeHead).toHaveBeenCalledWith(200, defaultHeaders);
+					const lowercasedHeaders: Record<string, string | string[]> = {};
+
+					for (const [key, value] of Object.entries(DEFAULT_RESPONSE_HEADERS)) {
+						lowercasedHeaders[key.toLowerCase()] = value;
+					}
+
+					expect(writeHead).toHaveBeenCalledWith(
+						DEFAULT_RESPONSE_CODE,
+						lowercasedHeaders
+					);
 
 					done();
 				});
@@ -237,7 +238,7 @@ describe("connection", () => {
 			eventsource = new EventSource(url);
 		}));
 
-	it("can overwrite the default headers", () =>
+	it("can overwrite the default headers with a single value", () =>
 		new Promise<void>((done) => {
 			const additionalHeaders = {
 				"X-Accel-Buffering": "yes",
@@ -254,7 +255,36 @@ describe("connection", () => {
 					const sentHeaders = writeHead.mock.calls[0][1];
 
 					expect(sentHeaders).toMatchObject({
-						"X-Accel-Buffering": "yes",
+						"x-accel-buffering": "yes",
+					});
+
+					done();
+				});
+			});
+
+			eventsource = new EventSource(url);
+		}));
+
+	it("can set and overwrite headers with an array of values", () =>
+		new Promise<void>((done) => {
+			const additionalHeaders = {
+				"Cache-Control": ["private", "must-understand"],
+				"X-Extra": ["123", "456"],
+			};
+
+			server.on("request", (req, res) => {
+				const writeHead = vi.spyOn(res, "writeHead");
+
+				const session = new Session(req, res, {
+					headers: additionalHeaders,
+				});
+
+				session.on("connected", () => {
+					const sentHeaders = writeHead.mock.calls[0][1];
+
+					expect(sentHeaders).toMatchObject({
+						"cache-control": "private, must-understand",
+						"x-extra": "123, 456",
 					});
 
 					done();
@@ -599,18 +629,20 @@ describe("batching", () => {
 
 				await waitForConnect(session);
 
-				const write = vi.spyOn(res, "write");
-
 				await session.batch((buffer) => {
 					buffer.push(data);
 				});
-
-				expect(write.mock.calls[0][0]).toContain(data);
-
-				done();
 			});
 
 			eventsource = new EventSource(url);
+
+			eventsource.addEventListener("message", (event) => {
+				const contents = JSON.parse(event.data);
+
+				expect(contents).toBe(data);
+
+				done();
+			});
 		}));
 
 	it("given an asynchronous callback, creates a new event buffer and writes its contents to the response after the returned promise has resolved", () =>
@@ -620,18 +652,20 @@ describe("batching", () => {
 
 				await waitForConnect(session);
 
-				const write = vi.spyOn(res, "write");
-
 				await session.batch(async (buffer) => {
 					buffer.push(data);
 				});
-
-				expect(write.mock.calls[0][0]).toContain(data);
-
-				done();
 			});
 
 			eventsource = new EventSource(url);
+
+			eventsource.addEventListener("message", (event) => {
+				const contents = JSON.parse(event.data);
+
+				expect(contents).toBe(data);
+
+				done();
+			});
 		}));
 
 	it("given an event buffer, writes its contents to the response", () =>
@@ -641,20 +675,22 @@ describe("batching", () => {
 
 				await waitForConnect(session);
 
-				const write = vi.spyOn(res, "write");
-
 				const buffer = new EventBuffer();
 
 				buffer.push(data);
 
 				await session.batch(buffer);
-
-				expect(write.mock.calls[0][0]).toContain(data);
-
-				done();
 			});
 
 			eventsource = new EventSource(url);
+
+			eventsource.addEventListener("message", (event) => {
+				const contents = JSON.parse(event.data);
+
+				expect(contents).toBe(data);
+
+				done();
+			});
 		}));
 });
 

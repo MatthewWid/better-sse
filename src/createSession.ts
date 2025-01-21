@@ -9,9 +9,13 @@ const createSession = <State = DefaultSessionState>(
 	new Promise((resolve) => {
 		const session = new Session<State>(...args);
 
-		session.once("connected", () => {
+		if (args[0] instanceof Request) {
 			resolve(session);
-		});
+		} else {
+			session.once("connected", () => {
+				resolve(session);
+			});
+		}
 	});
 
 export {createSession};

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+* Added support for the `Session` constructor to be able to take in a [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) (and optionally a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response)) object from the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
+* Added the `Session#getRequest` and `Session#getResponse` methods to retrieve the request and response objects, respectively.
+
+### Changed
+
+* Update type of `Session` constructor `options#headers` argument to accept any `string->(string | string[] | undefined)` type rather than only `OutgoingHttpHeaders`.
+* Update the `Session#push` to return a [`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that resolves once the event is pushed and fully flushed to the client.
+
 ## 0.14.1 - 2024-10-27
 
 ### Changed
