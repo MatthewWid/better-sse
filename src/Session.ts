@@ -134,17 +134,6 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 
 	private buffer: EventBuffer;
 
-	/**
-	 * Raw HTTP request.
-	 */
-	private req: Http1ServerRequest = new IncomingMessage(new Socket());
-
-	/**
-	 * Raw HTTP response that is the minimal interface needed and forms the
-	 * intersection between the HTTP/1.1 and HTTP/2 server response interfaces.
-	 */
-	private res: Http1ServerResponse = new ServerResponse(this.req);
-
 	private request: Request;
 
 	private response: Response;
@@ -189,6 +178,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 		this.writer = writable.getWriter();
 
 		this.request = req.clone();
+
 		this.response = new Response(readable, {
 			status: options.statusCode ?? 200,
 			headers: {
@@ -218,8 +208,6 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 		}
 
 		this.request.signal.addEventListener("abort", this.onDisconnected);
-
-		setImmediate(this.initialize);
 	}
 
 	private initialize = async () => {
@@ -237,7 +225,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 			this.buffer.retry(this.initialRetry).dispatch();
 		}
 
-		this.flush();
+		await this.flush();
 
 		if (this.keepAliveInterval !== null) {
 			// this.keepAliveTimer = setInterval(this.keepAlive, this.keepAliveInterval);
@@ -271,7 +259,11 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 
 	getRequest = () => this.request;
 
-	getResponse = () => this.response;
+	getResponse = () => {
+		console.log("Getting response");
+		this.initialize();
+		return this.response;
+	};
 
 	/**
 	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
@@ -335,9 +327,15 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
 	 */
 	flush = async () => {
-		console.log("Attempting to flush", `"${this.buffer.read()}"`);
+		const thisCount = this.count++;
+
+		console.log(thisCount, "Attempting to flush", `"${this.buffer.read()}"`);
 
 		const encoded = this.encoder.encode(this.buffer.read());
+
+		console.log(thisCount, "about to clear buffer");
+
+		this.buffer.clear();
 
 		console.log("about to ready");
 
@@ -345,11 +343,9 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 
 		console.log("passed ready");
 
-		this.writer.write(encoded).then((value) => {
-			console.log("flush write back", this.count++, value);
-		});
+		await this.writer.write(encoded);
 
-		this.buffer.clear();
+		console.log("flush write back");
 	};
 
 	/**
@@ -365,24 +361,22 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	 * @param eventName - Event name to write.
 	 * @param eventId - Event ID to write.
 	 */
-	push = (
+	push = async (
 		data: unknown,
 		eventName = "message",
 		eventId = generateId()
-	): this => {
+	): Promise<void> => {
 		if (!this.isConnected) {
 			throw new SseError("Cannot push data to a non-active session.");
 		}
 
 		this.buffer.push(data, eventName, eventId);
 
-		this.flush();
+		await this.flush();
 
 		this.lastId = eventId;
 
 		this.emit("push", data, eventName, eventId);
-
-		return this;
 	};
 
 	/**
@@ -430,7 +424,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 		batcher: EventBuffer | ((buffer: EventBuffer) => void | Promise<void>)
 	) => {
 		if (batcher instanceof EventBuffer) {
-			this.res.write(batcher.read());
+			// this.res.write(batcher.read());
 		} else {
 			const buffer = new EventBuffer({
 				serializer: this.serialize,
@@ -439,7 +433,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 
 			await batcher(buffer);
 
-			this.res.write(buffer.read());
+			// this.res.write(buffer.read());
 		}
 	};
 }
