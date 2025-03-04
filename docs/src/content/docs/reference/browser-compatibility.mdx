@@ -1,0 +1,123 @@
+---
+layout: ../../../layouts/Base.astro
+title: Browser compatibility
+description: See server-sent events browser compatibility.
+sidebar:
+    order: 4
+prev: false
+next: false
+---
+
+<script src="https://cdn.jsdelivr.net/npm/baseline-status@1/baseline-status.min.js" type="module"></script>
+<baseline-status featureId="server-sent-events"></baseline-status>
+
+Server-sent events is supported natively by all modern browsers.
+
+You can safely use the [`EventSource`](https://developer.mozilla.org/en-US/docs/Web/API/EventSource) interface without having to add any extra dependencies to your front-end code bundle.
+
+Nevertheless, should you need to support older browsers, some polyfills are listed below.
+
+## Can I Use...
+
+<script src="https://cdn.jsdelivr.net/gh/ireade/caniuse-embed/public/caniuse-embed.min.js"></script>
+
+<p class="ciu_embed not-content" data-feature="eventsource" data-periods="future_1,current,past_1,past_2" data-accessible-colours="false">
+    <picture>
+        <source type="image/webp" srcset="https://caniuse.bitsofco.de/image/eventsource.webp" />
+        <source type="image/png" srcset="https://caniuse.bitsofco.de/image/eventsource.png" />
+        <img src="https://caniuse.bitsofco.de/image/eventsource.jpg" alt="Data on support for the eventsource feature across the major browsers from caniuse.com" />
+    </picture>
+</p>
+
+<a href="https://caniuse.com/eventsource" target="_blank" class="text-center">
+    Can I use... Server-sent events
+</a>
+
+## Polyfills
+
+### [`lukas-reining/eventsource`](https://www.npmjs.com/package/extended-eventsource)
+
+<div class="shields not-content">
+    <img src="https://img.shields.io/github/stars/lukas-reining/eventsource?style=flat-square" />
+    <img src="https://img.shields.io/npm/dw/extended-eventsource?style=flat-square" />
+</div>
+
+EventSource implementation that is fully compliant with the WHATWG Server-Sent Events specification but takes more arguments.
+
+* Usable in browser and Node.js environments (uses the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API))
+* TypeScript types
+* Custom HTTP method
+* Custom headers
+* Custom retry time
+* Automatic logging
+
+### [`joshmossas/event-source-plus`](https://www.npmjs.com/package/event-source-plus)
+
+<div class="shields not-content">
+    <img src="https://img.shields.io/github/stars/joshmossas/event-source-plus?style=flat-square" />
+    <img src="https://img.shields.io/npm/dw/event-source-plus?style=flat-square" />
+</div>
+
+A more configurable EventSource implementation that runs in browsers, NodeJS, and workers.
+
+* Usable in browser, Node.js and worker environments (uses the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API))
+* TypeScript types
+* Custom HTTP method
+* Custom headers
+* Custom URL search parameters
+* Custom retry time and strategies
+
+### [`mpetazzoni/sse.js`](https://github.com/mpetazzoni/sse.js)
+
+<div class="shields not-content">
+    <img src="https://img.shields.io/github/stars/mpetazzoni/sse.js?style=flat-square" />
+    <img src="https://img.shields.io/npm/dw/sse.js?style=flat-square" />
+</div>
+
+A flexible `EventSource` replacement for JavaScript designed to consume Server-Sent Events (SSE) streams with more control and options than the standard `EventSource`.
+
+* TypeScript types
+* Custom HTTP method
+* Custom headers
+* Control when request is initiated
+
+### [`Azure/fetch-event-source`](https://github.com/Azure/fetch-event-source)
+
+[*Or its fork: `ai-zen/node-fetch-event-source`*](https://www.npmjs.com/package/@ai-zen/node-fetch-event-source)
+
+<div class="shields not-content">
+    <img src="https://img.shields.io/github/stars/Azure/fetch-event-source?style=flat-square" />
+    <img src="https://img.shields.io/npm/dw/@microsoft/fetch-event-source?style=flat-square" />
+</div>
+
+A better API for making Event Source requests, with all the features of fetch()
+
+* TypeScript types
+* Custom HTTP method
+* Custom headers
+* Custom retry time and strategies
+
+### [`Yaffle/EventSource`](https://www.npmjs.com/package/event-source-polyfill)
+
+<div class="shields not-content">
+    <img src="https://img.shields.io/github/stars/Yaffle/EventSource?style=flat-square" />
+    <img src="https://img.shields.io/npm/dw/event-source-polyfill?style=flat-square" />
+</div>
+
+A polyfill for `EventSource`.
+
+* Custom headers
+* Custom `Last-Event-ID` query parameter name
+
+### [`amvtek/EventSource`](https://www.npmjs.com/package/eventsource-polyfill)
+
+<div class="shields not-content">
+    <img src="https://img.shields.io/github/stars/amvtek/EventSource?style=flat-square" />
+    <img src="https://img.shields.io/npm/dw/eventsource-polyfill?style=flat-square" />
+</div>
+
+Provides a polyfill to support EventSource in browsers where it is not available.
+
+* Custom headers
+* Custom URL search parameters
+* Automatic logging
