@@ -3,3 +3,16 @@
 .sl-markdown-content th code {
 	overflow-wrap: normal;
 }
+
+.sl-markdown-content .text-center {
+	text-align: center;
+}
+
+.sl-markdown-content .shields {
+	display: flex;
+	align-items: center;
+}
+
+.sl-markdown-content .shields img {
+	margin: 0 1ch 0 0;
+}
