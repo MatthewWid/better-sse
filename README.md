@@ -24,6 +24,7 @@ Compared to WebSockets it has comparable performance and bandwidth usage, especi
 * [Comparison: Server-sent Events vs WebSockets vs Polling](https://medium.com/dailyjs/a-comparison-between-websockets-server-sent-events-and-polling-7a27c98cb1e3)
 * [WHATWG standards section for server-sent events](https://html.spec.whatwg.org/multipage/server-sent-events.html)
 * [MDN guide to server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
+* [Can I use... Server-sent events](https://caniuse.com/eventsource)
 
 ## Highlights
 
@@ -44,14 +45,17 @@ Compared to WebSockets it has comparable performance and bandwidth usage, especi
 
 # Installation
 
-```bash
-# npm
+Install with any package manager:
+
+```sh
 npm install better-sse
+```
 
-# Yarn
+```sh
 yarn add better-sse
+```
 
-# pnpm
+```sh
 pnpm add better-sse
 ```
 
