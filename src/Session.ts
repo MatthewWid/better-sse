@@ -14,7 +14,6 @@ import { createPushFromStream } from "./lib/createPushFromStream";
 import { generateId } from "./lib/generateId";
 import { type SanitizerFunction, sanitize } from "./lib/sanitize";
 import { type SerializerFunction, serialize } from "./lib/serialize";
-import { Socket } from "node:net";
 
 interface SessionOptions<State = DefaultSessionState>
 	extends Pick<EventBufferOptions, "serializer" | "sanitizer"> {
@@ -102,8 +101,6 @@ interface SessionEvents extends EventMap {
  * @param options - Options given to the session instance.
  */
 class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
-	count = 0;
-
 	/**
 	 * The last event ID sent to the client.
 	 *
@@ -133,15 +130,11 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	state: State;
 
 	private buffer: EventBuffer;
-
 	private request: Request;
-
+	private url: URL;
 	private response: Response;
-
 	private writer: WritableStreamDefaultWriter;
-
 	private encoder = new TextEncoder();
-
 	private serialize: SerializerFunction;
 	private sanitize: SanitizerFunction;
 	private trustClientEventId: boolean;
@@ -151,7 +144,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 
 	constructor(
 		req: Request,
-		res: Response,
+		res?: Response,
 		options: SessionOptions<State> = {}
 	) {
 		super();
@@ -177,33 +170,38 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 
 		this.writer = writable.getWriter();
 
-		this.request = req.clone();
+		this.request = req;
 
-		this.response = new Response(readable, {
-			status: options.statusCode ?? 200,
-			headers: {
-				"Content-Type": "text/event-stream",
-				"Cache-Control":
-					"private, no-cache, no-store, no-transform, must-revalidate, max-age=0",
-				Connection: "keep-alive",
-				Pragma: "no-cache",
-				"X-Accel-Buffering": "no",
-			},
+		this.url = new URL(this.request.url);
+
+		const status = options.statusCode ?? res?.status ?? 200;
+
+		const headers = new Headers({
+			"Content-Type": "text/event-stream",
+			"Cache-Control":
+				"private, no-cache, no-store, no-transform, must-revalidate, max-age=0",
+			Connection: "keep-alive",
+			Pragma: "no-cache",
+			"X-Accel-Buffering": "no",
+			...(options.headers as Record<string, string>),
 		});
 
-		if (options.headers) {
-			for (const [name, value] of Object.entries(options.headers)) {
-				this.response.headers.set(name, (value as string) ?? "");
+		if (res) {
+			for (const [key, value] of res.headers) {
+				headers.set(key, value);
 			}
 		}
 
-		const params = new URL(this.request.url).searchParams;
+		this.response = new Response(readable, {
+			status,
+			headers,
+		});
 
 		if (this.trustClientEventId) {
 			this.lastId =
 				this.request.headers.get("last-event-id") ??
-				params.get("lastEventId") ??
-				params.get("evs_last_event_id") ??
+				this.url.searchParams.get("lastEventId") ??
+				this.url.searchParams.get("evs_last_event_id") ??
 				"";
 		}
 
@@ -211,13 +209,11 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	}
 
 	private initialize = async () => {
-		const params = new URL(this.request.url).searchParams;
-
-		if (params.has("padding")) {
+		if (this.url.searchParams.has("padding")) {
 			this.buffer.comment(" ".repeat(2049)).dispatch();
 		}
 
-		if (params.has("evs_preamble")) {
+		if (this.url.searchParams.has("evs_preamble")) {
 			this.buffer.comment(" ".repeat(2056)).dispatch();
 		}
 
@@ -228,7 +224,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 		await this.flush();
 
 		if (this.keepAliveInterval !== null) {
-			// this.keepAliveTimer = setInterval(this.keepAlive, this.keepAliveInterval);
+			this.keepAliveTimer = setInterval(this.keepAlive, this.keepAliveInterval);
 		}
 
 		this.isConnected = true;
@@ -237,8 +233,6 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	};
 
 	private onDisconnected = async () => {
-		console.log("onDisconnected");
-
 		this.request.signal.removeEventListener("abort", this.onDisconnected);
 
 		await this.writer.close();
@@ -252,15 +246,14 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 		this.emit("disconnected");
 	};
 
-	private keepAlive = () => {
+	private keepAlive = async () => {
 		this.buffer.comment().dispatch();
-		this.flush();
+		await this.flush();
 	};
 
 	getRequest = () => this.request;
 
 	getResponse = () => {
-		console.log("Getting response");
 		this.initialize();
 		return this.response;
 	};
@@ -327,25 +320,13 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
 	 */
 	flush = async () => {
-		const thisCount = this.count++;
-
-		console.log(thisCount, "Attempting to flush", `"${this.buffer.read()}"`);
-
 		const encoded = this.encoder.encode(this.buffer.read());
-
-		console.log(thisCount, "about to clear buffer");
 
 		this.buffer.clear();
 
-		console.log("about to ready");
-
 		await this.writer.ready;
 
-		console.log("passed ready");
-
 		await this.writer.write(encoded);
-
-		console.log("flush write back");
 	};
 
 	/**
