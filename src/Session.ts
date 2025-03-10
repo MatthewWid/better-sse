@@ -131,8 +131,8 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 
 	private buffer: EventBuffer;
 	private request: Request;
-	private url: URL;
 	private response: Response;
+	private url: URL;
 	private writer: WritableStreamDefaultWriter;
 	private encoder = new TextEncoder();
 	private serialize: SerializerFunction;
@@ -144,27 +144,38 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 
 	constructor(
 		req: Request,
-		res?: Response,
-		options: SessionOptions<State> = {}
+		resOrOptions?: Response | SessionOptions<State>,
+		options?: SessionOptions<State>
 	) {
 		super();
 
-		const serializer = options.serializer ?? serialize;
-		const sanitizer = options.sanitizer ?? sanitize;
+		let givenRes: Response | undefined;
+		let givenOptions: SessionOptions<State>;
+
+		if (resOrOptions instanceof Response) {
+			givenRes = resOrOptions;
+			givenOptions = options ?? {};
+		} else {
+			givenOptions = resOrOptions ?? {};
+		}
+
+		const serializer = givenOptions.serializer ?? serialize;
+		const sanitizer = givenOptions.sanitizer ?? sanitize;
 
 		this.serialize = serializer;
 		this.sanitize = sanitizer;
 
 		this.buffer = new EventBuffer({ serializer, sanitizer });
 
-		this.trustClientEventId = options.trustClientEventId ?? true;
+		this.trustClientEventId = givenOptions.trustClientEventId ?? true;
 
-		this.initialRetry = options.retry === null ? null : options.retry ?? 2000;
+		this.initialRetry =
+			givenOptions.retry === null ? null : givenOptions.retry ?? 2000;
 
 		this.keepAliveInterval =
-			options.keepAlive === null ? null : options.keepAlive ?? 10000;
+			givenOptions.keepAlive === null ? null : givenOptions.keepAlive ?? 10000;
 
-		this.state = options.state ?? ({} as State);
+		this.state = givenOptions.state ?? ({} as State);
 
 		const { readable, writable } = new TransformStream();
 
@@ -174,28 +185,29 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 
 		this.url = new URL(this.request.url);
 
-		const status = options.statusCode ?? res?.status ?? 200;
-
-		const headers = new Headers({
-			"Content-Type": "text/event-stream",
-			"Cache-Control":
-				"private, no-cache, no-store, no-transform, must-revalidate, max-age=0",
-			Connection: "keep-alive",
-			Pragma: "no-cache",
-			"X-Accel-Buffering": "no",
-			...(options.headers as Record<string, string>),
+		this.response = new Response(readable, {
+			status: givenOptions.statusCode ?? givenRes?.status ?? 200,
+			headers: {
+				"Content-Type": "text/event-stream",
+				"Cache-Control":
+					"private, no-cache, no-store, no-transform, must-revalidate, max-age=0",
+				Connection: "keep-alive",
+				Pragma: "no-cache",
+				"X-Accel-Buffering": "no",
+			},
 		});
 
-		if (res) {
-			for (const [key, value] of res.headers) {
-				headers.set(key, value);
+		if (givenRes) {
+			for (const [key, value] of givenRes.headers) {
+				this.response.headers.set(key, value);
 			}
 		}
 
-		this.response = new Response(readable, {
-			status,
-			headers,
-		});
+		if (givenOptions.headers) {
+			for (const [key, value] of Object.entries(givenOptions.headers)) {
+				this.response.headers.set(key, (value as string) ?? "");
+			}
+		}
 
 		if (this.trustClientEventId) {
 			this.lastId =
