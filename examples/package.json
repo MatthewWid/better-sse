@@ -3,6 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"license": "MIT",
+	"type": "module",
 	"scripts": {
 		"dev": "tsx watch --max-old-space-size=3059 $INIT_CWD/index.ts",
 		"start": "tsx --max-old-space-size=3059 $INIT_CWD/index.ts"
@@ -17,6 +18,7 @@
 		"pem": "^1.14.8",
 		"sse": "^0.0.8",
 		"sse-channel": "^4.0.0",
+		"tinybench": "^3.1.1",
 		"tsx": "^4.19.3"
 	},
 	"devDependencies": {

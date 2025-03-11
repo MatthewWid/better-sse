@@ -1,8 +1,13 @@
-import {suite as suiteChannelBroadcast} from "./suites/channel-broadcast";
-import {suite as suiteSessionPush} from "./suites/session-push";
+import { sessionPushBench } from "./suites/session-push";
 
-Promise.all([suiteSessionPush.setup()]).then((suites) => {
-	for (const suite of suites) {
-		suite.run();
+const main = async () => {
+	const benches = [sessionPushBench];
+
+	for (const bench of benches) {
+		console.log(`Running "${bench.name}"...`);
+		await bench.run();
+		console.table(bench.table());
 	}
-});
+};
+
+main();
