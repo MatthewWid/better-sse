@@ -394,9 +394,11 @@ describe("keep-alive", () => {
 				// @ts-expect-error spying on private method
 				const keepAlive = vi.spyOn(session, "keepAlive");
 
-				vi.advanceTimersToNextTimer().advanceTimersToNextTimer();
+				vi.advanceTimersToNextTimer();
 
 				await waitForConnect(session);
+
+				vi.advanceTimersToNextTimer();
 
 				expect(keepAlive).toHaveBeenCalled();
 
@@ -414,9 +416,11 @@ describe("keep-alive", () => {
 				// @ts-expect-error spying on private method
 				const keepAlive = vi.spyOn(session, "keepAlive");
 
-				vi.advanceTimersToNextTimer().advanceTimersToNextTimer();
+				vi.advanceTimersToNextTimer();
 
 				await waitForConnect(session);
+
+				vi.advanceTimersToNextTimer();
 
 				expect(keepAlive).toHaveBeenCalledTimes(1);
 
@@ -442,9 +446,11 @@ describe("keep-alive", () => {
 				// @ts-expect-error spying on private method
 				const keepAlive = vi.spyOn(session, "keepAlive");
 
-				vi.advanceTimersToNextTimer().advanceTimersToNextTimer();
+				vi.advanceTimersToNextTimer();
 
 				await waitForConnect(session);
+
+				vi.advanceTimersToNextTimer();
 
 				expect(keepAlive).not.toHaveBeenCalled();
 
