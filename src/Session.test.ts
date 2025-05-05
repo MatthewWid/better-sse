@@ -791,7 +791,7 @@ describe("polyfill support", () => {
 		}));
 });
 
-describe("http/2", () => {
+describe("http/2 compatibility api", () => {
 	let http2Client: http2.ClientHttp2Session;
 	let http2Req: http2.ClientHttp2Stream;
 	let http2Server: http2.Http2Server;
@@ -862,5 +862,32 @@ describe("http/2", () => {
 			});
 
 			http2Req = http2Client.request().end();
+		}));
+
+	it("omits http/2 pseudo-headers from the request headers", () =>
+		new Promise<void>((done) => {
+			http2Server.on("request", async (req, res) => {
+				const session = new Session(req, res);
+
+				await waitForConnect(session);
+
+				const {headers} = session.getRequest();
+
+				for (const [key] of headers) {
+					expect(key.startsWith(":")).toBeFalsy();
+				}
+
+				expect(headers.has("x-test")).toBeTruthy();
+
+				await new Promise<void>((resolve) => res.end(resolve));
+
+				done();
+			});
+
+			http2Req = http2Client
+				.request({
+					"X-Test": "123",
+				})
+				.end();
 		}));
 });
