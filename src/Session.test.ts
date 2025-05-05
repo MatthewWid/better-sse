@@ -5,7 +5,11 @@ import EventSource from "eventsource";
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {EventBuffer} from "./EventBuffer";
 import {Session} from "./Session";
-import {DEFAULT_RESPONSE_CODE, DEFAULT_RESPONSE_HEADERS} from "./lib/constants";
+import {
+	CONNECTION_SPECIFIC_HEADERS,
+	DEFAULT_RESPONSE_CODE,
+	DEFAULT_RESPONSE_HEADERS,
+} from "./lib/constants";
 import {
 	closeServer,
 	createHttp2Server,
@@ -861,7 +865,7 @@ describe("http/2 compatibility api", () => {
 			http2Req = http2Client.request().end();
 		}));
 
-	it("returns the correct response status code and headers", () =>
+	it("returns the correct response status code and omits connection headers", () =>
 		new Promise<void>((done) => {
 			http2Server.on("request", async (req, res) => {
 				const session = new Session(req, res);
@@ -870,16 +874,21 @@ describe("http/2 compatibility api", () => {
 
 				await waitForConnect(session);
 
-				const lowercasedHeaders: Record<string, string | string[]> = {};
+				const expectedHeaders: Record<string, string | string[]> = {};
 
 				for (const [key, value] of Object.entries(DEFAULT_RESPONSE_HEADERS)) {
-					lowercasedHeaders[key.toLowerCase()] = value;
+					if (CONNECTION_SPECIFIC_HEADERS.includes(key)) {
+						continue;
+					}
+
+					expectedHeaders[key.toLowerCase()] = value;
 				}
 
-				expect(writeHead).toHaveBeenCalledWith(
-					DEFAULT_RESPONSE_CODE,
-					lowercasedHeaders
-				);
+				const [givenCode, givenHeaders] = writeHead.mock.calls[0];
+
+				expect(givenCode).toBe(DEFAULT_RESPONSE_CODE);
+
+				expect(givenHeaders).toEqual(expectedHeaders);
 
 				await new Promise<void>((resolve) => res.end(resolve));
 

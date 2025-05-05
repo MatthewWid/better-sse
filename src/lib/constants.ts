@@ -8,3 +8,18 @@ export const DEFAULT_RESPONSE_HEADERS = {
 	Pragma: "no-cache",
 	"X-Accel-Buffering": "no",
 };
+
+/**
+ * Connection-specific headers that must be removed from the response when using HTTP/2.
+ *
+ * @see https://httpwg.org/specs/rfc9113.html#ConnectionSpecific
+ */
+export const CONNECTION_SPECIFIC_HEADERS = [
+	"Connection",
+	"Keep-Alive",
+	"Proxy-Connection",
+	"Keep-Alive",
+	"Transfer-Encoding",
+	"Upgrade",
+	"TE",
+];

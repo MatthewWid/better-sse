@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Update type of `Session` constructor `options#headers` argument to accept any `string->(string | string[] | undefined)` type rather than only `OutgoingHttpHeaders`.
 * Update the `Session#push` to return a [`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that resolves once the event is pushed and fully flushed to the client.
 
+### Fixed
+
+* Fixed [connection-specific headers](https://www.rfc-editor.org/rfc/rfc9110.html#section-7.6.1) being sent when using HTTP/2, causing the response [to be treated as malformed](https://httpwg.org/specs/rfc9113.html#ConnectionSpecific).
+
 ## 0.14.1 - 2024-10-27
 
 ### Changed

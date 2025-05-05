@@ -6,7 +6,11 @@ import {type Http2ServerRequest, Http2ServerResponse} from "node:http2";
 import {EventBuffer, type EventBufferOptions} from "./EventBuffer";
 import {SseError} from "./lib/SseError";
 import {type EventMap, TypedEmitter} from "./lib/TypedEmitter";
-import {DEFAULT_RESPONSE_CODE, DEFAULT_RESPONSE_HEADERS} from "./lib/constants";
+import {
+	CONNECTION_SPECIFIC_HEADERS,
+	DEFAULT_RESPONSE_CODE,
+	DEFAULT_RESPONSE_HEADERS,
+} from "./lib/constants";
 import {createPushFromIterable} from "./lib/createPushFromIterable";
 import {createPushFromStream} from "./lib/createPushFromStream";
 import {generateId} from "./lib/generateId";
@@ -238,6 +242,12 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 					} else {
 						this.response.headers.set(key, value ?? "");
 					}
+				}
+			}
+
+			if (res instanceof Http2ServerResponse) {
+				for (const header of CONNECTION_SPECIFIC_HEADERS) {
+					this.response.headers.delete(header);
 				}
 			}
 		}
