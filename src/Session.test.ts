@@ -694,6 +694,31 @@ describe("batching", () => {
 				done();
 			});
 		}));
+
+	it("given an event buffer, does NOT clear its contents after writing", () =>
+		new Promise<void>((done) => {
+			server.on("request", async (req, res) => {
+				const session = new Session(req, res);
+
+				await waitForConnect(session);
+
+				const buffer = new EventBuffer();
+
+				buffer.push(data);
+
+				const before = buffer.read();
+
+				await session.batch(buffer);
+
+				const after = buffer.read();
+
+				expect(before).toBe(after);
+
+				done();
+			});
+
+			eventsource = new EventSource(url);
+		}));
 });
 
 describe("polyfill support", () => {

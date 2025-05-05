@@ -520,7 +520,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 
 			await batcher(buffer);
 
-			await this.flush(buffer, false);
+			await this.flush(buffer);
 		}
 	};
 }
