@@ -176,7 +176,6 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 				headers: {
 					...DEFAULT_RESPONSE_HEADERS,
 					...(res ? Object.fromEntries((res as Response).headers) : {}),
-					...options.headers,
 				},
 			});
 		} else {
@@ -231,23 +230,25 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 				},
 			});
 
-			if (options.headers) {
-				for (const [key, value] of Object.entries(options.headers)) {
-					if (Array.isArray(value)) {
-						this.response.headers.delete(key);
-
-						for (const item of value) {
-							this.response.headers.append(key, item);
-						}
-					} else {
-						this.response.headers.set(key, value ?? "");
-					}
-				}
-			}
-
 			if (res instanceof Http2ServerResponse) {
 				for (const header of CONNECTION_SPECIFIC_HEADERS) {
 					this.response.headers.delete(header);
+				}
+			}
+		}
+
+		if (options.headers) {
+			for (const [key, value] of Object.entries(options.headers)) {
+				if (Array.isArray(value)) {
+					this.response.headers.delete(key);
+
+					for (const item of value) {
+						this.response.headers.append(key, item);
+					}
+				} else if (value === undefined) {
+					this.response.headers.delete(key);
+				} else {
+					this.response.headers.set(key, value);
 				}
 			}
 		}

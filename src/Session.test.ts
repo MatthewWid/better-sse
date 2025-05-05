@@ -215,15 +215,16 @@ describe("connection", () => {
 			eventsource = new EventSource(url);
 		}));
 
-	it("sets custom headers without values to an empty string", () =>
+	it("can omit headers by setting its value to undefined", () =>
 		new Promise<void>((done) => {
-			const additionalHeaders = {
-				"x-test-header-1": undefined,
+			const customHeaders = {
+				Connection: undefined,
+				"X-Test-Header": undefined,
 			};
 
 			server.on("request", async (req, res) => {
 				const session = new Session(req, res, {
-					headers: additionalHeaders,
+					headers: customHeaders,
 				});
 
 				const writeHead = vi.spyOn(res, "writeHead");
@@ -232,9 +233,8 @@ describe("connection", () => {
 
 				const sentHeaders = writeHead.mock.calls[0][1];
 
-				expect(sentHeaders).toMatchObject({
-					"x-test-header-1": "",
-				});
+				expect(sentHeaders).not.toHaveProperty("connection");
+				expect(sentHeaders).not.toHaveProperty("x-test-header");
 
 				done();
 			});
