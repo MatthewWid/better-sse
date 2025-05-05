@@ -51,12 +51,14 @@ describe("connection", () => {
 
 	it("fires the connection event non-synchronously after response headers are sent", () =>
 		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
+			server.on("request", async (req, res) => {
 				const session = new Session(req, res);
 
-				session.on("connected", () => {
-					done();
-				});
+				expect(session.isConnected).toBeFalsy();
+
+				await waitForConnect(session);
+
+				done();
 			});
 
 			eventsource = new EventSource(url);
@@ -64,14 +66,12 @@ describe("connection", () => {
 
 	it("fires the disconnection event when the client kills the connection", () =>
 		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
+			server.on("request", async (req, res) => {
 				const session = new Session(req, res);
 
-				session.on("connected", () => {
-					session.on("disconnected", () => {
-						done();
-					});
-				});
+				await waitForConnect(session);
+
+				session.on("disconnected", done);
 			});
 
 			eventsource = new EventSource(url);
@@ -83,16 +83,16 @@ describe("connection", () => {
 
 	it("fires the disconnection event when the server closes the response stream", () =>
 		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
+			server.on("request", async (req, res) => {
 				const session = new Session(req, res);
 
 				session.on("disconnected", () => {
 					done();
 				});
 
-				session.on("connected", () => {
-					res.end();
-				});
+				await waitForConnect(session);
+
+				res.end();
 			});
 
 			eventsource = new EventSource(url);
@@ -100,7 +100,7 @@ describe("connection", () => {
 
 	it("sets the isConnected boolean based on whether the session is open or not", () =>
 		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
+			server.on("request", async (req, res) => {
 				const session = new Session(req, res);
 
 				expect(session.isConnected).toBeFalsy();
@@ -111,11 +111,11 @@ describe("connection", () => {
 					done();
 				});
 
-				session.on("connected", () => {
-					expect(session.isConnected).toBeTruthy();
+				await waitForConnect(session);
 
-					res.end();
-				});
+				expect(session.isConnected).toBeTruthy();
+
+				res.end();
 			});
 
 			eventsource = new EventSource(url);
@@ -123,7 +123,7 @@ describe("connection", () => {
 
 	it("initiates disconnect when the response is closed", () =>
 		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
+			server.on("request", async (req, res) => {
 				const session = new Session(req, res);
 
 				expect(session.isConnected).toBeFalsy();
@@ -134,11 +134,11 @@ describe("connection", () => {
 					done();
 				});
 
-				session.on("connected", () => {
-					expect(session.isConnected).toBeTruthy();
+				await waitForConnect(session);
 
-					res.emit("close");
-				});
+				expect(session.isConnected).toBeTruthy();
+
+				res.emit("close");
 			});
 
 			eventsource = new EventSource(url);
@@ -146,25 +146,25 @@ describe("connection", () => {
 
 	it("returns the correct response status code and headers by default", () =>
 		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
-				const writeHead = vi.spyOn(res, "writeHead");
-
+			server.on("request", async (req, res) => {
 				const session = new Session(req, res);
 
-				session.on("connected", () => {
-					const lowercasedHeaders: Record<string, string | string[]> = {};
+				const writeHead = vi.spyOn(res, "writeHead");
 
-					for (const [key, value] of Object.entries(DEFAULT_RESPONSE_HEADERS)) {
-						lowercasedHeaders[key.toLowerCase()] = value;
-					}
+				await waitForConnect(session);
 
-					expect(writeHead).toHaveBeenCalledWith(
-						DEFAULT_RESPONSE_CODE,
-						lowercasedHeaders
-					);
+				const lowercasedHeaders: Record<string, string | string[]> = {};
 
-					done();
-				});
+				for (const [key, value] of Object.entries(DEFAULT_RESPONSE_HEADERS)) {
+					lowercasedHeaders[key.toLowerCase()] = value;
+				}
+
+				expect(writeHead).toHaveBeenCalledWith(
+					DEFAULT_RESPONSE_CODE,
+					lowercasedHeaders
+				);
+
+				done();
 			});
 
 			eventsource = new EventSource(url);
@@ -172,14 +172,14 @@ describe("connection", () => {
 
 	it("can set the status code in options", () =>
 		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
+			server.on("request", async (req, res) => {
 				const session = new Session(req, res, {statusCode: 201});
 
-				session.on("connected", () => {
-					expect(res.statusCode).toBe(201);
+				await waitForConnect(session);
 
-					done();
-				});
+				expect(res.statusCode).toBe(201);
+
+				done();
 			});
 
 			eventsource = new EventSource(url);
@@ -192,20 +192,20 @@ describe("connection", () => {
 				"x-test-header-2": "456",
 			};
 
-			server.on("request", (req, res) => {
-				const writeHead = vi.spyOn(res, "writeHead");
-
+			server.on("request", async (req, res) => {
 				const session = new Session(req, res, {
 					headers: additionalHeaders,
 				});
 
-				session.on("connected", () => {
-					const sentHeaders = writeHead.mock.calls[0][1];
+				const writeHead = vi.spyOn(res, "writeHead");
 
-					expect(sentHeaders).toMatchObject(additionalHeaders);
+				await waitForConnect(session);
 
-					done();
-				});
+				const sentHeaders = writeHead.mock.calls[0][1];
+
+				expect(sentHeaders).toMatchObject(additionalHeaders);
+
+				done();
 			});
 
 			eventsource = new EventSource(url);
@@ -217,22 +217,22 @@ describe("connection", () => {
 				"x-test-header-1": undefined,
 			};
 
-			server.on("request", (req, res) => {
-				const writeHead = vi.spyOn(res, "writeHead");
-
+			server.on("request", async (req, res) => {
 				const session = new Session(req, res, {
 					headers: additionalHeaders,
 				});
 
-				session.on("connected", () => {
-					const sentHeaders = writeHead.mock.calls[0][1];
+				const writeHead = vi.spyOn(res, "writeHead");
 
-					expect(sentHeaders).toMatchObject({
-						"x-test-header-1": "",
-					});
+				await waitForConnect(session);
 
-					done();
+				const sentHeaders = writeHead.mock.calls[0][1];
+
+				expect(sentHeaders).toMatchObject({
+					"x-test-header-1": "",
 				});
+
+				done();
 			});
 
 			eventsource = new EventSource(url);
@@ -244,22 +244,22 @@ describe("connection", () => {
 				"X-Accel-Buffering": "yes",
 			};
 
-			server.on("request", (req, res) => {
-				const writeHead = vi.spyOn(res, "writeHead");
-
+			server.on("request", async (req, res) => {
 				const session = new Session(req, res, {
 					headers: additionalHeaders,
 				});
 
-				session.on("connected", () => {
-					const sentHeaders = writeHead.mock.calls[0][1];
+				const writeHead = vi.spyOn(res, "writeHead");
 
-					expect(sentHeaders).toMatchObject({
-						"x-accel-buffering": "yes",
-					});
+				await waitForConnect(session);
 
-					done();
+				const sentHeaders = writeHead.mock.calls[0][1];
+
+				expect(sentHeaders).toMatchObject({
+					"x-accel-buffering": "yes",
 				});
+
+				done();
 			});
 
 			eventsource = new EventSource(url);
@@ -272,23 +272,23 @@ describe("connection", () => {
 				"X-Extra": ["123", "456"],
 			};
 
-			server.on("request", (req, res) => {
-				const writeHead = vi.spyOn(res, "writeHead");
-
+			server.on("request", async (req, res) => {
 				const session = new Session(req, res, {
 					headers: additionalHeaders,
 				});
 
-				session.on("connected", () => {
-					const sentHeaders = writeHead.mock.calls[0][1];
+				const writeHead = vi.spyOn(res, "writeHead");
 
-					expect(sentHeaders).toMatchObject({
-						"cache-control": "private, must-understand",
-						"x-extra": "123, 456",
-					});
+				await waitForConnect(session);
 
-					done();
+				const sentHeaders = writeHead.mock.calls[0][1];
+
+				expect(sentHeaders).toMatchObject({
+					"cache-control": "private, must-understand",
+					"x-extra": "123, 456",
 				});
+
+				done();
 			});
 
 			eventsource = new EventSource(url);
@@ -461,7 +461,7 @@ describe("keep-alive", () => {
 		}));
 });
 
-describe("event ID management", () => {
+describe("event id management", () => {
 	const givenLastId = "12345678";
 
 	it("starts with an empty last event ID", () =>
@@ -530,7 +530,7 @@ describe("push", () => {
 
 				await waitForConnect(session);
 
-				session.push(...args);
+				await session.push(...args);
 
 				expect(push).toHaveBeenCalledWith(...args);
 
@@ -551,7 +551,7 @@ describe("push", () => {
 
 				session.on("push", callback);
 
-				session.push(...args);
+				await session.push(...args);
 
 				expect(callback).toHaveBeenCalledWith(...args);
 
@@ -561,14 +561,14 @@ describe("push", () => {
 			eventsource = new EventSource(url);
 		}));
 
-	it("sets the last id to the event id", () =>
+	it("sets the last id to the given event id", () =>
 		new Promise<void>((done) => {
 			server.on("request", async (req, res) => {
 				const session = new Session(req, res);
 
 				await waitForConnect(session);
 
-				session.push(...args);
+				await session.push(...args);
 
 				const [, , givenId] = args;
 
@@ -589,7 +589,7 @@ describe("push", () => {
 
 				const flush = vi.spyOn(session, "flush");
 
-				session.push(...args);
+				await session.push(...args);
 
 				expect(flush).toHaveBeenCalled();
 
@@ -601,24 +601,20 @@ describe("push", () => {
 
 	it("throws when pushing after the session has disconnected", () =>
 		new Promise<void>((done) => {
-			server.on("request", (req, res) => {
+			server.on("request", async (req, res) => {
 				const session = new Session(req, res);
 
-				session.on("disconnected", () => {
-					expect(() => {
-						session.push(null);
-					}).toThrow();
+				session.on("disconnected", async () => {
+					await expect(session.push(null)).rejects.toThrowError();
 
 					done();
 				});
 
-				session.on("connected", () => {
-					expect(() => {
-						session.push(null);
-					}).not.toThrow();
+				await waitForConnect(session);
 
-					res.end();
-				});
+				await expect(session.push(null)).resolves.toBeUndefined();
+
+				res.end();
 			});
 
 			eventsource = new EventSource(url);
@@ -796,14 +792,6 @@ describe("polyfill support", () => {
 });
 
 describe("http/2", () => {
-	const defaultHeaders: http2.OutgoingHttpHeaders = {
-		"content-type": "text/event-stream",
-		"cache-control":
-			"private, no-cache, no-store, no-transform, must-revalidate, max-age=0",
-		pragma: "no-cache",
-		"x-accel-buffering": "no",
-	};
-
 	let http2Client: http2.ClientHttp2Session;
 	let http2Req: http2.ClientHttp2Stream;
 	let http2Server: http2.Http2Server;
@@ -835,12 +823,14 @@ describe("http/2", () => {
 
 	it("constructs and connects without errors", () =>
 		new Promise<void>((done) => {
-			http2Server.on("request", (req, res) => {
+			http2Server.on("request", async (req, res) => {
 				const session = new Session(req, res);
 
-				session.on("connected", () => {
-					res.end(done);
-				});
+				await waitForConnect(session);
+
+				await new Promise<void>((resolve) => res.end(resolve));
+
+				done();
 			});
 
 			http2Req = http2Client.request().end();
@@ -848,16 +838,27 @@ describe("http/2", () => {
 
 	it("returns the correct response status code and headers", () =>
 		new Promise<void>((done) => {
-			http2Server.on("request", (req, res) => {
-				const writeHead = vi.spyOn(res, "writeHead");
-
+			http2Server.on("request", async (req, res) => {
 				const session = new Session(req, res);
 
-				session.on("connected", () => {
-					expect(writeHead).toHaveBeenCalledWith(200, defaultHeaders);
+				const writeHead = vi.spyOn(res, "writeHead");
 
-					res.end(done);
-				});
+				await waitForConnect(session);
+
+				const lowercasedHeaders: Record<string, string | string[]> = {};
+
+				for (const [key, value] of Object.entries(DEFAULT_RESPONSE_HEADERS)) {
+					lowercasedHeaders[key.toLowerCase()] = value;
+				}
+
+				expect(writeHead).toHaveBeenCalledWith(
+					DEFAULT_RESPONSE_CODE,
+					lowercasedHeaders
+				);
+
+				await new Promise<void>((resolve) => res.end(resolve));
+
+				done();
 			});
 
 			http2Req = http2Client.request().end();
