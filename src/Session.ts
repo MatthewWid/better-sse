@@ -109,6 +109,8 @@ interface SessionEvents extends EventMap {
  * @param options - Options given to the session instance.
  */
 class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
+	private static encoder = new TextEncoder();
+
 	/**
 	 * The last event ID sent to the client.
 	 *
@@ -135,7 +137,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	 * Use [module augmentation and declaration merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation)
 	 * to safely add new properties to the `DefaultSessionState` interface.
 	 */
-	state = {} as State;
+	state: State;
 
 	private buffer: EventBuffer;
 	private request: Request;
@@ -147,9 +149,8 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 		  });
 	private url: URL;
 	private writer: WritableStreamDefaultWriter;
-	private encoder = new TextEncoder();
-	private serialize: SerializerFunction;
 	private sanitize: SanitizerFunction;
+	private serialize: SerializerFunction;
 	private initialRetry: number | null;
 	private keepAliveInterval: number | null;
 	private keepAliveTimer?: ReturnType<typeof setInterval>;
@@ -263,9 +264,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 				"";
 		}
 
-		if (options.state) {
-			this.state = options.state;
-		}
+		this.state = options.state ?? ({} as State);
 
 		this.initialRetry = options.retry === null ? null : (options.retry ?? 2000);
 
@@ -273,6 +272,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 			options.keepAlive === null ? null : (options.keepAlive ?? 10000);
 
 		this.serialize = options.serializer ?? defaultSerializer;
+
 		this.sanitize = options.sanitizer ?? defaultSanitizer;
 
 		this.buffer = new EventBuffer({
@@ -433,7 +433,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	flush = async (buffer = this.buffer, clear = true) => {
 		const contents = buffer.read();
 
-		const encoded = this.encoder.encode(contents);
+		const encoded = Session.encoder.encode(contents);
 
 		if (clear) {
 			buffer.clear();
