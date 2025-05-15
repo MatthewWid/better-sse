@@ -534,7 +534,7 @@ describe("push", () => {
 
 				await waitForConnect(session);
 
-				await session.push(...args);
+				session.push(...args);
 
 				expect(push).toHaveBeenCalledWith(...args);
 
@@ -555,7 +555,7 @@ describe("push", () => {
 
 				session.on("push", callback);
 
-				await session.push(...args);
+				session.push(...args);
 
 				expect(callback).toHaveBeenCalledWith(...args);
 
@@ -572,7 +572,7 @@ describe("push", () => {
 
 				await waitForConnect(session);
 
-				await session.push(...args);
+				session.push(...args);
 
 				const [, , givenId] = args;
 
@@ -593,7 +593,7 @@ describe("push", () => {
 
 				const flush = vi.spyOn(session, "flush");
 
-				await session.push(...args);
+				session.push(...args);
 
 				expect(flush).toHaveBeenCalled();
 
@@ -608,15 +608,15 @@ describe("push", () => {
 			server.on("request", async (req, res) => {
 				const session = new Session(req, res);
 
-				session.on("disconnected", async () => {
-					await expect(session.push(null)).rejects.toThrowError();
+				session.on("disconnected", () => {
+					expect(() => session.push(null)).toThrowError();
 
 					done();
 				});
 
 				await waitForConnect(session);
 
-				await expect(session.push(null)).resolves.toBeUndefined();
+				expect(() => session.push(null)).not.toThrowError();
 
 				res.end();
 			});

@@ -38,13 +38,13 @@ class FetchConnection implements Connection {
 		// noop
 	};
 
-	sendChunk = async (chunk: string) => {
+	sendChunk = (chunk: string) => {
 		const encoded = FetchConnection.encoder.encode(chunk);
-		await this.writer.write(encoded);
+		this.writer.write(encoded);
 	};
 
-	cleanup = async () => {
-		await this.writer.close();
+	cleanup = () => {
+		this.writer.close();
 	};
 }
 

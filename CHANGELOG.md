@@ -16,7 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Update type of `Session` constructor `options#headers` argument to accept any `string->(string | string[] | undefined)` type rather than only `OutgoingHttpHeaders`.
 * Update the `Session` constructor `options#headers` argument to omit headers whose values are given as `undefined`.
-* Update the `Session#push` to return a [`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that resolves once the event is pushed and fully flushed to the client.
 
 ### Fixed
 

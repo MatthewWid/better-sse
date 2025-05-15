@@ -72,12 +72,8 @@ class NodeHttp1Connection implements Connection {
 		);
 	};
 
-	sendChunk = async (chunk: string) => {
-		const flushed = this.res.write(chunk);
-
-		if (!flushed) {
-			await new Promise((resolve) => this.res.once("drain", resolve));
-		}
+	sendChunk = (chunk: string) => {
+		this.res.write(chunk);
 	};
 
 	cleanup = () => {

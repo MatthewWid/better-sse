@@ -12,17 +12,17 @@ interface Connection {
 	/**
 	 * Send the response head with status code and headers.
 	 */
-	sendHead: () => void | Promise<void>;
+	sendHead: () => void;
 
 	/**
 	 * Write a chunk of data to the socket, optionally encoding to UTF-8 beforehand.
 	 */
-	sendChunk: (chunk: string) => void | Promise<void>;
+	sendChunk: (chunk: string) => void;
 
 	/**
 	 * Perform any necessary cleanup after the connection is closed.
 	 */
-	cleanup(): void | Promise<void>;
+	cleanup(): void;
 }
 
 interface ConnectionOptions extends Pick<SessionOptions, "statusCode"> {}

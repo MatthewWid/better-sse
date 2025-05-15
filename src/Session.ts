@@ -233,7 +233,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	}
 
 	private initialize = async () => {
-		await this.connection.sendHead();
+		this.connection.sendHead();
 
 		if (this.connection.url.searchParams.has("padding")) {
 			this.buffer.comment(" ".repeat(2049)).dispatch();
@@ -247,7 +247,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 			this.buffer.retry(this.initialRetry).dispatch();
 		}
 
-		await this.flush();
+		this.flush();
 
 		if (this.keepAliveInterval !== null) {
 			this.keepAliveTimer = setInterval(this.keepAlive, this.keepAliveInterval);
@@ -264,7 +264,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 			this.onDisconnected
 		);
 
-		await this.connection.cleanup();
+		this.connection.cleanup();
 
 		if (this.keepAliveTimer) {
 			clearInterval(this.keepAliveTimer);
@@ -277,7 +277,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 
 	private keepAlive = async () => {
 		this.buffer.comment().dispatch();
-		await this.flush();
+		this.flush();
 	};
 
 	getRequest = () => this.connection.request;
@@ -345,12 +345,12 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	 *
 	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
 	 */
-	flush = async () => {
+	flush = () => {
 		const contents = this.buffer.read();
 
 		this.buffer.clear();
 
-		await this.connection.sendChunk(contents);
+		this.connection.sendChunk(contents);
 	};
 
 	/**
@@ -366,11 +366,11 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	 * @param eventName - Event name to write.
 	 * @param eventId - Event ID to write.
 	 */
-	push = async (
+	push = (
 		data: unknown,
 		eventName = "message",
 		eventId = generateId()
-	): Promise<void> => {
+	): this => {
 		if (!this.isConnected) {
 			throw new SseError(
 				"Cannot push data to a non-active session. Ensure the session is connected before attempting to push events."
@@ -379,11 +379,13 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 
 		this.buffer.push(data, eventName, eventId);
 
-		await this.flush();
+		this.flush();
 
 		this.lastId = eventId;
 
 		this.emit("push", data, eventName, eventId);
+
+		return this;
 	};
 
 	/**
@@ -431,7 +433,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 		batcher: EventBuffer | ((buffer: EventBuffer) => void | Promise<void>)
 	) => {
 		if (batcher instanceof EventBuffer) {
-			await this.connection.sendChunk(batcher.read());
+			this.connection.sendChunk(batcher.read());
 		} else {
 			const buffer = new EventBuffer({
 				serializer: this.serialize,
@@ -440,7 +442,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 
 			await batcher(buffer);
 
-			await this.connection.sendChunk(buffer.read());
+			this.connection.sendChunk(buffer.read());
 		}
 	};
 }
