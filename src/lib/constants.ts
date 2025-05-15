@@ -16,16 +16,13 @@ export const DEFAULT_RESPONSE_HEADERS = {
 /**
  * Connection-specific headers that must be removed from the response when using HTTP/2.
  *
- * All lowercased.
- *
  * @see https://httpwg.org/specs/rfc9113.html#ConnectionSpecific
  */
 export const CONNECTION_SPECIFIC_HEADERS = [
-	"connection",
-	"keep-alive",
-	"proxy-connection",
-	"keep-alive",
-	"transfer-encoding",
-	"upgrade",
-	"te",
-];
+	"Connection",
+	"Keep-Alive",
+	"Proxy-Connection",
+	"Transfer-Encoding",
+	"Upgrade",
+	"TE",
+].map((header) => header.toLowerCase());

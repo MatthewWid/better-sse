@@ -30,7 +30,7 @@ class NodeHttp2CompatConnection implements Connection {
 
 		for (const [name, value] of Object.entries(req.headers)) {
 			if (
-				CONNECTION_SPECIFIC_HEADERS.includes(name) ||
+				CONNECTION_SPECIFIC_HEADERS.includes(name.toLowerCase()) ||
 				name.startsWith(":") ||
 				!value
 			) {

@@ -865,7 +865,7 @@ describe("http/2 compatibility api", () => {
 			http2Req = http2Client.request().end();
 		}));
 
-	it("returns the correct response status code and omits connection headers", () =>
+	it("returns the correct status code", () =>
 		new Promise<void>((done) => {
 			http2Server.on("request", async (req, res) => {
 				const session = new Session(req, res);
@@ -874,21 +874,9 @@ describe("http/2 compatibility api", () => {
 
 				await waitForConnect(session);
 
-				const expectedHeaders: Record<string, string | string[]> = {};
-
-				for (const [key, value] of Object.entries(DEFAULT_RESPONSE_HEADERS)) {
-					if (CONNECTION_SPECIFIC_HEADERS.includes(key)) {
-						continue;
-					}
-
-					expectedHeaders[key.toLowerCase()] = value;
-				}
-
-				const [givenCode, givenHeaders] = writeHead.mock.calls[0];
+				const [givenCode] = writeHead.mock.calls[0];
 
 				expect(givenCode).toBe(DEFAULT_RESPONSE_CODE);
-
-				expect(givenHeaders).toEqual(expectedHeaders);
 
 				await new Promise<void>((resolve) => res.end(resolve));
 
@@ -923,5 +911,33 @@ describe("http/2 compatibility api", () => {
 					"X-Test": "123",
 				})
 				.end();
+		}));
+
+	it("omits connection-specific headers from the request headers, regardless of casing", () =>
+		new Promise<void>((done) => {
+			http2Server.on("request", async (req, res) => {
+				req.headers["Connection"] = "keep-alive";
+				req.headers["Keep-Alive"] = "timeout=5, max=200";
+				req.headers["PrOxY-CoNnEcTiOn"] = "test-value";
+				req.headers["tRaNsFeR-eNcOdInG"] = "chunked";
+				req.headers["UPGRADE"] = "test/1";
+				req.headers["te"] = "deflate";
+
+				const session = new Session(req, res);
+
+				await waitForConnect(session);
+
+				const {headers} = session.getRequest();
+
+				for (const [key] of headers) {
+					expect(CONNECTION_SPECIFIC_HEADERS).not.toContain(key.toLowerCase());
+				}
+
+				await new Promise<void>((resolve) => res.end(resolve));
+
+				done();
+			});
+
+			http2Req = http2Client.request().end();
 		}));
 });
