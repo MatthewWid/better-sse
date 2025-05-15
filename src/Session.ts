@@ -1,16 +1,15 @@
 import {
-	type IncomingMessage as Http1ServerRequest,
+	IncomingMessage as Http1ServerRequest,
 	ServerResponse as Http1ServerResponse,
 } from "node:http";
-import {type Http2ServerRequest, Http2ServerResponse} from "node:http2";
+import {Http2ServerRequest, Http2ServerResponse} from "node:http2";
 import {EventBuffer, type EventBufferOptions} from "./EventBuffer";
+import type {Connection} from "./adapters/Connection";
+import {FetchConnection} from "./adapters/FetchConnection";
+import {NodeHttp1Connection} from "./adapters/NodeHttp1Connection";
+import {NodeHttp2CompatConnection} from "./adapters/NodeHttp2CompatConnection";
 import {SseError} from "./lib/SseError";
 import {type EventMap, TypedEmitter} from "./lib/TypedEmitter";
-import {
-	CONNECTION_SPECIFIC_HEADERS,
-	DEFAULT_RESPONSE_CODE,
-	DEFAULT_RESPONSE_HEADERS,
-} from "./lib/constants";
 import {createPushFromIterable} from "./lib/createPushFromIterable";
 import {createPushFromStream} from "./lib/createPushFromStream";
 import {generateId} from "./lib/generateId";
@@ -109,8 +108,6 @@ interface SessionEvents extends EventMap {
  * @param options - Options given to the session instance.
  */
 class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
-	private static encoder = new TextEncoder();
-
 	/**
 	 * The last event ID sent to the client.
 	 *
@@ -140,15 +137,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	state: State;
 
 	private buffer: EventBuffer;
-	private request: Request;
-	private response: Response;
-	private res?:
-		| Http1ServerResponse
-		| (Http2ServerResponse & {
-				write: (chunk: string) => void;
-		  });
-	private url: URL;
-	private writer: WritableStreamDefaultWriter;
+	private connection: Connection;
 	private sanitize: SanitizerFunction;
 	private serialize: SerializerFunction;
 	private initialRetry: number | null;
@@ -162,105 +151,60 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	) {
 		super();
 
-		const {readable, writable} = new TransformStream();
-
-		this.writer = writable.getWriter();
-
 		if (req instanceof Request) {
-			this.request = req;
-
-			this.response = new Response(readable, {
-				status:
-					options.statusCode ??
-					(res as Response | null | undefined)?.status ??
-					DEFAULT_RESPONSE_CODE,
-				headers: {
-					...DEFAULT_RESPONSE_HEADERS,
-					...(res ? Object.fromEntries((res as Response).headers) : {}),
-				},
-			});
-		} else {
-			if (
-				!(
-					res instanceof Http1ServerResponse ||
-					res instanceof Http2ServerResponse
-				)
-			) {
+			this.connection = new FetchConnection(
+				req,
+				res as Response | null | undefined,
+				options
+			);
+		} else if (req instanceof Http1ServerRequest) {
+			if (res instanceof Http1ServerResponse) {
+				this.connection = new NodeHttp1Connection(req, res, options);
+			} else {
 				throw new SseError(
-					"When providing a Node IncomingMessage or Http2ServerRequest object, a corresponding ServerResponse or Http2ServerResponse object must also be provided."
+					"When providing a Node IncomingMessage object, " +
+						"a corresponding ServerResponse object must also be provided."
 				);
 			}
-
-			this.res = res;
-
-			const url = `http://${req.headers.host ?? "localhost"}${req.url}`;
-
-			const method = req.method ?? "GET";
-
-			const headers = new Headers();
-
-			const {rawHeaders} = req;
-
-			for (let index = 0; index < rawHeaders.length; index += 2) {
-				if (rawHeaders[index].startsWith(":")) {
-					continue;
-				}
-
-				headers.append(rawHeaders[index], rawHeaders[index + 1]);
-			}
-
-			const controller = new AbortController();
-
-			req.once("close", () => controller.abort());
-			res.once("close", () => controller.abort());
-
-			this.request = new Request(url, {
-				method,
-				headers,
-				signal: controller.signal,
-			});
-
-			this.response = new Response(readable, {
-				status: options.statusCode ?? res.statusCode ?? DEFAULT_RESPONSE_CODE,
-				headers: {
-					...DEFAULT_RESPONSE_HEADERS,
-					...(res.getHeaders() as Record<
-						string,
-						string | string[] | undefined
-					>),
-				},
-			});
-
+		} else if (req instanceof Http2ServerRequest) {
 			if (res instanceof Http2ServerResponse) {
-				for (const header of CONNECTION_SPECIFIC_HEADERS) {
-					this.response.headers.delete(header);
-				}
+				this.connection = new NodeHttp2CompatConnection(req, res, options);
+			} else {
+				throw new SseError(
+					"When providing a Node HTTP2ServerRequest object, " +
+						"a corresponding HTTP2ServerResponse object must also be provided."
+				);
 			}
+		} else {
+			throw new SseError(
+				"Malformed request or response objects given to session constructor. " +
+					"Must be one of IncomingMessage/ServerResponse from the Node HTTP/1 API, " +
+					"HTTP2ServerRequest/HTTP2ServerResponse from the Node HTTP/2 Compatibility API, " +
+					"or Request/Response from the Fetch API."
+			);
 		}
 
 		if (options.headers) {
 			for (const [key, value] of Object.entries(options.headers)) {
 				if (Array.isArray(value)) {
-					this.response.headers.delete(key);
+					this.connection.response.headers.delete(key);
 
 					for (const item of value) {
-						this.response.headers.append(key, item);
+						this.connection.response.headers.append(key, item);
 					}
 				} else if (value === undefined) {
-					this.response.headers.delete(key);
+					this.connection.response.headers.delete(key);
 				} else {
-					this.response.headers.set(key, value);
+					this.connection.response.headers.set(key, value);
 				}
 			}
 		}
 
-		this.url = new URL(this.request.url);
-
 		if (options.trustClientEventId !== false) {
 			this.lastId =
-				this.request.headers.get("last-event-id") ??
-				this.url.searchParams.get("lastEventId") ??
-				this.url.searchParams.get("evs_last_event_id") ??
+				this.connection.request.headers.get("last-event-id") ??
+				this.connection.url.searchParams.get("lastEventId") ??
+				this.connection.url.searchParams.get("evs_last_event_id") ??
 				"";
 		}
 
@@ -280,30 +224,22 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 			sanitizer: this.sanitize,
 		});
 
-		this.request.signal.addEventListener("abort", this.onDisconnected);
+		this.connection.request.signal.addEventListener(
+			"abort",
+			this.onDisconnected
+		);
 
 		setImmediate(this.initialize);
 	}
 
 	private initialize = async () => {
-		if (this.res) {
-			this.res.writeHead(
-				this.response.status,
-				Object.fromEntries(this.response.headers)
-			);
+		await this.connection.sendHead();
 
-			this.pumpWebResToNodeRes().catch((reason) => {
-				throw new SseError(
-					`Error when trying to pump Fetch Response ReadableStream to Node ServerResponse writable Stream: ${reason}`
-				);
-			});
-		}
-
-		if (this.url.searchParams.has("padding")) {
+		if (this.connection.url.searchParams.has("padding")) {
 			this.buffer.comment(" ".repeat(2049)).dispatch();
 		}
 
-		if (this.url.searchParams.has("evs_preamble")) {
+		if (this.connection.url.searchParams.has("evs_preamble")) {
 			this.buffer.comment(" ".repeat(2056)).dispatch();
 		}
 
@@ -323,9 +259,12 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	};
 
 	private onDisconnected = async () => {
-		this.request.signal.removeEventListener("abort", this.onDisconnected);
+		this.connection.request.signal.removeEventListener(
+			"abort",
+			this.onDisconnected
+		);
 
-		await this.writer.close();
+		await this.connection.cleanup();
 
 		if (this.keepAliveTimer) {
 			clearInterval(this.keepAliveTimer);
@@ -341,33 +280,9 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 		await this.flush();
 	};
 
-	/**
-	 * Continuously read from the web-based ReadableStream from the Response body and write chunks to the Node-based Stream in the ServerResponse object
-	 */
-	private pumpWebResToNodeRes = async () => {
-		// biome-ignore lint/style/noNonNullAssertion: Response body is created by us and guarunteed to exist as a ReadableStream
-		const reader = this.response.body!.getReader();
+	getRequest = () => this.connection.request;
 
-		while (true) {
-			const {done, value} = await reader.read();
-
-			if (done) {
-				break;
-			}
-
-			// biome-ignore lint/style/noNonNullAssertion: Response must be set if this function is called
-			const flushed = this.res!.write(value);
-
-			if (!flushed) {
-				// biome-ignore lint/style/noNonNullAssertion: Response must be set if this function is called
-				await new Promise((resolve) => this.res!.once("drain", resolve));
-			}
-		}
-	};
-
-	getRequest = () => this.request;
-
-	getResponse = () => this.response;
+	getResponse = () => this.connection.response;
 
 	/**
 	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
@@ -430,18 +345,12 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	 *
 	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
 	 */
-	flush = async (buffer = this.buffer, clear = true) => {
-		const contents = buffer.read();
+	flush = async () => {
+		const contents = this.buffer.read();
 
-		const encoded = Session.encoder.encode(contents);
+		this.buffer.clear();
 
-		if (clear) {
-			buffer.clear();
-		}
-
-		await this.writer.ready;
-
-		await this.writer.write(encoded);
+		await this.connection.sendChunk(contents);
 	};
 
 	/**
@@ -522,7 +431,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 		batcher: EventBuffer | ((buffer: EventBuffer) => void | Promise<void>)
 	) => {
 		if (batcher instanceof EventBuffer) {
-			await this.flush(batcher, false);
+			await this.connection.sendChunk(batcher.read());
 		} else {
 			const buffer = new EventBuffer({
 				serializer: this.serialize,
@@ -531,7 +440,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 
 			await batcher(buffer);
 
-			await this.flush(buffer);
+			await this.connection.sendChunk(buffer.read());
 		}
 	};
 }
