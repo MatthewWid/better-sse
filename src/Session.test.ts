@@ -40,7 +40,7 @@ afterEach(async () => {
 });
 
 describe("connection", () => {
-	it("constructs without errors when giving no options", () =>
+	it("constructs without errors when given no options", () =>
 		new Promise<void>((done) => {
 			server.on("request", (req, res) => {
 				expect(() => {
@@ -51,6 +51,25 @@ describe("connection", () => {
 			});
 
 			eventsource = new EventSource(url);
+		}));
+
+	it("throws when given an IncomingMessage object but no ServerResponse", () =>
+		new Promise<void>((done) => {
+			server.on("request", (req) => {
+				expect(() => new Session(req)).toThrowError("ServerResponse");
+
+				done();
+			});
+
+			eventsource = new EventSource(url);
+		}));
+
+	it("throws when given no arguments", () =>
+		new Promise<void>((done) => {
+			// @ts-expect-error testing no arguments
+			expect(() => new Session()).toThrowError("Malformed");
+
+			done();
 		}));
 
 	it("fires the connection event non-synchronously after response headers are sent", () =>
@@ -858,6 +877,17 @@ describe("http/2 compatibility api", () => {
 				await waitForConnect(session);
 
 				await new Promise<void>((resolve) => res.end(resolve));
+
+				done();
+			});
+
+			http2Req = http2Client.request().end();
+		}));
+
+	it("throws when given a Http2ServerRequest object but no Http2ServerResponse", () =>
+		new Promise<void>((done) => {
+			http2Server.on("request", async (req) => {
+				expect(() => new Session(req)).toThrowError("HTTP2ServerResponse");
 
 				done();
 			});
