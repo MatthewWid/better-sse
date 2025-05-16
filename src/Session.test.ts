@@ -934,6 +934,55 @@ describe("fetch api", () => {
 	});
 
 	describe("from fetch request/response", () => {
+		it("can pass options as the second argument in place of a response object", async () => {
+			const {request} = createRequest();
+
+			const session = new Session(request, {
+				headers: {
+					"X-Test": "123",
+				},
+			});
+
+			await waitForConnect(session);
+
+			const {headers} = session.getResponse();
+
+			expect(headers.get("X-Test")).toBe("123");
+		});
+
+		it("can pass options as the third argument when giving undefined in place of a response object", async () => {
+			const {request} = createRequest();
+
+			const session = new Session(request, undefined, {
+				headers: {
+					"X-Test": "123",
+				},
+			});
+
+			await waitForConnect(session);
+
+			const {headers} = session.getResponse();
+
+			expect(headers.get("X-Test")).toBe("123");
+		});
+
+		it("throws when passing options objects to both the second and third arguments at the same time", () => {
+			const {request} = createRequest();
+
+			expect(
+				() =>
+					new Session(
+						request,
+						{statusCode: 201},
+						{
+							headers: {
+								"X-Test": "123",
+							},
+						}
+					)
+			).toThrowError("not to both");
+		});
+
 		it("stores the original request object", async () => {
 			const {request} = createRequest();
 

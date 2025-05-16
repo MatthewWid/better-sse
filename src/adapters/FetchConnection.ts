@@ -15,7 +15,7 @@ class FetchConnection implements Connection {
 
 	constructor(
 		request: Request,
-		response?: Response | null,
+		response: Response | null,
 		options: ConnectionOptions = {}
 	) {
 		this.url = new URL(request.url);

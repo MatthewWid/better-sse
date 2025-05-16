@@ -147,20 +147,40 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 
 	constructor(
 		req: Http1ServerRequest | Http2ServerRequest | Request,
-		res?: Http1ServerResponse | Http2ServerResponse | Response | null,
-		options: SessionOptions<State> = {}
+		res?:
+			| Http1ServerResponse
+			| Http2ServerResponse
+			| Response
+			| SessionOptions<State>,
+		options?: SessionOptions<State>
 	) {
 		super();
 
+		let givenOptions = options ?? {};
+
 		if (req instanceof Request) {
-			this.connection = new FetchConnection(
-				req,
-				res as Response | null | undefined,
-				options
-			);
+			let givenRes: Response | null = null;
+
+			if (res) {
+				if (res instanceof Response) {
+					givenRes = res;
+				} else {
+					if (options) {
+						throw new SseError(
+							"When providing a Fetch Request object but no Response object, " +
+								"you may pass options as the second OR third argument " +
+								"to the session constructor, but not to both."
+						);
+					}
+
+					givenOptions = res;
+				}
+			}
+
+			this.connection = new FetchConnection(req, givenRes, givenOptions);
 		} else if (req instanceof Http1ServerRequest) {
 			if (res instanceof Http1ServerResponse) {
-				this.connection = new NodeHttp1Connection(req, res, options);
+				this.connection = new NodeHttp1Connection(req, res, givenOptions);
 			} else {
 				throw new SseError(
 					"When providing a Node IncomingMessage object, " +
@@ -169,7 +189,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 			}
 		} else if (req instanceof Http2ServerRequest) {
 			if (res instanceof Http2ServerResponse) {
-				this.connection = new NodeHttp2CompatConnection(req, res, options);
+				this.connection = new NodeHttp2CompatConnection(req, res, givenOptions);
 			} else {
 				throw new SseError(
 					"When providing a Node HTTP2ServerRequest object, " +
@@ -185,11 +205,11 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 			);
 		}
 
-		if (options.headers) {
-			applyHeaders(options.headers, this.connection.response.headers);
+		if (givenOptions.headers) {
+			applyHeaders(givenOptions.headers, this.connection.response.headers);
 		}
 
-		if (options.trustClientEventId !== false) {
+		if (givenOptions.trustClientEventId !== false) {
 			this.lastId =
 				this.connection.request.headers.get("last-event-id") ??
 				this.connection.url.searchParams.get("lastEventId") ??
@@ -197,16 +217,19 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 				"";
 		}
 
-		this.state = options.state ?? ({} as State);
+		this.state = givenOptions.state ?? ({} as State);
 
-		this.initialRetry = options.retry === null ? null : (options.retry ?? 2000);
+		this.initialRetry =
+			givenOptions.retry === null ? null : (givenOptions.retry ?? 2000);
 
 		this.keepAliveInterval =
-			options.keepAlive === null ? null : (options.keepAlive ?? 10000);
+			givenOptions.keepAlive === null
+				? null
+				: (givenOptions.keepAlive ?? 10000);
 
-		this.serialize = options.serializer ?? defaultSerializer;
+		this.serialize = givenOptions.serializer ?? defaultSerializer;
 
-		this.sanitize = options.sanitizer ?? defaultSanitizer;
+		this.sanitize = givenOptions.sanitizer ?? defaultSanitizer;
 
 		this.buffer = new EventBuffer({
 			serializer: this.serialize,
