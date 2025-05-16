@@ -146,6 +146,18 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	private keepAliveTimer?: ReturnType<typeof setInterval>;
 
 	constructor(
+		req: Http1ServerRequest,
+		res: Http1ServerResponse,
+		options?: SessionOptions<State>
+	);
+	constructor(
+		req: Http2ServerRequest,
+		res: Http2ServerResponse,
+		options?: SessionOptions<State>
+	);
+	constructor(req: Request, res?: Response, options?: SessionOptions<State>);
+	constructor(req: Request, options?: SessionOptions<State>);
+	constructor(
 		req: Http1ServerRequest | Http2ServerRequest | Request,
 		res?:
 			| Http1ServerResponse
