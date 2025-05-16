@@ -51,6 +51,39 @@ const waitForConnect = (session: Session): Promise<void> =>
 const getBuffer = (session: Session): EventBuffer =>
 	Reflect.get(session, "buffer");
 
+const createRequest = (
+	options: RequestInit = {},
+	urlString = "http://localhost:8080/sse"
+): {request: Request; controller: AbortController} => {
+	const url = new URL(urlString);
+
+	const controller = new AbortController();
+
+	return {
+		request: new Request(urlString, {
+			headers: {
+				Host: url.host,
+				Accept: "text/event-stream",
+				"Cache-Control": "no-cache",
+				// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/User-Agent#chrome_ua_string
+				"User-Agent":
+					"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
+				...options.headers,
+			},
+			signal: controller.signal,
+			...options,
+		}),
+		controller,
+	};
+};
+
+const createResponse = (
+	options: ResponseInit = {},
+	body: ConstructorParameters<typeof Response>[0] = null
+): {response: Response} => ({
+	response: new Response(body, options),
+});
+
 export {
 	createHttpServer,
 	createHttp2Server,
@@ -58,4 +91,6 @@ export {
 	getUrl,
 	waitForConnect,
 	getBuffer,
+	createRequest,
+	createResponse,
 };

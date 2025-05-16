@@ -14,6 +14,8 @@ import {
 	closeServer,
 	createHttp2Server,
 	createHttpServer,
+	createRequest,
+	createResponse,
 	getBuffer,
 	getUrl,
 	waitForConnect,
@@ -81,6 +83,8 @@ describe("connection", () => {
 
 				await waitForConnect(session);
 
+				expect(session.isConnected).toBeTruthy();
+
 				done();
 			});
 
@@ -104,7 +108,7 @@ describe("connection", () => {
 			});
 		}));
 
-	it("fires the disconnection event when the server closes the response stream", () =>
+	it("fires the disconnection event when the server ends the response stream", () =>
 		new Promise<void>((done) => {
 			server.on("request", async (req, res) => {
 				const session = new Session(req, res);
@@ -116,6 +120,29 @@ describe("connection", () => {
 				await waitForConnect(session);
 
 				res.end();
+			});
+
+			eventsource = new EventSource(url);
+		}));
+
+	it("fires the disconnection event when the response is closed", () =>
+		new Promise<void>((done) => {
+			server.on("request", async (req, res) => {
+				const session = new Session(req, res);
+
+				expect(session.isConnected).toBeFalsy();
+
+				session.on("disconnected", () => {
+					expect(session.isConnected).toBeFalsy();
+
+					done();
+				});
+
+				await waitForConnect(session);
+
+				expect(session.isConnected).toBeTruthy();
+
+				res.emit("close");
 			});
 
 			eventsource = new EventSource(url);
@@ -139,29 +166,6 @@ describe("connection", () => {
 				expect(session.isConnected).toBeTruthy();
 
 				res.end();
-			});
-
-			eventsource = new EventSource(url);
-		}));
-
-	it("initiates disconnect when the response is closed", () =>
-		new Promise<void>((done) => {
-			server.on("request", async (req, res) => {
-				const session = new Session(req, res);
-
-				expect(session.isConnected).toBeFalsy();
-
-				session.on("disconnected", () => {
-					expect(session.isConnected).toBeFalsy();
-
-					done();
-				});
-
-				await waitForConnect(session);
-
-				expect(session.isConnected).toBeTruthy();
-
-				res.emit("close");
 			});
 
 			eventsource = new EventSource(url);
@@ -837,6 +841,212 @@ describe("polyfill support", () => {
 
 			eventsource = new EventSource(url);
 		}));
+});
+
+describe("fetch api", () => {
+	describe("from node incomingmessage/serverresponse", () => {
+		it("copies the method, status code and headers from the req and res", () =>
+			new Promise<void>((done) => {
+				server.on("request", async (req, res) => {
+					res.statusCode = 201;
+					res.setHeader("X-Test-Res", "123");
+
+					const session = new Session(req, res);
+
+					await waitForConnect(session);
+
+					const request = session.getRequest();
+
+					expect(request.url).toContain(req.headers.host);
+					expect(request.url).toContain(req.url);
+					expect(request.method).toBe(req.method);
+					expect(request.headers.get("X-Test-Single")).toBe("456");
+					expect(request.headers.get("X-Test-Array")).toBe("123, 456");
+
+					for (const [key, value] of Object.entries(req.headers)) {
+						expect(request.headers.has(key)).toBeTruthy();
+						expect(request.headers.get(key)).toBe(value);
+					}
+
+					const response = session.getResponse();
+
+					expect(response.status).toBe(res.statusCode);
+					expect(response.headers.get("X-Test-Res")).toBe("123");
+
+					done();
+				});
+
+				eventsource = new EventSource(url, {
+					headers: {
+						"X-Test-Single": "456",
+						"X-Test-Array": ["123", "456"],
+					},
+				});
+			}));
+
+		it("triggers abort signal on req close", () =>
+			new Promise<void>((done) => {
+				server.on("request", async (req, res) => {
+					const session = new Session(req, res);
+
+					await waitForConnect(session);
+
+					const request = session.getRequest();
+
+					const callback = vi.fn();
+
+					request.signal.addEventListener("abort", callback);
+
+					req.once("close", () => {
+						expect(callback).toHaveBeenCalled();
+						done();
+					});
+
+					req.destroy();
+				});
+
+				eventsource = new EventSource(url);
+			}));
+
+		it("triggers abort signal on res close", () =>
+			new Promise<void>((done) => {
+				server.on("request", async (req, res) => {
+					const session = new Session(req, res);
+
+					await waitForConnect(session);
+
+					const request = session.getRequest();
+
+					const callback = vi.fn();
+
+					request.signal.addEventListener("abort", callback);
+
+					res.once("close", () => {
+						expect(callback).toHaveBeenCalled();
+						done();
+					});
+
+					res.end();
+				});
+
+				eventsource = new EventSource(url);
+			}));
+	});
+
+	describe("from fetch request/response", () => {
+		it("stores the original request object", async () => {
+			const {request} = createRequest();
+
+			const session = new Session(request);
+
+			await waitForConnect(session);
+
+			expect(session.getRequest()).toBe(request);
+		});
+
+		it("copies the status code and headers from the response", async () => {
+			const {request} = createRequest();
+			const {response} = createResponse({
+				status: 201,
+				headers: {
+					pragma: "yes-cache",
+					"X-Test": "123",
+				},
+			});
+
+			const session = new Session(request, response);
+
+			await waitForConnect(session);
+
+			const {status, headers} = session.getResponse();
+
+			expect(status).toBe(201);
+			expect(headers.get("Pragma")).toBe("yes-cache");
+			expect(headers.get("X-Test")).toBe("123");
+		});
+
+		it("prioritizes options status and headers over response", async () => {
+			const {request} = createRequest();
+			const {response} = createResponse({
+				status: 201,
+				headers: {
+					"X-Test": "123",
+				},
+			});
+
+			const session = new Session(request, response, {
+				statusCode: 202,
+				headers: {
+					"X-Test": "456",
+				},
+			});
+
+			await waitForConnect(session);
+
+			const {status, headers} = session.getResponse();
+
+			expect(status).toBe(202);
+			expect(headers.get("X-Test")).toBe("456");
+		});
+
+		it("triggers disconnect on request controller abort", async () => {
+			const {request, controller} = createRequest();
+
+			const session = new Session(request);
+
+			await waitForConnect(session);
+
+			const callback = vi.fn();
+
+			session.on("disconnected", callback);
+
+			controller.abort();
+
+			expect(callback).toHaveBeenCalled();
+		});
+
+		it("writes data as UTF-8-encoded bytes to the response stream", async () => {
+			const {request, controller} = createRequest();
+
+			const session = new Session(request);
+
+			await waitForConnect(session);
+
+			const response = session.getResponse();
+
+			if (!response.body) {
+				throw new Error("Response body does not exist.");
+			}
+
+			session.push("ABC");
+
+			setImmediate(() => {
+				controller.abort();
+			});
+
+			const data: Uint8Array[] = [];
+
+			for await (const chunk of response.body) {
+				data.push(chunk);
+			}
+
+			for (const chunk of data) {
+				expect(chunk).toBeInstanceOf(Uint8Array);
+			}
+
+			const last = data.at(-1);
+
+			if (!last) {
+				throw new Error("No chunks written to response stream.");
+			}
+
+			const decoder = new TextDecoder("utf-8");
+
+			const decoded = decoder.decode(last);
+
+			expect(decoded).toContain("ABC");
+		});
+	});
 });
 
 describe("http/2 compatibility api", () => {
