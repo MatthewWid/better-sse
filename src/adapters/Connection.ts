@@ -5,9 +5,9 @@ import type {SessionOptions} from "../Session";
  * abstracting away the differences between the Node HTTP API and the Fetch API.
  */
 interface Connection {
+	url: URL;
 	request: Request;
 	response: Response;
-	url: URL;
 
 	/**
 	 * Send the response head with status code and headers.

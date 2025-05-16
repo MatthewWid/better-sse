@@ -1,4 +1,5 @@
 import type {IncomingMessage, ServerResponse} from "node:http";
+import {applyHeaders} from "../lib/applyHeaders";
 import {
 	DEFAULT_REQUEST_HOST,
 	DEFAULT_REQUEST_METHOD,
@@ -10,9 +11,9 @@ import type {Connection, ConnectionOptions} from "./Connection";
 class NodeHttp1Connection implements Connection {
 	private controller: AbortController;
 
+	url: URL;
 	request: Request;
 	response: Response;
-	url: URL;
 
 	constructor(
 		private req: IncomingMessage,
@@ -27,19 +28,7 @@ class NodeHttp1Connection implements Connection {
 
 		const headers = new Headers();
 
-		for (const [name, value] of Object.entries(req.headers)) {
-			if (!value) {
-				continue;
-			}
-
-			if (Array.isArray(value)) {
-				for (const item of value) {
-					headers.append(name, item);
-				}
-			} else {
-				headers.append(name, value);
-			}
-		}
+		applyHeaders(req.headers, headers);
 
 		this.controller = new AbortController();
 
@@ -54,11 +43,15 @@ class NodeHttp1Connection implements Connection {
 
 		this.response = new Response(null, {
 			status: options.statusCode ?? res.statusCode ?? DEFAULT_RESPONSE_CODE,
-			headers: {
-				...DEFAULT_RESPONSE_HEADERS,
-				...(res.getHeaders() as Record<string, string | string[] | undefined>),
-			},
+			headers: DEFAULT_RESPONSE_HEADERS,
 		});
+
+		if (res) {
+			applyHeaders(
+				res.getHeaders() as Record<string, string | string[] | undefined>,
+				this.response.headers
+			);
+		}
 	}
 
 	private onClose = () => {

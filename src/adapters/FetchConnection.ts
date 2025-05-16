@@ -1,3 +1,4 @@
+import {applyHeaders} from "../lib/applyHeaders";
 import {
 	DEFAULT_RESPONSE_CODE,
 	DEFAULT_RESPONSE_HEADERS,
@@ -8,15 +9,17 @@ class FetchConnection implements Connection {
 	private static encoder = new TextEncoder();
 	private writer: WritableStreamDefaultWriter;
 
+	url: URL;
 	request: Request;
 	response: Response;
-	url: URL;
 
 	constructor(
 		request: Request,
 		response?: Response | null,
 		options: ConnectionOptions = {}
 	) {
+		this.url = new URL(request.url);
+
 		this.request = request;
 
 		const {readable, writable} = new TransformStream();
@@ -25,13 +28,12 @@ class FetchConnection implements Connection {
 
 		this.response = new Response(readable, {
 			status: options.statusCode ?? response?.status ?? DEFAULT_RESPONSE_CODE,
-			headers: {
-				...DEFAULT_RESPONSE_HEADERS,
-				...(response ? Object.fromEntries(response.headers) : {}),
-			},
+			headers: DEFAULT_RESPONSE_HEADERS,
 		});
 
-		this.url = new URL(request.url);
+		if (response) {
+			applyHeaders(response.headers, this.response.headers);
+		}
 	}
 
 	sendHead = () => {

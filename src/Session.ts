@@ -10,6 +10,7 @@ import {NodeHttp1Connection} from "./adapters/NodeHttp1Connection";
 import {NodeHttp2CompatConnection} from "./adapters/NodeHttp2CompatConnection";
 import {SseError} from "./lib/SseError";
 import {type EventMap, TypedEmitter} from "./lib/TypedEmitter";
+import {applyHeaders} from "./lib/applyHeaders";
 import {createPushFromIterable} from "./lib/createPushFromIterable";
 import {createPushFromStream} from "./lib/createPushFromStream";
 import {generateId} from "./lib/generateId";
@@ -185,19 +186,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 		}
 
 		if (options.headers) {
-			for (const [key, value] of Object.entries(options.headers)) {
-				if (Array.isArray(value)) {
-					this.connection.response.headers.delete(key);
-
-					for (const item of value) {
-						this.connection.response.headers.append(key, item);
-					}
-				} else if (value === undefined) {
-					this.connection.response.headers.delete(key);
-				} else {
-					this.connection.response.headers.set(key, value);
-				}
-			}
+			applyHeaders(options.headers, this.connection.response.headers);
 		}
 
 		if (options.trustClientEventId !== false) {
