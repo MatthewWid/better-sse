@@ -3,6 +3,7 @@ import {
 	ServerResponse as Http1ServerResponse,
 } from "node:http";
 import {Http2ServerRequest, Http2ServerResponse} from "node:http2";
+import {setImmediate} from "node:timers";
 import {EventBuffer, type EventBufferOptions} from "./EventBuffer";
 import type {Connection} from "./adapters/Connection";
 import {FetchConnection} from "./adapters/FetchConnection";
