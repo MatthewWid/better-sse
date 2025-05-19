@@ -11,164 +11,342 @@ Better SSE can be used with any web-server framework that uses the underlying [N
 
 Feel free to [submit a PR](https://github.com/MatthewWid/better-sse/pulls) with a minimal example for another framework!
 
-### [HTTP](https://nodejs.org/api/http.html)
+### [Node HTTP/1 API](https://nodejs.org/api/http.html)
 
 ```typescript title="server.ts"
-import { createServer } from "http";
-import { createSession } from "better-sse";
+import { createServer } from "node:http"
+import { createSession } from "better-sse"
 
 const server = createServer(async (req, res) => {
-	switch (req.url) {
+    switch (req.url) {
+        case "/sse": {
+            const session = await createSession(req, res)
+
+            session.push("Hello world!")
+
+            break
+        }
+        default: {
+            res.writeHead(404).end()
+            break
+        }
+    }
+})
+
+server.listen(8080)
+```
+
+### [Node HTTP/2 Compatibility API](https://nodejs.org/api/http2.html#compatibility-api)
+
+```typescript title="server.ts"
+import { createSecureServer } from "node:http2"
+import { createSession } from "better-sse"
+
+const server = createSecureServer({key, cert}, async (req, res) => {
+    switch (req.url) {
+        case "/sse": {
+            const session = await createSession(req, res)
+
+            session.push("Hello world!")
+
+            break
+        }
+        default: {
+            res.stream.respond({ ":status": 404 })
+            break
+        }
+    }
+})
+
+server.listen(8080)
+```
+
+### [Deno HTTP API](https://docs.deno.com/runtime/fundamentals/http_server/)
+
+```typescript title="server.ts"
+import { createResponse } from "npm:better-sse"
+
+Deno.serve({ port: 8080 }, (request) => {
+    const url = new URL(request.url)
+
+    switch (url.pathname) {
+        case "/sse": {
+            return createResponse(request, (session) => {
+                session.push("Hello world!")
+            })
+        }
+        default: {
+            return new Response("404 Not Found", {
+                status: 404,
+                headers: {
+                    "Content-Type": "text/plain",
+                },
+            })
+        }
+    }
+})
+```
+
+### [Bun HTTP API](https://bun.sh/docs/api/http)
+
+```typescript title="server.ts"
+import { createResponse } from "better-sse"
+
+Bun.serve({
+    port: 8080,
+    routes: {
+        "/sse": (req) =>
+            createResponse(
+                request,
+                // Set the keep-alive interval to below
+                // Bun's default idle timeout of ten (10) seconds
+                { keepAlive: 8000 },
+                (session) => {
+                    session.push("Hello world!")
+                }
+            ),
+    },
+    fetch() {
+        return new Response("404 Not Found", {
+            status: 404,
+            headers: {
+                "Content-Type": "text/plain",
+            },
+        })
+    },
+
+})
+```
+
+### [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
+
+Using [`@mjackson/node-fetch-server`](https://www.npmjs.com/package/@mjackson/node-fetch-server) as an example of a server framework that implements the Fetch API.
+
+```typescript title="server.ts"
+import { createServer } from "node:http"
+import { createRequestListener, type FetchHandler } from "@mjackson/node-fetch-server"
+import { createResponse } from "better-sse"
+
+const handler: FetchHandler = (request) => {
+	const url = new URL(request.url)
+
+	switch (url.pathname) {
 		case "/sse": {
-			const session = await createSession(req, res);
-
-			session.push("Hello world!");
-
-			break;
+			return createResponse(request, (session) => {
+				session.push("Hello world!")
+			})
 		}
 		default: {
-			res.writeHead(404).end();
+			return new Response("404 Not Found", {
+				status: 404,
+				headers: {
+					"Content-Type": "text/plain",
+				},
+			})
 		}
 	}
-});
+}
 
-server.listen(8080);
+const server = createServer(createRequestListener(handler))
+
+server.listen(8080)
 ```
 
 ### [Express](https://expressjs.com/)
 
 ```typescript title="server.ts"
-import express from "express";
-import { createSession } from "better-sse";
+import express from "express"
+import { createSession } from "better-sse"
 
-const app = express();
+const app = express()
 
 app.get("/sse", async (req, res) => {
-    const session = await createSession(req, res);
-    session.push("Hello world!");
-});
+    const session = await createSession(req, res)
+    session.push("Hello world!")
+})
 
-app.listen(8080);
+app.listen(8080)
 ```
 
 ### [Koa](https://koajs.com/)
 
 ```typescript title="server.ts"
-import Koa from "koa";
-import Router from "@koa/router";
-import { createSession } from "better-sse";
+import Koa from "koa"
+import Router from "@koa/router"
+import { createSession } from "better-sse"
 
-const app = new Koa();
-const router = new Router();
+const app = new Koa()
+const router = new Router()
 
-router.get( "/sse", async (ctx) => {
+router.get("/sse", async (ctx) => {
     // Prevent Koa sending a response and closing the connection
-    ctx.respond = false;
+    ctx.respond = false
 
-    const session = await createSession(ctx.req, ctx.res);
+    const session = await createSession(ctx.req, ctx.res)
 
-    session.push("Hello world!");
-});
+    session.push("Hello world!")
+})
 
-app.use(router.routes());
+app.use(router.routes())
 
-app.listen(8080);
+app.listen(8080)
 ```
 
-### [Nest](https://nestjs.com/)
-
-Assuming you are using [`@nestjs/platform-express`](https://www.npmjs.com/package/@nestjs/platform-express) (the default).
+### [Hono](https://hono.dev/)
 
 ```typescript title="server.ts"
-import { Controller, Get, Req, Res } from "@nestjs/common";
-import { Request, Response } from "express";
-import { createSession } from "better-sse";
+import { Hono } from "hono"
+import { serve } from "@hono/node-server"
+import { createResponse } from "better-sse"
 
-@Controller()
-export class SseController {
-  @Get("sse")
-  async sse(@Req() req: Request, @Res() res: Response) {
-    const sse = await createSession(req, res);
+const app = new Hono()
 
-    sse.push("Hello world!");
-  }
-}
+app.get("/sse", (c) =>
+    createResponse(c.req.raw, (session) => {
+        session.push("Hello world!")
+    })
+)
+
+serve({ fetch: app.fetch, port: 8080 })
 ```
 
 ### [Next.js](https://nextjs.org/)
 
-Currently only [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) under the [Pages Router](https://nextjs.org/docs/pages) is supported.
+#### [App Router](https://nextjs.org/docs/app) ([Route Handlers](https://nextjs.org/docs/app/building-your-application/routing/route-handlers))
+
+```typescript title="app/api/sse/route.ts"
+import { createResponse } from "better-sse"
+
+export async function GET(request: Request) {
+    return createResponse(request, (session) => {
+        session.push("Hello world!")
+    })
+}
+```
+
+#### [Pages Router](https://nextjs.org/docs/pages) ([API Routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes))
 
 ```typescript title="pages/api/sse.ts"
-import { NextApiRequest, NextApiResponse } from "next";
-import { createSession } from "better-sse";
+import { NextApiRequest, NextApiResponse } from "next"
+import { createSession } from "better-sse"
 
 export default async function handler(
         req: NextApiRequest,
         res: NextApiResponse
 ) {
-        const session = await createSession(req, res);
+        const session = await createSession(req, res)
 
-        session.push("Hello, world!");
+        session.push("Hello world!")
 }
 ```
 
-[Issue #79](https://github.com/MatthewWid/better-sse/issues/79) tracks support for the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) objects which will enable compatibility with [Route Handlers](https://nextjs.org/docs/app/building-your-application/routing/route-handlers) under the [App Router](https://nextjs.org/docs/app).
+### [Nest](https://nestjs.com/)
+
+#### [`@nestjs/platform-express`](https://www.npmjs.com/package/@nestjs/platform-express)
+
+```typescript title="server.ts"
+import { Controller, Get, Req, Res } from "@nestjs/common"
+import { Request, Response } from "express"
+import { createSession } from "better-sse"
+
+@Controller()
+export class SseController {
+  @Get("sse")
+  async sse(@Req() req: Request, @Res() res: Response) {
+    const session = await createSession(req, res)
+
+    session.push("Hello world!")
+  }
+}
+```
+
+#### [`@nestjs/platform-fastify`](https://www.npmjs.com/package/@nestjs/platform-fastify)
+
+```typescript title="server.ts"
+import { Controller, Get, Req, Res } from "@nestjs/common"
+import { FastifyReply, FastifyRequest } from "fastify"
+import { createSession } from "better-sse"
+
+@Controller()
+export class SseController {
+  @Get("sse")
+  async sse(@Req() req: FastifyRequest, @Res() res: FastifyReply) {
+    const session = await createSession(req.raw, res.raw)
+
+    session.push("Hello world!")
+  }
+}
+```
 
 ### [Fastify](https://fastify.dev/)
 
 ```typescript title="server.ts"
-import Fastify from "fastify";
-import { createSession } from "better-sse";
+import Fastify from "fastify"
+import { createSession } from "better-sse"
 
-const fastify = Fastify();
+const fastify = Fastify()
 
 fastify.get("/sse", async (request, reply) => {
-        const session = await createSession(request.raw, reply.raw);
-        session.push("Hello world!");
-});
+        const session = await createSession(request.raw, reply.raw)
 
-fastify.listen({ port: 8080 });
+        session.push("Hello world!")
+})
+
+fastify.listen({ port: 8080 })
+```
+
+### [Remix](https://remix.run/)
+
+```typescript title="app/routes/sse.ts"
+import { LoaderFunction } from "@remix-run/node"
+import { createResponse } from "better-sse"
+
+export const loader: LoaderFunction = ({request}) =>
+    createResponse(request, (session) => {
+        session.push("Hello world!")
+    })
 ```
 
 ### [Adonis](https://adonisjs.com/)
 
 ```typescript title="server.ts"
-import router from "@adonisjs/core/services/router";
-import { createSession } from "better-sse";
+import router from "@adonisjs/core/services/router"
+import { createSession } from "better-sse"
 
 router.get("/sse", async ({ request, response }) => {
-  const session = await createSession(request.request, response.response);
-  session.push("Hello world!");
-});
+    const session = await createSession(request.request, response.response)
+
+    session.push("Hello world!")
+})
 ```
 
 ### [Hapi](https://hapi.dev/)
 
 ```typescript title="server.ts"
-import Hapi from "@hapi/hapi";
-import { createSession } from "better-sse";
+import Hapi from "@hapi/hapi"
+import { createSession } from "better-sse"
 
 const init = async () => {
     const server = Hapi.server({
         port: 8080,
         host: "localhost",
-    });
+    })
 
     server.route({
         method: "GET",
         path: "/sse",
         handler: async ({ raw }, { abandon }) => {
-            const session = await createSession(raw.req, raw.res);
+            const session = await createSession(raw.req, raw.res)
 
-            session.push("Hello world!");
+            session.push("Hello world!")
 
-            return abandon;
+            // Prevent Hapi from interacting further with the response stream
+            return abandon
         },
-    });
+    })
 
-    await server.start();
-};
+    await server.start()
+}
 
-init();
+init()
 ```
