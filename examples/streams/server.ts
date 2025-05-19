@@ -1,11 +1,11 @@
-import path from "node:path";
 import {Readable} from "node:stream";
 import {createSession} from "better-sse";
 import express from "express";
+import {getPublicDirPath} from "../utils";
 
 const app = express();
 
-app.use(express.static(path.resolve(__dirname, "./public")));
+app.use(express.static(getPublicDirPath(__dirname)));
 
 app.get("/sse", async (req, res) => {
 	/**

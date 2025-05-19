@@ -1,5 +1,4 @@
 import {createSecureServer} from "node:http2";
-import {resolve} from "node:path";
 import {promisify} from "node:util";
 import {createSession} from "better-sse";
 import {
@@ -7,15 +6,15 @@ import {
 	type CertificateCreationResult,
 	createCertificate as createCertificateCallback,
 } from "pem";
+import {getFrontendFiles} from "../utils";
 
 (async () => {
+	const {indexHtmlPath, indexJsPath} = getFrontendFiles(__dirname);
+
 	const createCertificate = promisify<
 		CertificateCreationOptions,
 		CertificateCreationResult
 	>(createCertificateCallback);
-
-	const indexHtmlPath = resolve(__dirname, "./public/index.html");
-	const indexJsPath = resolve(__dirname, "./public/index.js");
 
 	const {serviceKey: key, certificate: cert} = await createCertificate({
 		selfSigned: true,

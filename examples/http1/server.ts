@@ -1,13 +1,8 @@
-import {readFileSync} from "node:fs";
-import {RequestListener, createServer} from "node:http";
-import {resolve} from "node:path";
-import {createSession} from "../../build";
+import {type RequestListener, createServer} from "node:http";
+import {createSession} from "better-sse";
+import {getFrontendFiles} from "../utils";
 
-const indexHtmlPath = resolve(__dirname, "./public/index.html");
-const indexJsPath = resolve(__dirname, "./public/index.js");
-
-const indexHtmlContent = readFileSync(indexHtmlPath, "utf8");
-const indexJsContent = readFileSync(indexJsPath, "utf8");
+const {indexHtmlContent, indexJsContent} = getFrontendFiles(__dirname);
 
 const handler: RequestListener = async (req, res) => {
 	switch (req.url) {

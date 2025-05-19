@@ -1,14 +1,9 @@
-import {readFileSync} from "node:fs";
 import * as http from "node:http";
-import {resolve} from "node:path";
 import {createRequestListener} from "@mjackson/node-fetch-server";
 import {createResponse} from "better-sse";
+import {getFrontendFiles} from "../utils";
 
-const indexHtmlPath = resolve(__dirname, "./public/index.html");
-const indexJsPath = resolve(__dirname, "./public/index.js");
-
-const indexHtmlContent = readFileSync(indexHtmlPath, "utf8");
-const indexJsContent = readFileSync(indexJsPath, "utf8");
+const {indexHtmlContent, indexJsContent} = getFrontendFiles(__dirname);
 
 const handler = async (request: Request) => {
 	const url = new URL(request.url);

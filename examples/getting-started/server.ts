@@ -1,10 +1,10 @@
-import path from "node:path";
 import {type Session, createSession} from "better-sse";
 import express from "express";
+import {getPublicDirPath} from "../utils";
 
 const app = express();
 
-app.use(express.static(path.resolve(__dirname, "./public")));
+app.use(express.static(getPublicDirPath(__dirname)));
 
 /**
  * Needed to make TypeScript recognize the Session object attached to the response object.
