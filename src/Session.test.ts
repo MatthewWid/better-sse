@@ -58,6 +58,7 @@ describe("connection", () => {
 	it("throws when given an IncomingMessage object but no ServerResponse", () =>
 		new Promise<void>((done) => {
 			server.on("request", (req) => {
+				// @ts-expect-error testing no ServerResponse
 				expect(() => new Session(req)).toThrowError("ServerResponse");
 
 				done();
@@ -971,6 +972,7 @@ describe("fetch api", () => {
 
 			expect(
 				() =>
+					// @ts-expect-error testing passing options to both second and third arguments
 					new Session(
 						request,
 						{statusCode: 201},
@@ -1146,6 +1148,7 @@ describe("http/2 compatibility api", () => {
 	it("throws when given a Http2ServerRequest object but no Http2ServerResponse", () =>
 		new Promise<void>((done) => {
 			http2Server.on("request", async (req) => {
+				// @ts-expect-error testing no Http2ServerResponse
 				expect(() => new Session(req)).toThrowError("HTTP2ServerResponse");
 
 				done();

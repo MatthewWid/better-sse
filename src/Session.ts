@@ -256,7 +256,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 		setImmediate(this.initialize);
 	}
 
-	private initialize = async () => {
+	private initialize = () => {
 		this.connection.sendHead();
 
 		if (this.connection.url.searchParams.has("padding")) {
@@ -282,7 +282,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 		this.emit("connected");
 	};
 
-	private onDisconnected = async () => {
+	private onDisconnected = () => {
 		this.connection.request.signal.removeEventListener(
 			"abort",
 			this.onDisconnected
@@ -299,7 +299,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 		this.emit("disconnected");
 	};
 
-	private keepAlive = async () => {
+	private keepAlive = () => {
 		this.buffer.comment().dispatch();
 		this.flush();
 	};
@@ -397,7 +397,10 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	): this => {
 		if (!this.isConnected) {
 			throw new SseError(
-				"Cannot push data to a non-active session. Ensure the session is connected before attempting to push events."
+				"Cannot push data to a non-active session. " +
+					"Ensure the session is connected before attempting to push events. " +
+					"If using the Fetch API, the response stream " +
+					"must begin being consumed before the session is considered connected."
 			);
 		}
 

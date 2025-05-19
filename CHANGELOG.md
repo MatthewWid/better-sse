@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Added support for the `Session` constructor to be able to take in a [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) (and optionally a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response)) object from the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
 * Added the `Session#getRequest` and `Session#getResponse` methods to retrieve the request and response objects, respectively.
+* Added the `createResponse` utility function to create a `Session` instance and immediately return its associated `Response` object.
 
 ### Changed
 
