@@ -10,9 +10,16 @@ This directory showcases examples of using Better SSE.
 
 ## Table of Contents
 
+### Use Cases
+
 -   [Getting Started](./getting-started)
 -   [Channels](./channels)
 -   [Streams](./streams)
--   [HTTP/2](./http2)
--   [System Resource Monitor](./resource-monitor)
 -   [Benchmarks](./benchmarks)
+-   [System Resource Monitor](./resource-monitor)
+
+### Frameworks
+
+-   [Node HTTP/1 API](./http1)
+-   [Node HTTP/2 Compatibility API](./http2-compat)
+-   [Fetch API](./fetch)

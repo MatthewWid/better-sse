@@ -44,7 +44,7 @@ import {
 			case "/sse": {
 				const session = await createSession(req, res);
 
-				session.push("Hello world", "ping");
+				session.push("Hello world!", "ping");
 
 				break;
 			}
