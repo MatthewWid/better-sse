@@ -24,22 +24,17 @@ class NodeHttp1Connection implements Connection {
 			`http://${req.headers.host ?? DEFAULT_REQUEST_HOST}${req.url}`
 		);
 
-		const method = req.method ?? DEFAULT_REQUEST_METHOD;
-
-		const headers = new Headers();
-
-		applyHeaders(req.headers, headers);
-
 		this.controller = new AbortController();
 
 		req.once("close", this.onClose);
 		res.once("close", this.onClose);
 
 		this.request = new Request(this.url, {
-			method,
-			headers,
+			method: req.method ?? DEFAULT_REQUEST_METHOD,
 			signal: this.controller.signal,
 		});
+
+		applyHeaders(req.headers, this.request.headers);
 
 		this.response = new Response(null, {
 			status: options.statusCode ?? res.statusCode ?? DEFAULT_RESPONSE_CODE,

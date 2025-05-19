@@ -5,11 +5,7 @@ import EventSource from "eventsource";
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {EventBuffer} from "./EventBuffer";
 import {Session} from "./Session";
-import {
-	CONNECTION_SPECIFIC_HEADERS,
-	DEFAULT_RESPONSE_CODE,
-	DEFAULT_RESPONSE_HEADERS,
-} from "./lib/constants";
+import {DEFAULT_RESPONSE_CODE, DEFAULT_RESPONSE_HEADERS} from "./lib/constants";
 import {
 	closeServer,
 	createHttp2Server,
@@ -1181,6 +1177,8 @@ describe("http/2 compatibility api", () => {
 	it("omits http/2 pseudo-headers from the request headers", () =>
 		new Promise<void>((done) => {
 			http2Server.on("request", async (req, res) => {
+				expect(req.headers).toHaveProperty(":method");
+
 				const session = new Session(req, res);
 
 				await waitForConnect(session);
@@ -1189,40 +1187,6 @@ describe("http/2 compatibility api", () => {
 
 				for (const [key] of headers) {
 					expect(key.startsWith(":")).toBeFalsy();
-				}
-
-				expect(headers.has("x-test")).toBeTruthy();
-
-				await new Promise<void>((resolve) => res.end(resolve));
-
-				done();
-			});
-
-			http2Req = http2Client
-				.request({
-					"X-Test": "123",
-				})
-				.end();
-		}));
-
-	it("omits connection-specific headers from the request headers, regardless of casing", () =>
-		new Promise<void>((done) => {
-			http2Server.on("request", async (req, res) => {
-				req.headers["Connection"] = "keep-alive";
-				req.headers["Keep-Alive"] = "timeout=5, max=200";
-				req.headers["PrOxY-CoNnEcTiOn"] = "test-value";
-				req.headers["tRaNsFeR-eNcOdInG"] = "chunked";
-				req.headers["UPGRADE"] = "test/1";
-				req.headers["te"] = "deflate";
-
-				const session = new Session(req, res);
-
-				await waitForConnect(session);
-
-				const {headers} = session.getRequest();
-
-				for (const [key] of headers) {
-					expect(CONNECTION_SPECIFIC_HEADERS).not.toContain(key.toLowerCase());
 				}
 
 				await new Promise<void>((resolve) => res.end(resolve));

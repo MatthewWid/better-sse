@@ -1,5 +1,5 @@
 import {expect, it, vi} from "vitest";
-import {Session, SessionOptions} from "./Session";
+import {Session, type SessionOptions} from "./Session";
 import {createResponse} from "./createResponse";
 import {
 	createRequest as createTestRequest,
