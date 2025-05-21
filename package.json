@@ -1,6 +1,6 @@
 {
 	"name": "better-sse",
-	"description": "Dead simple, dependency-less, spec-compliant server-sent events implementation for Node, written in TypeScript.",
+	"description": "Dead simple, dependency-less, spec-compliant server-sent events implementation written in TypeScript.",
 	"version": "0.14.1",
 	"license": "MIT",
 	"author": "Matthew W. <matthew.widdi@gmail.com>",
