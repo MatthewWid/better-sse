@@ -178,32 +178,6 @@ Creates and returns a promise that resolves to an instance of a [Session](#sessi
 
 Takes the [same arguments as the Session class constructor](#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest-res-serverresponse--http2serverresponse-options-).
 
-### `createResponse`: `<State>(...args: ConstructorParameters<typeof Session>, (session: Session<State>) => void) => Response`
-
-A convenience function to create a new session and return its `Response` immediately.
-
-The last argument should be a callback function that will be invoked with an instance of Session once it has connected.
-
-The following code:
-
-```typescript
-return createResponse(request, (session) => {
-    session.push("Hello, world!")
-})
-```
-
-Is equivalent to:
-
-```typescript
-const session = await createSession(request)
-
-session.once("connected", () => {
-    session.push("Hello, world!")
-})
-
-return session.getResponse()
-```
-
 ### `Channel<State, SessionState>`
 
 *Extends from [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter)*.
