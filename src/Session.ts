@@ -1,17 +1,28 @@
 import {
-	type IncomingMessage as Http1ServerRequest,
+	IncomingMessage as Http1ServerRequest,
 	ServerResponse as Http1ServerResponse,
-	type OutgoingHttpHeaders,
 } from "node:http";
-import type {Http2ServerRequest, Http2ServerResponse} from "node:http2";
+import {Http2ServerRequest, Http2ServerResponse} from "node:http2";
+import {setImmediate} from "node:timers";
 import {EventBuffer, type EventBufferOptions} from "./EventBuffer";
+import type {Connection} from "./adapters/Connection";
+import {FetchConnection} from "./adapters/FetchConnection";
+import {NodeHttp1Connection} from "./adapters/NodeHttp1Connection";
+import {NodeHttp2CompatConnection} from "./adapters/NodeHttp2CompatConnection";
 import {SseError} from "./lib/SseError";
 import {type EventMap, TypedEmitter} from "./lib/TypedEmitter";
+import {applyHeaders} from "./lib/applyHeaders";
 import {createPushFromIterable} from "./lib/createPushFromIterable";
 import {createPushFromStream} from "./lib/createPushFromStream";
 import {generateId} from "./lib/generateId";
-import {type SanitizerFunction, sanitize} from "./lib/sanitize";
-import {type SerializerFunction, serialize} from "./lib/serialize";
+import {
+	type SanitizerFunction,
+	sanitize as defaultSanitizer,
+} from "./lib/sanitize";
+import {
+	type SerializerFunction,
+	serialize as defaultSerializer,
+} from "./lib/serialize";
 
 interface SessionOptions<State = DefaultSessionState>
 	extends Pick<EventBufferOptions, "serializer" | "sanitizer"> {
@@ -63,7 +74,7 @@ interface SessionOptions<State = DefaultSessionState>
 	/**
 	 * Additional headers to be sent along with the response.
 	 */
-	headers?: OutgoingHttpHeaders;
+	headers?: Record<string, string | string[] | undefined>;
 
 	/**
 	 * Custom state for this session.
@@ -88,15 +99,19 @@ interface SessionEvents extends EventMap {
  *
  * It extends from the {@link https://nodejs.org/api/events.html#events_class_eventemitter | EventEmitter} class.
  *
- * It emits the `connected` event after it has connected and sent all headers to the client, and the
- * `disconnected` event after the connection has been closed.
+ * It emits the `connected` event after it has connected and sent the response head to the client.
+ * It emits the `disconnected` event after the connection has been closed.
  *
- * Note that creating a new session will immediately send the initial status code and headers to the client.
- * Attempting to write additional headers after you have created a new session will result in an error.
+ * When using the Fetch API, the session is considered connected only once the ReadableStream contained in the body
+ * of the Response returned by `getResponse` has began being consumed.
  *
- * @param req - The Node HTTP {@link https://nodejs.org/api/http.html#http_class_http_incomingmessage | ServerResponse} object.
- * @param res - The Node HTTP {@link https://nodejs.org/api/http.html#http_class_http_serverresponse | IncomingMessage} object.
- * @param options - Options given to the session instance.
+ * When using the Node HTTP APIs, the session will send the response with status code, headers and other preamble data immediately,
+ * allowing you to begin pushing events right after you create the session. As such, keep in mind that attempting
+ * to write additional headers after the session has been created will result in an error being thrown.
+ *
+ * @param req - The Node HTTP/1 {@link https://nodejs.org/api/http.html#http_class_http_incomingmessage | ServerResponse}, HTTP/2 {@link https://nodejs.org/api/http2.html#class-http2http2serverrequest | Http2ServerRequest} or the Fetch API {@link https://developer.mozilla.org/en-US/docs/Web/API/Request | Request} object.
+ * @param res - The Node HTTP {@link https://nodejs.org/api/http.html#http_class_http_serverresponse | IncomingMessage}, HTTP/2 {@link https://nodejs.org/api/http2.html#class-http2http2serverresponse | Http2ServerResponse} or the Fetch API {@link https://developer.mozilla.org/en-US/docs/Web/API/Response | Response} object. Optional if using the Fetch API.
+ * @param options - Optional additional configuration for the session.
  */
 class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	/**
@@ -128,110 +143,132 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	state: State;
 
 	private buffer: EventBuffer;
-
-	/**
-	 * Raw HTTP request.
-	 */
-	private req: Http1ServerRequest | Http2ServerRequest;
-
-	/**
-	 * Raw HTTP response that is the minimal interface needed and forms the
-	 * intersection between the HTTP/1.1 and HTTP/2 server response interfaces.
-	 */
-	private res:
-		| Http1ServerResponse
-		| (Http2ServerResponse & {
-				write: (chunk: string) => void;
-		  });
-
-	private serialize: SerializerFunction;
+	private connection: Connection;
 	private sanitize: SanitizerFunction;
-	private trustClientEventId: boolean;
+	private serialize: SerializerFunction;
 	private initialRetry: number | null;
 	private keepAliveInterval: number | null;
 	private keepAliveTimer?: ReturnType<typeof setInterval>;
-	private statusCode: number;
-	private headers: OutgoingHttpHeaders;
 
 	constructor(
-		req: Http1ServerRequest | Http2ServerRequest,
-		res: Http1ServerResponse | Http2ServerResponse,
-		options: SessionOptions<State> = {}
+		req: Http1ServerRequest,
+		res: Http1ServerResponse,
+		options?: SessionOptions<State>
+	);
+	constructor(
+		req: Http2ServerRequest,
+		res: Http2ServerResponse,
+		options?: SessionOptions<State>
+	);
+	constructor(req: Request, res?: Response, options?: SessionOptions<State>);
+	constructor(req: Request, options?: SessionOptions<State>);
+	constructor(
+		req: Http1ServerRequest | Http2ServerRequest | Request,
+		res?:
+			| Http1ServerResponse
+			| Http2ServerResponse
+			| Response
+			| SessionOptions<State>,
+		options?: SessionOptions<State>
 	) {
 		super();
 
-		this.req = req;
-		this.res = res;
+		let givenOptions = options ?? {};
 
-		const serializer = options.serializer ?? serialize;
-		const sanitizer = options.sanitizer ?? sanitize;
+		if (req instanceof Request) {
+			let givenRes: Response | null = null;
 
-		this.serialize = serializer;
-		this.sanitize = sanitizer;
+			if (res) {
+				if (res instanceof Response) {
+					givenRes = res;
+				} else {
+					if (options) {
+						throw new SseError(
+							"When providing a Fetch Request object but no Response object, " +
+								"you may pass options as the second OR third argument " +
+								"to the session constructor, but not to both."
+						);
+					}
 
-		this.buffer = new EventBuffer({serializer, sanitizer});
+					givenOptions = res;
+				}
+			}
 
-		this.trustClientEventId = options.trustClientEventId ?? true;
+			this.connection = new FetchConnection(req, givenRes, givenOptions);
+		} else if (req instanceof Http1ServerRequest) {
+			if (res instanceof Http1ServerResponse) {
+				this.connection = new NodeHttp1Connection(req, res, givenOptions);
+			} else {
+				throw new SseError(
+					"When providing a Node IncomingMessage object, " +
+						"a corresponding ServerResponse object must also be provided."
+				);
+			}
+		} else if (req instanceof Http2ServerRequest) {
+			if (res instanceof Http2ServerResponse) {
+				this.connection = new NodeHttp2CompatConnection(req, res, givenOptions);
+			} else {
+				throw new SseError(
+					"When providing a Node HTTP2ServerRequest object, " +
+						"a corresponding HTTP2ServerResponse object must also be provided."
+				);
+			}
+		} else {
+			throw new SseError(
+				"Malformed request or response objects given to session constructor. " +
+					"Must be one of IncomingMessage/ServerResponse from the Node HTTP/1 API, " +
+					"HTTP2ServerRequest/HTTP2ServerResponse from the Node HTTP/2 Compatibility API, " +
+					"or Request/Response from the Fetch API."
+			);
+		}
 
-		this.initialRetry = options.retry === null ? null : (options.retry ?? 2000);
+		if (givenOptions.headers) {
+			applyHeaders(givenOptions.headers, this.connection.response.headers);
+		}
+
+		if (givenOptions.trustClientEventId !== false) {
+			this.lastId =
+				this.connection.request.headers.get("last-event-id") ??
+				this.connection.url.searchParams.get("lastEventId") ??
+				this.connection.url.searchParams.get("evs_last_event_id") ??
+				"";
+		}
+
+		this.state = givenOptions.state ?? ({} as State);
+
+		this.initialRetry =
+			givenOptions.retry === null ? null : (givenOptions.retry ?? 2000);
 
 		this.keepAliveInterval =
-			options.keepAlive === null ? null : (options.keepAlive ?? 10000);
+			givenOptions.keepAlive === null
+				? null
+				: (givenOptions.keepAlive ?? 10000);
 
-		this.statusCode = options.statusCode ?? 200;
+		this.serialize = givenOptions.serializer ?? defaultSerializer;
 
-		this.headers = options.headers ?? {};
+		this.sanitize = givenOptions.sanitizer ?? defaultSanitizer;
 
-		this.state = options.state ?? ({} as State);
+		this.buffer = new EventBuffer({
+			serializer: this.serialize,
+			sanitizer: this.sanitize,
+		});
 
-		this.req.once("close", this.onDisconnected);
-		this.res.once("close", this.onDisconnected);
+		this.connection.request.signal.addEventListener(
+			"abort",
+			this.onDisconnected
+		);
 
 		setImmediate(this.initialize);
 	}
 
 	private initialize = () => {
-		const url = `http://${this.req.headers.host}${this.req.url}`;
-		const params = new URL(url).searchParams;
+		this.connection.sendHead();
 
-		if (this.trustClientEventId) {
-			const givenLastEventId =
-				this.req.headers["last-event-id"] ??
-				params.get("lastEventId") ??
-				params.get("evs_last_event_id") ??
-				"";
-
-			this.lastId = givenLastEventId as string;
-		}
-
-		const headers: OutgoingHttpHeaders = {};
-
-		if (this.res instanceof Http1ServerResponse) {
-			headers["Content-Type"] = "text/event-stream";
-			headers["Cache-Control"] =
-				"private, no-cache, no-store, no-transform, must-revalidate, max-age=0";
-			headers["Connection"] = "keep-alive";
-			headers["Pragma"] = "no-cache";
-			headers["X-Accel-Buffering"] = "no";
-		} else {
-			headers["content-type"] = "text/event-stream";
-			headers["cache-control"] =
-				"private, no-cache, no-store, no-transform, must-revalidate, max-age=0";
-			headers["pragma"] = "no-cache";
-			headers["x-accel-buffering"] = "no";
-		}
-
-		for (const [name, value] of Object.entries(this.headers)) {
-			headers[name] = value ?? "";
-		}
-
-		this.res.writeHead(this.statusCode, headers);
-
-		if (params.has("padding")) {
+		if (this.connection.url.searchParams.has("padding")) {
 			this.buffer.comment(" ".repeat(2049)).dispatch();
 		}
 
-		if (params.has("evs_preamble")) {
+		if (this.connection.url.searchParams.has("evs_preamble")) {
 			this.buffer.comment(" ".repeat(2056)).dispatch();
 		}
 
@@ -251,8 +288,12 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	};
 
 	private onDisconnected = () => {
-		this.req.removeListener("close", this.onDisconnected);
-		this.res.removeListener("close", this.onDisconnected);
+		this.connection.request.signal.removeEventListener(
+			"abort",
+			this.onDisconnected
+		);
+
+		this.connection.cleanup();
 
 		if (this.keepAliveTimer) {
 			clearInterval(this.keepAliveTimer);
@@ -267,6 +308,27 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 		this.buffer.comment().dispatch();
 		this.flush();
 	};
+
+	/**
+	 * Get a Request object representing the request of the underlying connection this session manages.
+	 *
+	 * When using the Fetch API, this will be the original Request object passed to the session constructor.
+	 *
+	 * When using the Node HTTP APIs, this will be a new Request object with status code and headers copied from the original request.
+	 * When the originally given request or response is closed, the abort signal attached to this Request will be triggered.
+	 */
+	getRequest = () => this.connection.request;
+
+	/**
+	 * Get a Response object representing the response of the underlying connection this session manages.
+	 *
+	 * When using the Fetch API, this will be a new Response object with status code and headers copied from the original response if given.
+	 * Its body will be a ReadableStream that should begin being consumed for the session to consider itself connected.
+	 *
+	 * When using the Node HTTP APIs, this will be a new Response object with status code and headers copied from the original response.
+	 * Its body will be `null`, as data is instead written to the stream of the originally given response object.
+	 */
+	getResponse = () => this.connection.response;
 
 	/**
 	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
@@ -329,12 +391,12 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	 *
 	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
 	 */
-	flush = (): this => {
-		this.res.write(this.buffer.read());
+	flush = () => {
+		const contents = this.buffer.read();
 
 		this.buffer.clear();
 
-		return this;
+		this.connection.sendChunk(contents);
 	};
 
 	/**
@@ -356,7 +418,12 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 		eventId = generateId()
 	): this => {
 		if (!this.isConnected) {
-			throw new SseError("Cannot push data to a non-active session.");
+			throw new SseError(
+				"Cannot push data to a non-active session. " +
+					"Ensure the session is connected before attempting to push events. " +
+					"If using the Fetch API, the response stream " +
+					"must begin being consumed before the session is considered connected."
+			);
 		}
 
 		this.buffer.push(data, eventName, eventId);
@@ -415,7 +482,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 		batcher: EventBuffer | ((buffer: EventBuffer) => void | Promise<void>)
 	) => {
 		if (batcher instanceof EventBuffer) {
-			this.res.write(batcher.read());
+			this.connection.sendChunk(batcher.read());
 		} else {
 			const buffer = new EventBuffer({
 				serializer: this.serialize,
@@ -424,7 +491,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 
 			await batcher(buffer);
 
-			this.res.write(buffer.read());
+			this.connection.sendChunk(buffer.read());
 		}
 	};
 }

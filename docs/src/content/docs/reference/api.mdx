@@ -172,7 +172,7 @@ Note that this does **not** send the written data to the client. To do so, use t
 
 Flush the buffered data to the client and clear the buffer.
 
-### `createSession`: `<State>(ConstructorParameters<typeof Session>) => Promise<Session<State>>`
+### `createSession`: `<State>(...args: ConstructorParameters<typeof Session>) => Promise<Session<State>>`
 
 Creates and returns a promise that resolves to an instance of a [Session](#session) once it has connected.
 

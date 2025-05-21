@@ -4,15 +4,18 @@ import {createChannel} from "better-sse";
  * Create a channel that allows you to broadcast messages
  * to multiple sessions at once.
  */
-const ticker = createChannel();
+const ticker = createChannel({
+	state: {
+		count: 0,
+	},
+});
 
 /**
- * Count upwards and broadcast the count to every client once per second.
+ * Increment count and broadcast the new value to every client once per second.
  */
-let count = 0;
-
 setInterval(() => {
-	ticker.broadcast(count++, "tick");
+	ticker.state.count++;
+	ticker.broadcast(ticker.state.count, "tick");
 }, 1000);
 
 /**

@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+* Added support for the `Session` constructor to be able to take in a [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) (and optionally a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response)) object from the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
+* Added the `Session#getRequest` and `Session#getResponse` methods to retrieve the Fetch API `Request` and `Response` objects, respectively.
+* Added the `createResponse` utility function to create a `Session` instance and immediately return its associated `Response` object.
+* Added type overloads for each combination of arguments to `createSession` and the `Session` constructor.
+
+### Changed
+
+* Update type of `Session` constructor `options#headers` argument to accept any `string->(string | string[] | undefined)` type rather than only `OutgoingHttpHeaders`.
+* Update the `Session` constructor `options#headers` argument to omit headers whose values are given as `undefined`, rather than an empty string.
+* Update the `Session` constructor to throw if given an `IncomingMessage` or `Http2ServerRequest` with no corresponding `ServerResponse` or `Http2ServerResponse`, respectively.
+
+### Fixed
+
+* Fixed [connection-specific headers](https://www.rfc-editor.org/rfc/rfc9110.html#section-7.6.1) being sent when using HTTP/2, causing the response [to be treated as malformed](https://httpwg.org/specs/rfc9113.html#ConnectionSpecific).
+
 ## 0.14.1 - 2024-10-27
 
 ### Changed

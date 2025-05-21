@@ -7,9 +7,9 @@
 	<a href="https://github.com/MatthewWid/better-sse"><img src="https://img.shields.io/github/stars/MatthewWid/better-sse?style=social" /></a>
 </p>
 
-A dead simple, dependency-less, spec-compliant server-sent events implementation for Node, written in TypeScript.
+A dead simple, dependency-less, spec-compliant server-sent events implementation written in TypeScript.
 
-This package aims to be the easiest to use, most compliant and most streamlined solution to server-sent events with Node that is framework-agnostic and feature-rich.
+This package aims to be the easiest to use, most compliant and most streamlined solution to server-sent events that is framework-agnostic and feature-rich.
 
 Please consider starring the project [on GitHub ⭐](https://github.com/MatthewWid/better-sse).
 
@@ -21,6 +21,8 @@ Using SSE can allow for significant savings in bandwidth and battery life on por
 
 Compared to WebSockets it has comparable performance and bandwidth usage, especially over HTTP/2, and natively includes event ID generation and automatic reconnection when clients are disconnected.
 
+Read the [Getting Started](https://matthewwid.github.io/better-sse/guides/getting-started/) guide for more.
+
 * [Comparison: Server-sent Events vs WebSockets vs Polling](https://medium.com/dailyjs/a-comparison-between-websockets-server-sent-events-and-polling-7a27c98cb1e3)
 * [WHATWG standards section for server-sent events](https://html.spec.whatwg.org/multipage/server-sent-events.html)
 * [MDN guide to server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
@@ -28,20 +30,20 @@ Compared to WebSockets it has comparable performance and bandwidth usage, especi
 
 ## Highlights
 
-* Compatible with all popular Node HTTP frameworks ([Express](https://nodejs.org/api/http.html), [Fastify](https://fastify.dev/), [Nest](https://nestjs.com/), [Next.js](https://nextjs.org/), etc.)
+* Compatible with all popular HTTP frameworks ([Express](https://nodejs.org/api/http.html), [Hono](https://hono.dev/), [Fastify](https://fastify.dev/), [Nest](https://nestjs.com/), [Next.js](https://nextjs.org/), [Bun](https://bun.sh/docs/api/http), [Deno](https://docs.deno.com/runtime/fundamentals/http_server/), [etc.](https://matthewwid.github.io/better-sse/reference/recipes/))
 * Fully written in TypeScript (+ ships with types directly).
 * [Thoroughly tested](./src/Session.test.ts) (+ 100% code coverage!).
 * [Comprehensively documented](https://matthewwid.github.io/better-sse) with guides and API documentation.
 * [Channels](https://matthewwid.github.io/better-sse/guides/channels) allow you to broadcast events to many clients at once.
+* [Event buffers](http://localhost:4321/better-sse/guides/batching/) allow you to batch events for increased performance and lower bandwidth usage.
 * Configurable reconnection time, message serialization and data sanitization (with good defaults).
 * Trust or ignore the client-given last event ID.
 * Automatically send keep-alive pings to keep connections open.
 * Add or override the response status code and headers.
-* Send [individual fields](https://matthewwid.github.io/better-sse/guides/batching#send-individual-event-fields) of events or send [full events with simple helpers](https://matthewwid.github.io/better-sse/reference/api/#sessionpush-data-unknown-eventname-string-eventid-string--this).
 * Pipe [streams](https://nodejs.org/api/stream.html#stream_readable_streams) and [iterables](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators) directly from the server to the client as a series of events.
 * Support for popular EventSource polyfills [`event-source-polyfill`](https://www.npmjs.com/package/event-source-polyfill) and [`eventsource-polyfill`](https://www.npmjs.com/package/eventsource-polyfill).
 
-[See a comparison with other Node SSE libraries in the documentation.](https://matthewwid.github.io/better-sse/reference/comparison)
+[See a comparison with other SSE libraries in the documentation.](https://matthewwid.github.io/better-sse/reference/comparison)
 
 # Installation
 
@@ -59,26 +61,45 @@ yarn add better-sse
 pnpm add better-sse
 ```
 
+```sh
+bun add better-sse
+```
+
+```sh
+deno install npm:better-sse
+```
+
 _Better SSE ships with types built in. No need to install from DefinitelyTyped for TypeScript users!_
 
 # Usage
 
-The following example shows usage with [Express](http://expressjs.com/), but Better SSE works with any web-server framework that uses the underlying Node [HTTP module](https://nodejs.org/api/http.html).
+The examples below show usage with [Express](http://expressjs.com/) and [Hono](https://hono.dev/), but Better SSE works with any web-server framework that uses the Node [HTTP module](https://nodejs.org/api/http.html) or the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
 
 See the [Recipes](https://matthewwid.github.io/better-sse/reference/recipes/) section of the documentation for use with other frameworks and libraries.
 
 ---
 
-Use [sessions](https://matthewwid.github.io/better-sse/reference/api/#sessionstate) to push events to clients:
+Use [sessions](https://matthewwid.github.io/better-sse/guides/getting-started/#create-a-session) to push events to clients:
 
 ```typescript
-// Server
+// Server - Express
 import { createSession } from "better-sse"
 
 app.get("/sse", async (req, res) => {
 	const session = await createSession(req, res)
 	session.push("Hello world!", "message")
 })
+```
+
+```typescript
+// Server - Hono
+import { createResponse } from "better-sse"
+
+app.get("/sse", (c) =>
+    createResponse(c.req.raw, (session) => {
+        session.push("Hello world!", "message")
+    })
+)
 ```
 
 ```typescript
@@ -91,7 +112,7 @@ eventSource.addEventListener("message", ({ data })) => {
 })
 ```
 
-Use [channels](https://matthewwid.github.io/better-sse/reference/api/#channelstate-sessionstate) to send events to many clients at once:
+Use [channels](https://matthewwid.github.io/better-sse/guides/channels/#create-a-channel) to send events to many clients at once:
 
 ```typescript
 import { createSession, createChannel } from "better-sse"
@@ -107,21 +128,25 @@ app.get("/sse", async (req, res) => {
 })
 ```
 
+Use [batching](https://matthewwid.github.io/better-sse/guides/batching/) to send multiple events at once for improved performance and lower bandwidth usage:
+
+```typescript
+await session.batch(async (buffer) => {
+    await buffer.iterate(["My", "huge", "event", "list"])
+})
+```
+
 Loop over sync and async [iterables](https://matthewwid.github.io/better-sse/reference/api/#sessioniterate-iterable-iterable--asynciterable-options-object--promisevoid) and send each value as an event:
 
 ```typescript
-const session = await createSession(req, res)
+const iterable = [1, 2, 3]
 
-const list = [1, 2, 3]
-
-await session.iterate(list)
+await session.iterate(iterable)
 ```
 
 Pipe [readable stream](https://matthewwid.github.io/better-sse/reference/api/#sessionstream-stream-readable-options-object--promiseboolean) data to the client as a stream of events:
 
 ```typescript
-const session = await createSession(req, res)
-
 const stream = Readable.from([1, 2, 3])
 
 await session.stream(stream)
