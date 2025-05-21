@@ -10,7 +10,13 @@ import {
 } from "./Session";
 
 /**
- * Create a new session and return the session instance once it has connected.
+ * Create a new session.
+ *
+ * When using the Fetch API, resolves immediately with a session instance before it has connected.
+ * You can listen for the `connected` event on the session to know when it has connected, or
+ * otherwise use the shorthand `createResponse` function that does so for you instead.
+ *
+ * When using the Node HTTP APIs, waits for the session to connect before resolving with its instance.
  */
 function createSession<State = DefaultSessionState>(
 	req: Http1ServerRequest,

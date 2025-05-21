@@ -99,15 +99,19 @@ interface SessionEvents extends EventMap {
  *
  * It extends from the {@link https://nodejs.org/api/events.html#events_class_eventemitter | EventEmitter} class.
  *
- * It emits the `connected` event after it has connected and sent all headers to the client, and the
- * `disconnected` event after the connection has been closed.
+ * It emits the `connected` event after it has connected and sent the response head to the client.
+ * It emits the `disconnected` event after the connection has been closed.
  *
- * Note that creating a new session will immediately send the initial status code and headers to the client.
- * Attempting to write additional headers after you have created a new session will result in an error.
+ * When using the Fetch API, the session is considered connected only once the ReadableStream contained in the body
+ * of the Response returned by `getResponse` has began being consumed.
  *
- * @param req - The Node HTTP {@link https://nodejs.org/api/http.html#http_class_http_incomingmessage | ServerResponse} object.
- * @param res - The Node HTTP {@link https://nodejs.org/api/http.html#http_class_http_serverresponse | IncomingMessage} object.
- * @param options - Options given to the session instance.
+ * When using the Node HTTP APIs, the session will send the response with status code, headers and other preamble data immediately,
+ * allowing you to begin pushing events right after you create the session. As such, keep in mind that attempting
+ * to write additional headers after the session has been created will result in an error being thrown.
+ *
+ * @param req - The Node HTTP/1 {@link https://nodejs.org/api/http.html#http_class_http_incomingmessage | ServerResponse}, HTTP/2 {@link https://nodejs.org/api/http2.html#class-http2http2serverrequest | Http2ServerRequest} or the Fetch API {@link https://developer.mozilla.org/en-US/docs/Web/API/Request | Request} object.
+ * @param res - The Node HTTP {@link https://nodejs.org/api/http.html#http_class_http_serverresponse | IncomingMessage}, HTTP/2 {@link https://nodejs.org/api/http2.html#class-http2http2serverresponse | Http2ServerResponse} or the Fetch API {@link https://developer.mozilla.org/en-US/docs/Web/API/Response | Response} object. Optional if using the Fetch API.
+ * @param options - Optional additional configuration for the session.
  */
 class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	/**
@@ -305,8 +309,25 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 		this.flush();
 	};
 
+	/**
+	 * Get a Request object representing the request of the underlying connection this session manages.
+	 *
+	 * When using the Fetch API, this will be the original Request object passed to the session constructor.
+	 *
+	 * When using the Node HTTP APIs, this will be a new Request object with status code and headers copied from the original request.
+	 * When the originally given request or response is closed, the abort signal attached to this Request will be triggered.
+	 */
 	getRequest = () => this.connection.request;
 
+	/**
+	 * Get a Response object representing the response of the underlying connection this session manages.
+	 *
+	 * When using the Fetch API, this will be a new Response object with status code and headers copied from the original response if given.
+	 * Its body will be a ReadableStream that should begin being consumed for the session to consider itself connected.
+	 *
+	 * When using the Node HTTP APIs, this will be a new Response object with status code and headers copied from the original response.
+	 * Its body will be `null`, as data is instead written to the stream of the originally given response object.
+	 */
 	getResponse = () => this.connection.response;
 
 	/**

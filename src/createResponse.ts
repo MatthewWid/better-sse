@@ -8,10 +8,10 @@ import {SseError} from "./lib/SseError";
 type CreateResponseCallback<State> = (session: Session<State>) => void;
 
 /**
- * Create a new session and return its Response immediately.
+ * Create a new session using the Fetch API and return its Response immediately.
  *
- * The last argument should be a callback function that will be invoked with an
- * instance of Session once it has connected.
+ * The last argument should be a callback function that will be invoked with
+ * a session instance once it has connected.
  */
 function createResponse<State = DefaultSessionState>(
 	request: Request,
