@@ -152,9 +152,14 @@ createSession(Request, Response, SessionOptions?): Promise<Session>
 createSession(Request, SessionOptions?): Promise<Session>
 ```
 
-Creates and returns a promise that resolves to an instance of a [Session](#session) once it has connected.
+Create a new [`Session`](#sessionstate).
 
 Takes the [same arguments as the Session class constructor](#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest--request-res-serverresponse--http2serverresponse--response--sessionoptions-options-sessionoptions).
+
+When using the Fetch API, resolves immediately with a session instance before it has connected.<br />
+You can listen for the `connected` event on the session to know when it has connected, or otherwise use the shorthand `createResponse` function that does so for you instead.
+
+When using the Node HTTP APIs, waits for the session to connect before resolving with its instance.
 
 ### `createResponse`: `<State>(...args: ConstructorParameters<typeof Session>, callback: (session: Session<State>) => void) => Response`
 
