@@ -73,13 +73,15 @@ If the session has disconnected, an [`SseError`](#sseerror) will be thrown.
 
 Emits the `push` event with the given data, event name and event ID in that order.
 
-#### `Session#stream`: `(stream: Readable[, options: object]) => Promise<boolean>`
+#### `Session#stream`: `(stream: stream.Readable | ReadableStream[, options: object]) => Promise<boolean>`
 
 Pipe readable stream data to the client.
 
 Each data emission by the stream pushes a new event to the client.
 
 This uses the [`push`](#sessionpush-data-unknown-eventname-string-eventid-string--this) method under the hood.
+
+Returns a promise that resolves with `true` once the stream has been fully consumed and all data is sent to the client.
 
 |`options.`|Type|Default|Description|
 |-|-|-|-|
@@ -251,11 +253,15 @@ If no event name is given, the event name is set to `"message"`.
 
 If no event ID is given, the event ID is set to a unique string generated using a [cryptographic pseudorandom number generator](https://nodejs.org/api/crypto.html#cryptorandomuuidoptions).
 
-#### `EventBuffer#stream`: `(stream: Readable[, options: object]) => Promise<boolean>`
+#### `EventBuffer#stream`: `(stream: stream.Readable | ReadableStream[, options: object]) => Promise<boolean>`
 
 Pipe readable stream data as a series of events into the buffer.
 
+Each data emission by the stream pushes a new event.
+
 This uses the [`push`](#eventbufferpush-data-unknown-eventname-string-eventid-string--this) method under the hood.
+
+Returns a promise that resolves with `true` once the stream has been fully consumed.
 
 |`options.`|Type|Default|Description|
 |-|-|-|-|
