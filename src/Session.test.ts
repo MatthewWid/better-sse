@@ -611,6 +611,7 @@ describe("push", () => {
 
 				await waitForConnect(session);
 
+				// @ts-expect-error spying on private method
 				const flush = vi.spyOn(session, "flush");
 
 				session.push(...args);

@@ -25,6 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Fixed [connection-specific headers](https://www.rfc-editor.org/rfc/rfc9110.html#section-7.6.1) being sent when using HTTP/2, causing the response [to be treated as malformed](https://httpwg.org/specs/rfc9113.html#ConnectionSpecific).
 
+### Removed
+
+* Removed the deprecated [Session](./docs/api.md#session) `.event`, `.data`, `.id`, `.retry`, `.comment`, `.dispatch` and `.flush` methods.
+
 ## 0.14.1 - 2024-10-27
 
 ### Changed

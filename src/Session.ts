@@ -304,9 +304,23 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 		this.emit("disconnected");
 	};
 
+	/**
+	 * Write an empty comment and flush it to the client.
+	 */
 	private keepAlive = () => {
 		this.buffer.comment().dispatch();
 		this.flush();
+	};
+
+	/**
+	 * Flush the contents of the internal buffer to the client and clear the buffer.
+	 */
+	private flush = () => {
+		const contents = this.buffer.read();
+
+		this.buffer.clear();
+
+		this.connection.sendChunk(contents);
 	};
 
 	/**
@@ -329,75 +343,6 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	 * Its body will be `null`, as data is instead written to the stream of the originally given response object.
 	 */
 	getResponse = () => this.connection.response;
-
-	/**
-	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
-	 */
-	event(type: string): this {
-		this.buffer.event(type);
-
-		return this;
-	}
-
-	/**
-	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
-	 */
-	data = (data: unknown): this => {
-		this.buffer.data(data);
-
-		return this;
-	};
-
-	/**
-	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
-	 */
-	id = (id = ""): this => {
-		this.buffer.id(id);
-
-		this.lastId = id;
-
-		return this;
-	};
-
-	/**
-	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
-	 */
-	retry = (time: number): this => {
-		this.buffer.retry(time);
-
-		return this;
-	};
-
-	/**
-	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
-	 */
-	comment = (text?: string): this => {
-		this.buffer.comment(text);
-
-		return this;
-	};
-
-	/**
-	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
-	 */
-	dispatch = (): this => {
-		this.buffer.dispatch();
-
-		return this;
-	};
-
-	/**
-	 * Flush the contents of the internal buffer to the client and clear the buffer.
-	 *
-	 * @deprecated see https://github.com/MatthewWid/better-sse/issues/52
-	 */
-	flush = () => {
-		const contents = this.buffer.read();
-
-		this.buffer.clear();
-
-		this.connection.sendChunk(contents);
-	};
 
 	/**
 	 * Push an event to the client.
