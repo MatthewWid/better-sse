@@ -302,7 +302,7 @@ fastify.listen({ port: 8080 })
 import { LoaderFunction } from "@remix-run/node"
 import { createResponse } from "better-sse"
 
-export const loader: LoaderFunction = ({request}) =>
+export const loader: LoaderFunction = ({ request }) =>
     createResponse(request, (session) => {
         session.push("Hello world!")
     })

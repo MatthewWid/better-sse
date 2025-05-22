@@ -17,9 +17,10 @@ Compared to WebSockets it has comparable performance and bandwidth usage, especi
 * [Comparison: Server-sent Events vs WebSockets vs Polling](https://medium.com/dailyjs/a-comparison-between-websockets-server-sent-events-and-polling-7a27c98cb1e3)
 * [WHATWG standards section for server-sent events](https://html.spec.whatwg.org/multipage/server-sent-events.html)
 * [MDN guide to server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
+* [Can I use... Server-sent events](https://caniuse.com/eventsource)
 
 <Aside title="Use your own framework">
-    This guide uses the [Express web-server](https://expressjs.com/) in its code examples, but Better SSE works with any web-server framework that uses the underlying [Node HTTP module](https://nodejs.org/api/http.html). For example usage with other popular frameworks, see the [Recipes](/better-sse/reference/recipes/) section.
+    These guides use [Express](https://expressjs.com/) and [Hono](https://hono.dev/) in their code examples, but Better SSE works with any web-server framework that uses the [Node HTTP module](https://nodejs.org/api/http.html) or the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). For example usage with other popular frameworks see the [Recipes](/better-sse/reference/recipes/) section.
 </Aside>
 
 ### How does it work?
@@ -39,7 +40,7 @@ The technology can be used for things such as live notifications, news tickers, 
 
 ### Install
 
-Better SSE is shipped [as a package on npm](https://www.npmjs.com/package/better-sse). You can install it with any Node package manager.
+Better SSE is shipped [as a package on npm](https://www.npmjs.com/package/better-sse). You can install it with any package manager.
 
 <Tabs>
     <TabItem label="npm">
@@ -51,43 +52,105 @@ Better SSE is shipped [as a package on npm](https://www.npmjs.com/package/better
     <TabItem label="pnpm">
         <Code code={`pnpm add better-sse`} lang="shellscript" />
     </TabItem>
+    <TabItem label="Bun">
+        <Code code={`bun add better-sse`} lang="shellscript" />
+    </TabItem>
+    <TabItem label="Deno">
+        <Code code={`deno install npm:better-sse`} lang="shellscript" />
+    </TabItem>
 </Tabs>
 
 TypeScript types are included in the package distribution. No need to install from DefinitelyTyped for TypeScript users!
 
 ## Create a session
 
-*Sessions* simply represent an open connection between a client and the server. The client will first make a request to the server, and the server will open a session that it will push data to the client with.
+*Sessions* simply represent an open connection between a client and the server. The client will first make a request to the server and the server will open a session that it will push data to the client with.
 
 First import the module:
 
 <Tabs>
     <TabItem label="ESModules / TypeScript">
-        <Code code={`import { createSession } from "better-sse";`} lang="typescript" />
+        <Code code={`import { createSession } from "better-sse"`} lang="typescript" />
     </TabItem>
     <TabItem label="CommonJS">
-        <Code code={`const { createSession } = require("better-sse");`} lang="javascript" />
+        <Code code={`const { createSession } = require("better-sse")`} lang="javascript" />
     </TabItem>
 </Tabs>
 
 Then create a session when the client makes a request on the specified route (`GET /sse` in this case):
 
+<Tabs syncKey="framework">
+    <TabItem label="Express">
+        ```typescript
+        app.get("/sse", async (req, res) => {
+            const session = await createSession(req, res)
+        })
+        ```
+    </TabItem>
+    <TabItem label="Hono">
+        ```typescript
+        app.get("/sse", (c) => 
+            createResponse(c.req.raw, (session) => {
+                // ...
+            })
+        )
+        ```
+    </TabItem>
+</Tabs>
+
+Now that we have an active session we can use it to *push* an event to the client:
+
 ```typescript
-app.get("/sse", async (req, res) => {
-	const session = await createSession(req, res);
-});
+session.push("Hello world!", "ping")
 ```
 
-Now that we have an active session we can use it to push an event to the client:
+This will push the string `Hello world!` to the client as an event named `ping` (defaults to `message` if no name is given.)
 
-```typescript
-session.push("Hello world!", "ping");
-```
+<Aside title="createSession or createResponse?">
+    <details>
+        <summary>If your framework uses the Fetch API use [`createResponse`](/better-sse/reference/api/#createresponse-stateargs-constructorparameterstypeof-session-callback-session-sessionstate--void--response), otherwise use [`createSession`](/better-sse/reference/api/#createsession-stateargs-constructorparameterstypeof-session--promisesessionstate)</summary>
 
-This will push an event named `ping` (but this can be any string) with the string `Hello world!` as its associated data.
+        After creating a session we must wait for the underlying connection to be initialized before we can begin pushing events to it.
 
-<Aside>
-    If you do not specify an event name, the event name is set to `message`.
+        When using the Node [HTTP/1](https://nodejs.org/api/http.html) or [HTTP/2](https://nodejs.org/api/http2.html#compatibility-api) APIs we can flush the response headers and any other preamble data ahead of time and thus immediately begin pushing events to the session:
+
+        ```typescript
+        // Express uses the Node HTTP/1 API
+        app.get("/sse", async (req, res) => {
+            const session = await createSession(req, res)
+            session.push("Hello world!")
+        })
+        ```
+
+        When using a [Fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)-based framework, however, we must first return a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) object from our route handler for the session to able to connect and send data.
+
+        We can either do this manually:
+
+        ```typescript
+        // Hono uses the Fetch API
+        app.get("/sse", async (c) => {
+            const session = await createSession(c.req.raw)
+
+            session.addListener("connected", () => {
+                session.push("Hello world!")
+            })
+
+            return session.getResponse()
+        })
+        ```
+
+        Or use the shorthand [`createResponse`](/better-sse/reference/api/#createresponse-stateargs-constructorparameterstypeof-session-callback-session-sessionstate--void--response) utility function:
+
+        ```typescript
+        app.get("/sse", (c) => 
+            createResponse(c.req.raw, (session) => {
+                session.push("Hello world!")
+            })
+        )
+        ```
+
+        The previous two code snippets are equivalent.
+    </details>
 </Aside>
 
 ### Connect from the client
@@ -95,29 +158,29 @@ This will push an event named `ping` (but this can be any string) with the strin
 From your client-side code you can now connect to the server at the defined path.
 
 <Aside type="tip">
-    It is highly recommended you use an [EventSource polyfill](https://www.npmjs.com/package/eventsource) that allows for backwards compatibility with older browsers as well as giving you extra features such as request header modification and improved error handling.
+    It is **highly** recommended you use an [EventSource polyfill](/better-sse/reference/browser-compatibility/#polyfills) that allows for backwards compatibility with older browsers as well as giving you extra features such as request header modification, improved error handling and greater control over reconnection behaviour.
 </Aside>
 
-First we open a connection to the server to begin receiving events from it:
+First we open a connection to the server to begin receiving events:
 
 ```javascript
-const eventSource = new EventSource("/sse");
+const eventSource = new EventSource("/sse")
 ```
 
 Then we can attach an event listener to listen for the event our server is going to send:
 
 ```javascript
 eventSource.addEventListener("ping", (event) => {
-	console.log(`${event.type} | ${event.data}`);
-});
+	console.log(`${event.type} | ${event.data}`)
+})
 ```
 
 If you check your browser console you will now see `ping | "Hello world!"` logged to the console. Easy!
 
 <Aside>
-    Data is [serialized as JSON](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify) by default. You can use `JSON.parse(data)` to get the real value of the event data.
+    Event data is serialized to JSON with [`JSON.stringify`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify) by default. You can use `JSON.parse(event.data)` to get its real value.
 </Aside>
 
-You can find a reference to the received event object interface under the [`MessageEvent` page on MDN](https://developer.mozilla.org/en-US/docs/Web/API/EventSource/message_event).
+You can find a reference to the received event object interface on the [`MessageEvent` page on MDN](https://developer.mozilla.org/en-US/docs/Web/API/EventSource/message_event).
 
 <LinkCard title="Examples" description="See the full code from this guide and other demo projects using Better SSE." href="https://github.com/MatthewWid/better-sse/tree/master/examples" />
