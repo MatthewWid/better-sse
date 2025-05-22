@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Added the `Session#getRequest` and `Session#getResponse` methods to retrieve the Fetch API `Request` and `Response` objects, respectively.
 * Added the `createResponse` utility function to create a `Session` instance and immediately return its associated `Response` object.
 * Added type overloads for each combination of arguments to `createSession` and the `Session` constructor.
+* Added support for passing a `ReadableStream` from the Web Streams API to `Session#stream` and `EventBuffer#stream`.
 
 ### Changed
 
