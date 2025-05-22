@@ -1,4 +1,5 @@
-import type {Readable} from "node:stream";
+import {Readable as NodeReadableStream} from "node:stream";
+type WebReadableStream = ReadableStream;
 
 interface StreamOptions {
 	/**
@@ -11,26 +12,41 @@ interface StreamOptions {
 
 const createPushFromStream =
 	(push: (data: unknown, eventName: string) => void) =>
-	async (stream: Readable, options: StreamOptions = {}): Promise<boolean> => {
+	async (
+		stream: NodeReadableStream | WebReadableStream,
+		options: StreamOptions = {}
+	): Promise<boolean> => {
 		const {eventName = "stream"} = options;
 
-		return await new Promise<boolean>((resolve, reject) => {
-			stream.on("data", (chunk) => {
-				let data: string;
+		if (stream instanceof NodeReadableStream) {
+			return await new Promise<boolean>((resolve, reject) => {
+				stream.on("data", (chunk) => {
+					let data: string;
 
-				if (Buffer.isBuffer(chunk)) {
-					data = chunk.toString();
-				} else {
-					data = chunk;
-				}
+					if (Buffer.isBuffer(chunk)) {
+						data = chunk.toString();
+					} else {
+						data = chunk;
+					}
 
-				push(data, eventName);
+					push(data, eventName);
+				});
+
+				stream.once("end", () => resolve(true));
+				stream.once("close", () => resolve(true));
+				stream.once("error", (err) => reject(err));
 			});
+		}
 
-			stream.once("end", () => resolve(true));
-			stream.once("close", () => resolve(true));
-			stream.once("error", (err) => reject(err));
-		});
+		for await (const chunk of stream) {
+			if (Buffer.isBuffer(chunk)) {
+				push(chunk.toString(), eventName);
+			} else {
+				push(chunk, eventName);
+			}
+		}
+
+		return true;
 	};
 
 export type {StreamOptions};
