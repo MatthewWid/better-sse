@@ -35,7 +35,7 @@ Read the [Getting Started](https://matthewwid.github.io/better-sse/guides/gettin
 * [Thoroughly tested](./src/Session.test.ts) (+ 100% code coverage!).
 * [Comprehensively documented](https://matthewwid.github.io/better-sse) with guides and API documentation.
 * [Channels](https://matthewwid.github.io/better-sse/guides/channels) allow you to broadcast events to many clients at once.
-* [Event buffers](http://localhost:4321/better-sse/guides/batching/) allow you to batch events for increased performance and lower bandwidth usage.
+* [Event buffers](https://matthewwid.github.io/better-sse/guides/batching/) allow you to batch events for increased performance and lower bandwidth usage.
 * Configurable reconnection time, message serialization and data sanitization (with good defaults).
 * Trust or ignore the client-given last event ID.
 * Automatically send keep-alive pings to keep connections open.
