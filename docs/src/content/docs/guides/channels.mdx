@@ -30,84 +30,115 @@ We are going to be making a channel that does two things:
 
 Let's start off from where the Getting Started guide finished as a base:
 
-```typescript title="server.ts"
-import { createSession } from "better-sse";
+<Tabs syncKey="framework">
+    <TabItem label="Express">
+        ```typescript title="server.ts"
+        app.get("/sse", async (req, res) => {
+            const session = await createSession(req, res)
+            session.push("Hello world!", "ping")
+        })
+        ```
+    </TabItem>
+    <TabItem label="Hono">
+        ```typescript title="server.ts"
+        app.get("/sse", (c) =>
+            createResponse(c.req.raw, (session) => {
+                session.push("Hello world!", "ping")
+            })
+        )
+        ```
+    </TabItem>
+</Tabs>
 
-app.get("/sse", async (req, res) => {
-	const session = await createSession(req, res);
-
-	session.push("Hello world!", "ping");
-);
-```
-
-Right now we have a simple mechanism where a client connects and receives an event with the data `"Hello world!"`.
+Right now we have a simple mechanism where a client connects and receives a single event named `ping` with the data `"Hello world!"`.
 
 This is nice, but what if we want to say hi to everyone at once? Or in a more real-world example, send live updates about real-time events in our system to select groups of our users? This is where we can use channels.
 
-To make a channel, you simply need to call the exported `createChannel` factory function.
+To make a channel, you simply need to call the exported `createChannel` function.
 
-Let's create a channel called *ticker* in a new file and export it:
+Let's create a channel called "ticker" in a new file and export it:
 
 ```typescript title="channels/ticker.ts"
-import { createChannel } from "better-sse";
+import { createChannel } from "better-sse"
 
-const ticker = createChannel();
+const ticker = createChannel()
 
-export { ticker };
+export { ticker }
 ```
 
 Then import the channel to where your route handler is located and *register* the session so that it can start receiving events:
 
-```typescript title="server.ts" ins={2, 9} del={7}
-import { createSession } from "better-sse";
-import { ticker } from "./channels/ticker";
+<Tabs syncKey="framework">
+    <TabItem label="Express">
+        ```typescript title="server.ts" ins={2, 7} del={6}
+        import { createSession } from "better-sse"
+        import { ticker } from "./channels/ticker"
 
-app.get("/sse", async (req, res) => {
-	const session = await createSession(req, res);
+        app.get("/sse", async (req, res) => {
+            const session = await createSession(req, res)
+            session.push("Hello world!", "ping")
+            ticker.register(session)
+        )
+        ```
+    </TabItem>
+    <TabItem label="Hono">
+        ```typescript title="server.ts" ins={2, 7} del={6}
+        import { createSession } from "better-sse"
+        import { ticker } from "./channels/ticker"
 
-	session.push("Hello world!", "ping");
+        app.get("/sse", (c) => 
+            createResponse(c.req.raw, (session) => {
+                session.push("Hello world!", "ping")
+                ticker.register(session)
+            })
+        )
+        ```
+    </TabItem>
+</Tabs>
 
-	ticker.register(session);
-);
-```
-
-New sessions will now be subscribed to your channel and will start receiving its events!
+New sessions will now be subscribed to events broadcast on your channel!
 
 Channels are powerful in that you can register your session to listen on many channels at once or none at all. This makes it dynamically configurable based on what channels your client may or may not be authorized to receive events from and allows you to have a lot of flexibility in your implementation.
 
 ### Make a synchronized counter
 
-Now that you have a channel and your sessions are registered with it, lets actually make it do something.
+Now that you have a channel and new sessions are being registered with it, let's actually make it *do* something.
 
 We are going to have a number that increments by one (1) every second and synchronize it across all of our connected clients in real time.
 
-Right after your create your channel, add the following:
+First let's add a value `count` to our channel *state*:
 
-```typescript title="channels/ticker.ts"
-let count = 0;
-
-setInterval(() => {
-	count += 1;
-	ticker.broadcast(count, "tick");
-}, 1000);
+```typescript title="channels/ticker.ts" ins={2-4}
+const ticker = createChannel({
+    state: {
+        count: 0,
+    }
+})
 ```
 
-Here we have a variable `count` that gets incremented by `1` every 1000ms (one second).
+This could be a separate variable declared with `let`, but using the [`state`](/better-sse/reference/api/#channelstate-state) property is a nice way to group data related to specific channels and sessions.
 
-We then broadcast the value of `count` on the `ticker` channel every interval under the event name `tick` which will be received by all of our registered sessions.
+Next, add a timer that increments `count` by one (1) and then broadcasts its new value under the event name `tick`:
 
-Back on our client-side let's write some code that updates a text field on the page with the received value:
+```typescript title="channels/ticker.ts"
+setInterval(() => {
+    ticker.state.count += 1
+    ticker.broadcast(ticker.state.count, "tick")
+}, 1000)
+```
+
+Back on the front-end let's write some code that updates a text field on the page with the received value:
 
 ```typescript
 // public/client.js
-const countElement = document.createElement("pre");
-document.body.appendChild(countElement);
+const countElement = document.createElement("pre")
+document.body.appendChild(countElement)
 
-const eventSource = new EventSource("/sse");
+const eventSource = new EventSource("/sse")
 
 eventSource.addEventListener("tick", ({ data }) => {
-	countElement.innerText = `The clock has ticked! The count is now ${data}.`;
-});
+	countElement.innerText = `The clock has ticked! The count is now ${data}.`
+})
 ```
 
 In this snippet the following is happening:
@@ -116,42 +147,42 @@ In this snippet the following is happening:
 2. We create an [`EventSource`](https://developer.mozilla.org/en-US/docs/Web/API/EventSource) to listen to events from our server.
 3. We listen for the `tick` event and, when received, set the text in `countElement` to display the received value, corresponding to the `count` variable on the server.
 
-Open it up in your browser (you can [run the pre-made example project](https://github.com/MatthewWid/better-sse/tree/master/examples/channels) if you haven't been following along) and you will now see your ticking counter being updated in real time!
+Open it up in your browser (you can [run the pre-made `channels` example project](https://github.com/MatthewWid/better-sse/tree/master/examples/channels) if you haven't been following along) and you will now see your ticking counter being updated in real time!
 
 You can open the same page in multiple tabs at once and notice that the value is kept in sync across them all. Easy!
 
 ### Track online users
 
-Let's add some more functionality to our `ticker` channel. This time we want to keep our users in the know about how many other users are on the site at the same time as them. No one wants to feel lonely!
+Let's add some more functionality to our `ticker` channel. This time we want to keep our users in the know about how many other users are on the site at the same time as them. Nobody wants to feel lonely!
 
-Channels [emit events](https://nodejs.org/api/events.html#events_class_eventemitter) when certain things happen such as sessions being registered, deregistered and being disconnected. Let's listen on these events to broadcast the total number of connected sessions at any given time.
+Channels [emit events](https://nodejs.org/api/events.html#events_class_eventemitter) when certain things happen such as sessions being registered, deregistered and disconnected. Let's listen on these events to broadcast the total number of connected sessions at any given time.
 
 Add the following code after where you create the channel:
 
-```typescript title="channel/ticker.ts"
+```typescript title="channels/ticker.ts"
 const broadcastSessionCount = () => {
-	ticker.broadcast(ticker.sessionCount, "session-count");
-};
+	ticker.broadcast(ticker.sessionCount, "session-count")
+}
 
 ticker
 	.on("session-registered", broadcastSessionCount)
-	.on("session-deregistered", broadcastSessionCount);
+	.on("session-deregistered", broadcastSessionCount)
 ```
 
-Here we create a function `broadcastSessionCount` that broadcasts a value with the current total session count exposed to us under the [Channel `sessionCount` property](/better-sse/reference/api/#channelsessioncount-number) with the event name `session-count`.
+Here we create a function `broadcastSessionCount` that broadcasts a value with the current total session count exposed to us under the [`sessionCount` property](/better-sse/reference/api/#channelsessioncount-number) with the event name `session-count`.
 
 We then listen on both the events `session-registered` and `session-deregistered` and set the `broadcastSessionCount` function as a callback for each. This way, every time a session joins or leaves the channel the count is re-broadcasted and updated for all of the existing sessions on the channel.
 
-Back on our client lets add another listener for our new event that displays the session count in another text field:
+Back on our client lets add another listener for our new event that displays the session count in a different text field:
 
 ```typescript
 // public/client.js
-const sessionsElement = document.createElement("pre");
-document.body.appendChild(sessionsElement);
+const sessionsElement = document.createElement("pre")
+document.body.appendChild(sessionsElement)
 
 eventSource.addEventListener("session-count", ({ data }) => {
-	sessionsElement.innerText = `There are ${data} person(s) here right now!`;
-});
+	sessionsElement.innerText = `There are ${data} person(s) here right now!`
+})
 ```
 
 We do a similar thing to our previous example:
@@ -164,62 +195,91 @@ Once again open the page in your browser ([or run the example project](https://g
 <details>
 	<summary>See the finished code</summary>
 
-```typescript title="server.ts"
-import express from "express";
-import { createSession } from "better-sse";
-import { ticker } from "./channels/ticker";
+<Tabs syncKey="framework">
+    <TabItem label="Express">
+        ```typescript title="server.ts"
+        import express from "express"
+        import { createSession } from "better-sse"
+        import { ticker } from "./channels/ticker"
 
-const app = express();
+        const app = express()
 
-app.use(express.static("./public"));
+        app.use(express.static("./public"))
 
-app.get("/sse", async (req, res) => {
-	const session = await createSession(req, res);
+        app.get("/sse", async (req, res) => {
+            const session = await createSession(req, res)
+            ticker.register(session)
+        })
 
-	ticker.register(session);
-});
+        app.listen(8080)
+        ```
+    </TabItem>
+    <TabItem label="Hono">
+        ```typescript title="server.ts"
+        import { Hono } from "hono"
+        import { serve } from "@hono/node-server"
+        import { serveStatic } from "@hono/node-server/serve-static"
+        import { createResponse } from "better-sse"
+        import { ticker } from "./channels/ticker"
 
-app.listen(8080);
-```
+        const app = new Hono()
+
+        app.use("*", serveStatic({ root: "./public" }))
+
+        app.get("/sse", (c) =>
+            createResponse(c.req.raw, (session) => {
+                ticker.register(session)
+            })
+        )
+
+        serve({
+            fetch: app.fetch,
+            port: 8080,
+        })
+        ```
+    </TabItem>
+</Tabs>
 
 ```typescript title="channels/ticker.ts"
-import { createChannel } from "better-sse";
+import { createChannel } from "better-sse"
 
-const ticker = createChannel();
-
-let count = 0;
+const ticker = createChannel({
+    state: {
+        count: 0,
+    },
+})
 
 setInterval(() => {
-	ticker.broadcast(count++, "tick");
-}, 1000);
+	ticker.broadcast(ticket.state.count++, "tick")
+}, 1000)
 
 const broadcastSessionCount = () => {
-	ticker.broadcast(ticker.sessionCount, "session-count");
-};
+	ticker.broadcast(ticker.sessionCount, "session-count")
+}
 
 ticker
 	.on("session-registered", broadcastSessionCount)
-	.on("session-deregistered", broadcastSessionCount);
+	.on("session-deregistered", broadcastSessionCount)
 
-export { ticker };
+export { ticker }
 ```
 
 ```typescript
 // public/client.js
-const eventSource = new EventSource("/sse");
+const eventSource = new EventSource("/sse")
 
-const sessionsElement = document.createElement("pre");
-document.body.appendChild(sessionsElement);
+const sessionsElement = document.createElement("pre")
+document.body.appendChild(sessionsElement)
 
 eventSource.addEventListener("tick", ({ data }) => {
-	countElement.innerText = `The clock has ticked! The count is now ${data}.`;
-});
+	countElement.innerText = `The clock has ticked! The count is now ${data}.`
+})
 
-const countElement = document.createElement("pre");
-document.body.appendChild(countElement);
+const countElement = document.createElement("pre")
+document.body.appendChild(countElement)
 
 eventSource.addEventListener("session-count", ({ data }) => {
-	sessionsElement.innerText = `There are ${data} person(s) here right now!`;
-});
+	sessionsElement.innerText = `There are ${data} person(s) here right now!`
+})
 ```
 </details>

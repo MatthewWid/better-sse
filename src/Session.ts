@@ -102,11 +102,11 @@ interface SessionEvents extends EventMap {
  * It emits the `connected` event after it has connected and sent the response head to the client.
  * It emits the `disconnected` event after the connection has been closed.
  *
- * When using the Fetch API, the session is considered connected only once the ReadableStream contained in the body
- * of the Response returned by `getResponse` has began being consumed.
+ * When using the Fetch API, the session is considered connected only once the `ReadableStream` contained in the body
+ * of the `Response` returned by `getResponse` has began being consumed.
  *
- * When using the Node HTTP APIs, the session will send the response with status code, headers and other preamble data immediately,
- * allowing you to begin pushing events right after you create the session. As such, keep in mind that attempting
+ * When using the Node HTTP APIs, the session will send the response with status code, headers and other preamble data ahead of time,
+ * allowing the session to connect and start pushing events immediately. As such, keep in mind that attempting
  * to write additional headers after the session has been created will result in an error being thrown.
  *
  * @param req - The Node HTTP/1 {@link https://nodejs.org/api/http.html#http_class_http_incomingmessage | ServerResponse}, HTTP/2 {@link https://nodejs.org/api/http2.html#class-http2http2serverrequest | Http2ServerRequest} or the Fetch API {@link https://developer.mozilla.org/en-US/docs/Web/API/Request | Request} object.
@@ -350,6 +350,8 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	 * If no event name is given, the event name is set to `"message"`.
 	 *
 	 * If no event ID is given, the event ID (and thus the `lastId` property) is set to a unique string generated using a cryptographic pseudorandom number generator.
+	 *
+	 * If the session has disconnected, an `SseError` will be thrown.
 	 *
 	 * Emits the `push` event with the given data, event name and event ID in that order.
 	 *

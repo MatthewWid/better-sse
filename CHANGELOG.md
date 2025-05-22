@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.15.0 - 2025-05-22
+
 ### Added
 
 * Added support for the `Session` constructor to be able to take in a [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) (and optionally a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response)) object from the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
