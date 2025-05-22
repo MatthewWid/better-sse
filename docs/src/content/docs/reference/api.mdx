@@ -16,17 +16,29 @@ import {Aside} from "@astrojs/starlight/components";
 
 A `Session` represents an open connection between the server and the client.
 
-It emits the `connected` event after it has connected and sent all headers to the client, and the `disconnected` event after the connection has been closed.
+It emits the `connected` event after it has connected and sent the response head to the client.<br />
+It emits the `disconnected` event after the connection has been closed.
 
-Note that creating a new session will immediately send the initial status code and headers to the client. Attempting to write additional headers after you have created a new session will result in an error.
+When using the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), the session is considered connected only once the `ReadableStream` contained in the body of the `Response` returned by `getResponse` has began being [consumed](https://developer.mozilla.org/en-US/docs/Web/API/Streams_API/Using_readable_streams).
 
-#### `new Session<State = DefaultSessionState>(req: IncomingMessage | Http2ServerRequest, res: ServerResponse | Http2ServerResponse[, options = {}])`
+When using the [Node HTTP APIs](https://nodejs.org/api/http.html), the session will send the response status code, headers and other preamble data ahead of time, allowing the session to connect and start pushing events [immediately](https://nodejs.org/api/timers.html#setimmediatecallback-args). As such, keep in mind that attempting to write additional headers after the session has been created will result in an error being thrown.
 
-`req` is an instance of [IncomingMessage](https://nodejs.org/api/http.html#http_class_http_incomingmessage) or [Http2ServerRequest](https://nodejs.org/api/http2.html#class-http2http2serverrequest).
+#### `new Session<State = DefaultSessionState>(req: IncomingMessage | Http2ServerRequest | Request, res?: ServerResponse | Http2ServerResponse | Response | SessionOptions[, options: SessionOptions])`
 
-`res` is an instance of [ServerResponse](https://nodejs.org/api/http.html#http_class_http_serverresponse) or [Http2ServerResponse](https://nodejs.org/api/http2.html#class-http2http2serverresponse).
+*Overloads:*
 
-`options` is an object with the following properties:
+```typescript
+new Session(IncomingMessage, ServerResponse, SessionOptions?)
+new Session(Http2ServerRequest, Http2ServerResponse, SessionOptions?)
+new Session(Request, Response, SessionOptions?)
+new Session(Request, SessionOptions?)
+```
+
+`req` is an instance of [IncomingMessage](https://nodejs.org/api/http.html#http_class_http_incomingmessage), [Http2ServerRequest](https://nodejs.org/api/http2.html#class-http2http2serverrequest) or [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request).
+
+`res` is an instance of [ServerResponse](https://nodejs.org/api/http.html#http_class_http_serverresponse), [Http2ServerResponse](https://nodejs.org/api/http2.html#class-http2http2serverresponse) or [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response), respectively.
+
+`options` is a `SessionOptions` object with the following properties:
 
 |Property|Type|Default|Description|
 |-|-|-|-|
@@ -60,6 +72,25 @@ Use this object to safely store information related to the session and user.
 You may set an initial value for this property using the `state` property in the [constructor `options` object](#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest-res-serverresponse--http2serverresponse-options-), allowing its type to be automatically inferred.
 
 Use [module augmentation and declaration merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation) to safely add new properties to the `DefaultSessionState` interface.
+
+#### `Session#getRequest`: `() => Request`
+
+Get a [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) object representing the request of the underlying connection this session manages.
+
+When using the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), this will be the original `Request` object passed to the session constructor.
+
+When using the [Node HTTP APIs](https://nodejs.org/api/http.html), this will be a new `Request` object with status code and headers copied from the original request.<br />
+When the originally given request or response is closed, the abort signal attached to this `Request` will be triggered.
+
+#### `Session#getResponse`: `() => Response`
+
+Get a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) object representing the response of the underlying connection this session manages.
+
+When using the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), this will be a new `Response` object with status code and headers copied from the original response if given.<br />
+Its body will be a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) that should begin being consumed for the session to consider itself connected.
+
+When using the [Node HTTP APIs](https://nodejs.org/api/http.html), this will be a new `Response` object with status code and headers copied from the original response.<br />
+Its body will be `null`, as data is instead written to the stream of the [originally given response object](https://nodejs.org/api/http.html#responsewritechunk-encoding-callback).
 
 #### `Session#push`: `(data: unknown[, eventName: string[, eventId: string]]) => this`
 
@@ -112,9 +143,53 @@ Returns a promise that resolves once all data from the event buffer has been suc
 
 ### `createSession`: `<State>(...args: ConstructorParameters<typeof Session>) => Promise<Session<State>>`
 
+*Overloads:*
+
+```typescript
+createSession(IncomingMessage, ServerResponse, SessionOptions?): Promise<Session>
+createSession(Http2ServerRequest, Http2ServerResponse, SessionOptions?): Promise<Session>
+createSession(Request, Response, SessionOptions?): Promise<Session>
+createSession(Request, SessionOptions?): Promise<Session>
+```
+
 Creates and returns a promise that resolves to an instance of a [Session](#session) once it has connected.
 
-Takes the [same arguments as the Session class constructor](#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest-res-serverresponse--http2serverresponse-options-).
+Takes the [same arguments as the Session class constructor](#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest--request-res-serverresponse--http2serverresponse--response--sessionoptions-options-sessionoptions).
+
+### `createResponse`: `<State>(...args: ConstructorParameters<typeof Session>, callback: (session: Session<State>) => void) => Response`
+
+*Overloads:*
+
+```typescript
+createResponse(Request, CreateResponseCallback): Response
+createResponse(Request, SessionOptions, CreateResponseCallback): Response
+createResponse(Request, Response, CreateResponseCallback): Response
+createResponse(Request, Response, SessionOptions, CreateResponseCallback): Response
+```
+
+Create a new session using the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and return its corresponding `Response` object.
+
+Takes the [same arguments as the Session class constructor](#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest--request-res-serverresponse--http2serverresponse--response--sessionoptions-options-sessionoptions).
+
+The last argument should be a callback function `CreateResponseCallback` that will be invoked with the session instance once it has connected.
+
+The following two code snippets are equivalent:
+
+```typescript
+const session = await createSession(request)
+
+session.addListener("connected", () => {
+    session.push("Hello world!")
+})
+
+return session.getResponse()
+```
+
+```typescript
+return createResponse(request, (session) => {
+    session.push("Hello world!")
+})
+```
 
 ### `Channel<State, SessionState>`
 
@@ -125,9 +200,9 @@ A `Channel` is used to broadcast events to many sessions at once.
 You may use the second generic argument `SessionState` to enforce that only sessions
 with the same state type may be registered with this channel.
 
-#### `new Channel<State, SessionState>([options = {}])`
+#### `new Channel<State = DefaultChannelState, SessionState = DefaultSessionState>([options: ChannelOptions])`
 
-`options` is an object with the following properties:
+`options` is a `ChannelOptions` object with the following properties:
 
 |Property|Type|Default|Description|
 |-|-|-|-|
@@ -204,9 +279,9 @@ Takes the [same arguments as the Channel class constructor](#channelstate-sessio
 
 An `EventBuffer` allows you to write [raw spec-compliant SSE fields](https://html.spec.whatwg.org/multipage/server-sent-events.html#processField) into a text buffer that can be sent directly over the wire.
 
-#### `new EventBuffer([options = {}])`
+#### `new EventBuffer([options: EventBufferOptions])`
 
-`options` is an object with the following properties:
+`options` is an `EventBufferOptions` object with the following properties:
 
 |Property|Type|Default|Description|
 |-|-|-|-|

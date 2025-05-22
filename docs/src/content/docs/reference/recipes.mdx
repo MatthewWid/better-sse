@@ -1,13 +1,15 @@
 ---
 layout: ../../../layouts/Base.astro
 title: Usage recipes
-description: See examples of using Better SSE with various Node HTTP frameworks.
+description: See examples of using Better SSE with various HTTP frameworks.
 sidebar:
     order: 3
 next: false
 ---
 
-Better SSE can be used with any web-server framework that uses the underlying [Node HTTP module](https://nodejs.org/api/http.html). This section shows example usage with some popular HTTP frameworks.
+Better SSE works with any web-server framework that uses the [Node HTTP module](https://nodejs.org/api/http.html) or the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
+
+This section shows example usage with some popular HTTP libraries.
 
 Feel free to [submit a PR](https://github.com/MatthewWid/better-sse/pulls) with a minimal example for another framework!
 
@@ -114,7 +116,6 @@ Bun.serve({
             },
         })
     },
-
 })
 ```
 
