@@ -10,6 +10,7 @@
 		"ignore": [
 			"docs/src/content/snippets/*.ts",
 			"docs/src/**/*.astro",
+			"docs/.astro/**/*",
 			"examples/*/public/*.js"
 		],
 		"ignoreUnknown": false
