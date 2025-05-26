@@ -10,12 +10,14 @@ interface StreamOptions {
 	eventName?: string;
 }
 
+type PushFromStream = (
+	stream: NodeReadableStream | WebReadableStream,
+	options?: StreamOptions
+) => Promise<boolean>;
+
 const createPushFromStream =
-	(push: (data: unknown, eventName: string) => void) =>
-	async (
-		stream: NodeReadableStream | WebReadableStream,
-		options: StreamOptions = {}
-	): Promise<boolean> => {
+	(push: (data: unknown, eventName: string) => void): PushFromStream =>
+	async (stream, options = {}) => {
 		const {eventName = "stream"} = options;
 
 		if (stream instanceof NodeReadableStream) {
@@ -49,5 +51,5 @@ const createPushFromStream =
 		return true;
 	};
 
-export type {StreamOptions};
+export type {StreamOptions, PushFromStream};
 export {createPushFromStream};

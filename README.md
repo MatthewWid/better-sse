@@ -1,10 +1,19 @@
 # Better SSE
 
 <p>
-	<img src="https://img.shields.io/npm/v/better-sse?color=blue&style=flat-square" />
-	<img src="https://img.shields.io/npm/l/better-sse?color=green&style=flat-square" />
-	<img src="https://img.shields.io/npm/dt/better-sse?color=grey&style=flat-square" />
-	<a href="https://github.com/MatthewWid/better-sse"><img src="https://img.shields.io/github/stars/MatthewWid/better-sse?style=social" /></a>
+    <a href="https://www.npmjs.com/package/better-sse">
+        <img src="https://img.shields.io/npm/v/better-sse?color=blue&style=flat-square" alt="npm" />
+    </a>
+    <a href="https://jsr.io/@mwid/better-sse">
+        <img src="https://jsr.io/badges/@mwid/better-sse" alt="jsr" />
+    </a>
+    <a href="https://github.com/MatthewWid/better-sse/blob/master/LICENSE">
+        <img src="https://img.shields.io/npm/l/better-sse?color=green&style=flat-square" alt="MIT license" />
+    </a>
+	<img src="https://img.shields.io/npm/dt/better-sse?color=grey&style=flat-square" alt="Downloads" />
+	<a href="https://github.com/MatthewWid/better-sse">
+        <img src="https://img.shields.io/github/stars/MatthewWid/better-sse?style=social" alt="GitHub stars" />
+    </a>
 </p>
 
 A dead simple, dependency-less, spec-compliant server-sent events implementation written in TypeScript.
@@ -47,7 +56,7 @@ Read the [Getting Started](https://matthewwid.github.io/better-sse/guides/gettin
 
 # Installation
 
-Install with any package manager:
+Better SSE is published as a package on [npm](https://www.npmjs.com/package/better-sse) and the [JSR](https://jsr.io/@mwid/better-sse). You can install it with any package manager:
 
 ```sh
 npm install better-sse
@@ -66,7 +75,7 @@ bun add better-sse
 ```
 
 ```sh
-deno install npm:better-sse
+deno install jsr:@mwid/better-sse
 ```
 
 _Better SSE ships with types built in. No need to install from DefinitelyTyped for TypeScript users!_

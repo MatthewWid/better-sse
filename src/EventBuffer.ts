@@ -1,5 +1,11 @@
-import {createPushFromIterable} from "./lib/createPushFromIterable";
-import {createPushFromStream} from "./lib/createPushFromStream";
+import {
+	type PushFromIterable,
+	createPushFromIterable,
+} from "./lib/createPushFromIterable";
+import {
+	type PushFromStream,
+	createPushFromStream,
+} from "./lib/createPushFromStream";
 import {generateId} from "./lib/generateId";
 import {type SanitizerFunction, sanitize} from "./lib/sanitize";
 import {type SerializerFunction, serialize} from "./lib/serialize";
@@ -134,7 +140,7 @@ class EventBuffer {
 	push = (
 		data: unknown,
 		eventName = "message",
-		eventId = generateId()
+		eventId: string = generateId()
 	): this => {
 		this.event(eventName).id(eventId).data(data).dispatch();
 
@@ -151,9 +157,9 @@ class EventBuffer {
 	 * @param stream - Readable stream to consume data from.
 	 * @param options - Event name to use for each event created.
 	 *
-	 * @returns A promise that resolves or rejects based on the success of the stream write finishing.
+	 * @returns A promise that resolves with `true` or rejects based on the success of the stream write finishing.
 	 */
-	stream = createPushFromStream(this.push);
+	stream: PushFromStream = createPushFromStream(this.push);
 
 	/**
 	 * Iterate over an iterable and write yielded values as events into the buffer.
@@ -166,12 +172,12 @@ class EventBuffer {
 	 *
 	 * @returns A promise that resolves once all data has been successfully yielded from the iterable.
 	 */
-	iterate = createPushFromIterable(this.push);
+	iterate: PushFromIterable = createPushFromIterable(this.push);
 
 	/**
 	 * Clear the contents of the buffer.
 	 */
-	clear = () => {
+	clear = (): this => {
 		this.buffer = "";
 
 		return this;

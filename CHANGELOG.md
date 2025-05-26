@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.15.1 - 2025-05-26
+
+### Added
+
+* Added support for publishing on the [JavaScript Registry (JSR)](https://jsr.io/).
+
+### Fixed
+
+* Fixed the `stream`, `iterate` and `EventBuffer#clear` methods not having explicit return types, resulting in [slow inference](https://jsr.io/docs/about-slow-types) in certain environments.
+
 ## 0.15.0 - 2025-05-22
 
 ### Added
