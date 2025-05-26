@@ -1,0 +1,9 @@
+{
+	"name": "@mwid/better-sse",
+	"version": "0.15.1",
+	"exports": "./src/index.ts",
+	"publish": {
+		"include": ["LICENSE", "README.md", "CHANGELOG.md", "src/**/*.ts"],
+		"exclude": ["src/**/*.test.ts"]
+	}
+}
