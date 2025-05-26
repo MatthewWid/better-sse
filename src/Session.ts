@@ -12,8 +12,14 @@ import {NodeHttp2CompatConnection} from "./adapters/NodeHttp2CompatConnection";
 import {SseError} from "./lib/SseError";
 import {type EventMap, TypedEmitter} from "./lib/TypedEmitter";
 import {applyHeaders} from "./lib/applyHeaders";
-import {createPushFromIterable} from "./lib/createPushFromIterable";
-import {createPushFromStream} from "./lib/createPushFromStream";
+import {
+	type PushFromIterable,
+	createPushFromIterable,
+} from "./lib/createPushFromIterable";
+import {
+	type PushFromStream,
+	createPushFromStream,
+} from "./lib/createPushFromStream";
 import {generateId} from "./lib/generateId";
 import {
 	type SanitizerFunction,
@@ -362,7 +368,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	push = (
 		data: unknown,
 		eventName = "message",
-		eventId = generateId()
+		eventId: string = generateId()
 	): this => {
 		if (!this.isConnected) {
 			throw new SseError(
@@ -394,9 +400,9 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	 * @param stream - Readable stream to consume data from.
 	 * @param options - Options to alter how the stream is flushed to the client.
 	 *
-	 * @returns A promise that resolves or rejects based on the success of the stream write finishing.
+	 * @returns A promise that resolves with `true` or rejects based on the success of the stream write finishing.
 	 */
-	stream = createPushFromStream(this.push);
+	stream: PushFromStream = createPushFromStream(this.push);
 
 	/**
 	 * Iterate over an iterable and send yielded values as events to the client.
@@ -409,7 +415,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	 *
 	 * @returns A promise that resolves once all data has been successfully yielded from the iterable.
 	 */
-	iterate = createPushFromIterable(this.push);
+	iterate: PushFromIterable = createPushFromIterable(this.push);
 
 	/**
 	 * Batch and send multiple events at once.
@@ -427,7 +433,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	 */
 	batch = async (
 		batcher: EventBuffer | ((buffer: EventBuffer) => void | Promise<void>)
-	) => {
+	): Promise<void> => {
 		if (batcher instanceof EventBuffer) {
 			this.connection.sendChunk(batcher.read());
 		} else {

@@ -7,12 +7,14 @@ interface IterateOptions {
 	eventName?: string;
 }
 
+type PushFromIterable = (
+	iterable: Iterable<unknown> | AsyncIterable<unknown>,
+	options?: IterateOptions
+) => Promise<void>;
+
 const createPushFromIterable =
-	(push: (data: unknown, eventName: string) => void) =>
-	async <DataType = unknown>(
-		iterable: Iterable<DataType> | AsyncIterable<DataType>,
-		options: IterateOptions = {}
-	): Promise<void> => {
+	(push: (data: unknown, eventName: string) => void): PushFromIterable =>
+	async (iterable, options = {}) => {
 		const {eventName = "iteration"} = options;
 
 		for await (const data of iterable) {
@@ -20,5 +22,5 @@ const createPushFromIterable =
 		}
 	};
 
-export type {IterateOptions};
+export type {IterateOptions, PushFromIterable};
 export {createPushFromIterable};
