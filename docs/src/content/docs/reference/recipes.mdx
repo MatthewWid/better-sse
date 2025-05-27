@@ -211,6 +211,43 @@ app.get("/sse", (c) =>
 serve({ fetch: app.fetch, port: 8080 })
 ```
 
+### [Cloudflare Workers](https://developers.cloudflare.com/workers/)
+
+Requires first enabling the [Node.js compatibility polyfills](https://developers.cloudflare.com/workers/runtime-apis/nodejs/):
+
+```typescript title="wrangler.jsonc" ins={2, 3}
+{
+    compatibility_flags: ["nodejs_compat"],
+    compatibility_date: "2024-09-23",
+}
+```
+
+```typescript title="index.ts"
+import { createResponse } from "better-sse"
+
+export default {
+    async fetch(request, env, ctx): Promise<Response> {
+        const url = new URL(request.url)
+
+        switch (url.pathname) {
+            case "/sse": {
+                return createResponse(request, (session) => {
+                    session.push("Hello world!")
+                })
+            }
+            default: {
+                return new Response("Not Found", {
+                    status: 404,
+                    headers: {
+                        "Content-Type": "text/plain"
+                    },
+                })
+            }
+        }
+    }
+} satisfies ExportedHandler<Env>
+```
+
 ### [Next.js](https://nextjs.org/)
 
 #### [App Router](https://nextjs.org/docs/app) ([Route Handlers](https://nextjs.org/docs/app/building-your-application/routing/route-handlers))
