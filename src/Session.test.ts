@@ -1,13 +1,14 @@
 import type http from "node:http";
 import http2 from "node:http2";
 import type {AddressInfo} from "node:net";
-import EventSource from "eventsource";
+import type {EventSource} from "eventsource";
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {EventBuffer} from "./EventBuffer";
 import {Session} from "./Session";
 import {DEFAULT_RESPONSE_CODE, DEFAULT_RESPONSE_HEADERS} from "./lib/constants";
 import {
 	closeServer,
+	createEventSource,
 	createHttp2Server,
 	createHttpServer,
 	createRequest,
@@ -48,7 +49,7 @@ describe("connection", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("throws when given an IncomingMessage object but no ServerResponse", () =>
@@ -60,7 +61,7 @@ describe("connection", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("throws when given no arguments", () =>
@@ -85,7 +86,7 @@ describe("connection", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("fires the disconnection event when the client kills the connection", () =>
@@ -98,7 +99,7 @@ describe("connection", () => {
 				session.on("disconnected", done);
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 
 			eventsource.addEventListener("open", () => {
 				eventsource.close();
@@ -119,7 +120,7 @@ describe("connection", () => {
 				res.end();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("fires the disconnection event when the response is closed", () =>
@@ -142,7 +143,7 @@ describe("connection", () => {
 				res.emit("close");
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("sets the isConnected boolean based on whether the session is open or not", () =>
@@ -165,7 +166,7 @@ describe("connection", () => {
 				res.end();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("returns the correct response status code and headers by default", () =>
@@ -191,7 +192,7 @@ describe("connection", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("can set the status code in options", () =>
@@ -206,7 +207,7 @@ describe("connection", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("adds custom headers to the response headers", () =>
@@ -232,7 +233,7 @@ describe("connection", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("can omit headers by setting its value to undefined", () =>
@@ -259,7 +260,7 @@ describe("connection", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("can overwrite the default headers with a single value", () =>
@@ -286,7 +287,7 @@ describe("connection", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("can set and overwrite headers with an array of values", () =>
@@ -315,7 +316,7 @@ describe("connection", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 });
 
@@ -334,7 +335,7 @@ describe("state", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 });
 
@@ -355,7 +356,7 @@ describe("retry", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("can modify the initial retry field value", () =>
@@ -376,7 +377,7 @@ describe("retry", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("can prevent the initial retry field from being sent", () =>
@@ -397,7 +398,7 @@ describe("retry", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 });
 
@@ -429,7 +430,7 @@ describe("keep-alive", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("can set the keep-alive interval in options", () =>
@@ -459,7 +460,7 @@ describe("keep-alive", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("can disable the keep-alive mechanism in options", () =>
@@ -481,7 +482,7 @@ describe("keep-alive", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 });
 
@@ -500,7 +501,7 @@ describe("event id management", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("trusts and stores the given last event ID by default", () =>
@@ -515,7 +516,7 @@ describe("event id management", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url, {
+			eventsource = createEventSource(url, {
 				headers: {"Last-Event-ID": givenLastId},
 			});
 		}));
@@ -534,7 +535,7 @@ describe("event id management", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url, {
+			eventsource = createEventSource(url, {
 				headers: {"Last-Event-ID": givenLastId},
 			});
 		}));
@@ -561,7 +562,7 @@ describe("push", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("emits a push event with the same arguments", () =>
@@ -582,7 +583,7 @@ describe("push", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("sets the last id to the given event id", () =>
@@ -601,7 +602,7 @@ describe("push", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("flushes buffer data to the client", () =>
@@ -621,7 +622,7 @@ describe("push", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("throws when pushing after the session has disconnected", () =>
@@ -642,7 +643,7 @@ describe("push", () => {
 				res.end();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 });
 
@@ -661,7 +662,7 @@ describe("batching", () => {
 				});
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 
 			eventsource.addEventListener("message", (event) => {
 				const contents = JSON.parse(event.data);
@@ -684,7 +685,7 @@ describe("batching", () => {
 				});
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 
 			eventsource.addEventListener("message", (event) => {
 				const contents = JSON.parse(event.data);
@@ -709,7 +710,7 @@ describe("batching", () => {
 				await session.batch(buffer);
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 
 			eventsource.addEventListener("message", (event) => {
 				const contents = JSON.parse(event.data);
@@ -742,7 +743,7 @@ describe("batching", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 });
 
@@ -761,7 +762,7 @@ describe("polyfill support", () => {
 				done();
 			});
 
-			eventsource = new EventSource(`${url}/?lastEventId=${lastEventId}`);
+			eventsource = createEventSource(`${url}/?lastEventId=${lastEventId}`);
 		}));
 
 	it("writes a preamble comment when indicated to by the 'event-source-polyfill' URL query", () =>
@@ -782,7 +783,7 @@ describe("polyfill support", () => {
 				done();
 			});
 
-			eventsource = new EventSource(`${url}/?padding=true`);
+			eventsource = createEventSource(`${url}/?padding=true`);
 		}));
 
 	it("can retrieve the last event ID from 'eventsource-polyfill' URL query", () =>
@@ -797,7 +798,9 @@ describe("polyfill support", () => {
 				done();
 			});
 
-			eventsource = new EventSource(`${url}/?evs_last_event_id=${lastEventId}`);
+			eventsource = createEventSource(
+				`${url}/?evs_last_event_id=${lastEventId}`
+			);
 		}));
 
 	it("writes a preamble comment when indicated to by the 'eventsource-polyfill' URL query", () =>
@@ -818,7 +821,7 @@ describe("polyfill support", () => {
 				done();
 			});
 
-			eventsource = new EventSource(`${url}/?evs_preamble`);
+			eventsource = createEventSource(`${url}/?evs_preamble`);
 		}));
 
 	it("does not write a preamble when not indicated to do so", () =>
@@ -837,7 +840,7 @@ describe("polyfill support", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 });
 
@@ -859,7 +862,7 @@ describe("fetch api", () => {
 					expect(request.url).toContain(req.url);
 					expect(request.method).toBe(req.method);
 					expect(request.headers.get("X-Test-Single")).toBe("456");
-					expect(request.headers.get("X-Test-Array")).toBe("123, 456");
+					expect(request.headers.get("X-Test-Array")).toBe("123,456");
 
 					for (const [key, value] of Object.entries(req.headers)) {
 						expect(request.headers.has(key)).toBeTruthy();
@@ -874,7 +877,7 @@ describe("fetch api", () => {
 					done();
 				});
 
-				eventsource = new EventSource(url, {
+				eventsource = createEventSource(url, {
 					headers: {
 						"X-Test-Single": "456",
 						"X-Test-Array": ["123", "456"],
@@ -903,7 +906,7 @@ describe("fetch api", () => {
 					req.destroy();
 				});
 
-				eventsource = new EventSource(url);
+				eventsource = createEventSource(url);
 			}));
 
 		it("triggers abort signal on res close", () =>
@@ -927,7 +930,7 @@ describe("fetch api", () => {
 					res.end();
 				});
 
-				eventsource = new EventSource(url);
+				eventsource = createEventSource(url);
 			}));
 	});
 

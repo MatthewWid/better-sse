@@ -11,11 +11,12 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
-            - uses: withastro/action@v3
+            - uses: withastro/action@v4
               env:
                 PUBLIC_ANALYTICS_SCRIPT_URL: ${{ vars.PUBLIC_ANALYTICS_SCRIPT_URL }}
                 PUBLIC_ANALYTICS_WEBSITE_ID: ${{ vars.PUBLIC_ANALYTICS_WEBSITE_ID }}
               with:
+                node-version: 20
                 path: ./docs
     deploy:
       needs: build

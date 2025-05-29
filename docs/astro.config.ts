@@ -7,9 +7,13 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			title: "Better SSE",
-			social: {
-				github: "https://github.com/MatthewWid/better-sse",
-			},
+			social: [
+				{
+					icon: "github",
+					label: "GitHub",
+					href: "https://github.com/MatthewWid/better-sse",
+				},
+			],
 			sidebar: [
 				{
 					label: "Guides",
