@@ -39,7 +39,7 @@ Read the [Getting Started](https://matthewwid.github.io/better-sse/guides/gettin
 
 ## Highlights
 
-* Compatible with all popular HTTP frameworks ([Express](https://nodejs.org/api/http.html), [Hono](https://hono.dev/), [Fastify](https://fastify.dev/), [Nest](https://nestjs.com/), [Next.js](https://nextjs.org/), [Bun](https://bun.sh/docs/api/http), [Deno](https://docs.deno.com/runtime/fundamentals/http_server/), [etc.](https://matthewwid.github.io/better-sse/reference/recipes/))
+* Compatible with all popular frameworks and runtimes ([Express](https://nodejs.org/api/http.html), [Hono](https://hono.dev/), [Fastify](https://fastify.dev/), [Nest](https://nestjs.com/), [Next.js](https://nextjs.org/), [Bun](https://bun.sh/docs/api/http), [Deno](https://docs.deno.com/runtime/fundamentals/http_server/), [etc.](https://matthewwid.github.io/better-sse/reference/recipes/))
 * Fully written in TypeScript (+ ships with types directly).
 * [Thoroughly tested](./src/Session.test.ts) (+ 100% code coverage!).
 * [Comprehensively documented](https://matthewwid.github.io/better-sse) with guides and API documentation.
