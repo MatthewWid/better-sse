@@ -1,9 +1,14 @@
 import type http from "node:http";
-import EventSource from "eventsource";
+import type {EventSource} from "eventsource";
 import {afterEach, beforeEach, expect, it} from "vitest";
 import {Session} from "./Session";
 import {createSession} from "./createSession";
-import {closeServer, createHttpServer, getUrl} from "./lib/testUtils";
+import {
+	closeServer,
+	createEventSource,
+	createHttpServer,
+	getUrl,
+} from "./lib/testUtils";
 
 let server: http.Server;
 let url: string;
@@ -33,5 +38,5 @@ it("resolves with an instance of a session", () =>
 			done();
 		});
 
-		eventsource = new EventSource(url);
+		eventsource = createEventSource(url);
 	}));

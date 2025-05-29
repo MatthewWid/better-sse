@@ -1,7 +1,7 @@
 import type http from "node:http";
-import EventSource from "eventsource";
+import type {EventSource} from "eventsource";
 import {
-	type SpyInstance,
+	type MockInstance,
 	afterEach,
 	beforeEach,
 	describe,
@@ -13,6 +13,7 @@ import {Channel} from "./Channel";
 import {Session} from "./Session";
 import {
 	closeServer,
+	createEventSource,
 	createHttpServer,
 	getUrl,
 	waitForConnect,
@@ -76,7 +77,7 @@ describe("registering", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("throws when registering a disconnected session", () =>
@@ -93,7 +94,7 @@ describe("registering", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("emits a session registration event", () =>
@@ -116,7 +117,7 @@ describe("registering", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("does not emit a registration event if the session is already registered", () =>
@@ -140,7 +141,7 @@ describe("registering", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("removes a session from the active sessions after deregistering it", () =>
@@ -165,7 +166,7 @@ describe("registering", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("emits a session deregistration event and not a session disconnection event when deregistering", () =>
@@ -191,7 +192,7 @@ describe("registering", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("does not emit a deregistration event if the session was not registered to begin with", () =>
@@ -214,7 +215,7 @@ describe("registering", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("automatically deregisters a session once it disconnects", () =>
@@ -241,7 +242,7 @@ describe("registering", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 
 			eventsource.addEventListener("open", () => {
 				eventsource.close();
@@ -272,7 +273,7 @@ describe("registering", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 
 			eventsource.addEventListener("open", () => {
 				eventsource.close();
@@ -303,7 +304,7 @@ describe("broadcasting", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("calls push with a default event name if none is given", () =>
@@ -330,7 +331,7 @@ describe("broadcasting", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("emits a broadcast event with the same arguments", () =>
@@ -355,7 +356,7 @@ describe("broadcasting", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("can set a custom event id when broadcasting", () =>
@@ -382,7 +383,7 @@ describe("broadcasting", () => {
 				done();
 			});
 
-			eventsource = new EventSource(url);
+			eventsource = createEventSource(url);
 		}));
 
 	it("can filter sessions when broadcasting", () =>
@@ -391,7 +392,7 @@ describe("broadcasting", () => {
 
 			const channel = new Channel<Record<string, unknown>, AuthSessionState>();
 
-			const sessionPushMocks: SpyInstance[] = [];
+			const sessionPushMocks: MockInstance[] = [];
 
 			server.on("request", async (req, res) => {
 				const session = new Session<AuthSessionState>(req, res);
@@ -425,8 +426,8 @@ describe("broadcasting", () => {
 				done();
 			});
 
-			const eventSource1 = new EventSource(url);
-			const eventSource2 = new EventSource(url);
-			const eventSource3 = new EventSource(url);
+			const eventSource1 = createEventSource(url);
+			const eventSource2 = createEventSource(url);
+			const eventSource3 = createEventSource(url);
 		}));
 });

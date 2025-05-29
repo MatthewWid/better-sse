@@ -2,6 +2,7 @@ import http from "node:http";
 import http2 from "node:http2";
 import type net from "node:net";
 import type {AddressInfo} from "node:net";
+import {EventSource, EventSourceFetchInit} from "eventsource";
 import type {EventBuffer} from "../EventBuffer";
 import type {Session} from "../Session";
 
@@ -38,6 +39,25 @@ const closeServer = (server: net.Server): Promise<void> =>
 
 const getUrl = (server: net.Server): string =>
 	`http://localhost:${(server.address() as AddressInfo).port}`;
+
+interface CreateEventSourceOptions {
+	headers?: Record<string, string | string[]>;
+}
+
+const createEventSource = (
+	url: string,
+	options: CreateEventSourceOptions = {}
+): EventSource =>
+	new EventSource(url, {
+		fetch: (fetchUrl, fetchInit) =>
+			fetch(fetchUrl, {
+				...fetchInit,
+				headers: {
+					...fetchInit.headers,
+					...options.headers,
+				},
+			}),
+	});
 
 const waitForConnect = (session: Session): Promise<void> =>
 	new Promise((resolve) => {
@@ -89,6 +109,7 @@ export {
 	createHttp2Server,
 	closeServer,
 	getUrl,
+	createEventSource,
 	waitForConnect,
 	getBuffer,
 	createRequest,
