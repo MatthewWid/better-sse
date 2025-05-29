@@ -212,6 +212,29 @@ Bundle for distribution (with [tsup](https://tsup.egoist.dev/)):
 pnpm build
 ```
 
+## Documentation
+
+The documentation is built with [Astro](https://astro.build/) and [Starlight](https://starlight.astro.build/). Its source is located in the `docs` directory.
+
+Install dependencies:
+
+```bash
+cd docs
+pnpm i
+```
+
+Run development server:
+
+```bash
+pnpm dev
+```
+
+Build for distribution:
+
+```bash
+pnpm build
+```
+
 # License
 
 This project is licensed under the [MIT license](https://opensource.org/license/mit/).
