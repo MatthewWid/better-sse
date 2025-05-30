@@ -17,14 +17,33 @@ export default defineConfig({
 			sidebar: [
 				{
 					label: "Guides",
-					autogenerate: {directory: "guides"},
+					items: [
+						"guides/getting-started",
+						"guides/channels",
+						"guides/batching",
+					],
 				},
 				{
 					label: "Reference",
-					autogenerate: {directory: "reference"},
+					items: [
+						"reference/api",
+						"reference/recipes",
+						"reference/comparison",
+						{
+							label: "Compatibility",
+							items: [
+								"reference/compatibility/server",
+								"reference/compatibility/browser",
+							],
+						},
+					],
 				},
 			],
 			customCss: ["./src/styles/custom.css"],
 		}),
 	],
+	redirects: {
+		"/reference/browser-compatibility":
+			"/better-sse/reference/compatibility/browser",
+	},
 });

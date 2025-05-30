@@ -1,0 +1,39 @@
+---
+layout: ../../../../layouts/Base.astro
+title: Server compatibility
+description: See server compatibility for Better SSE.
+prev: false
+---
+
+Better SSE works with any runtime that runs JavaScript ([ES2020+](https://tc39.es/ecma262/2020/)) and supports the following APIs:
+
+* [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request), [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) and [`AbortController`](https://developer.mozilla.org/en-US/docs/Web/API/AbortController) from the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
+* [`EventEmitter`](https://nodejs.org/api/events.html#class-eventemitter) from [`node:events`](https://nodejs.org/api/events.html)
+* [`setImmediate`](https://nodejs.org/api/timers.html#setimmediatecallback-args) from [`node:timers`](https://nodejs.org/api/timers.html)
+* [`randomUUID`](https://nodejs.org/api/crypto.html#cryptorandomuuidoptions) (or [`randomBytes`](https://nodejs.org/api/crypto.html#cryptorandombytessize-callback) as a fallback) from [`node:crypto`](https://nodejs.org/api/crypto.html)
+* [`IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) and [`ServerResponse`](https://nodejs.org/api/http.html#class-httpserverresponse) from [`node:http`](https://nodejs.org/api/http.html)
+    * Or at least stubs their imports to `undefined` if you are instead using the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
+* [`Http2ServerRequest`](https://nodejs.org/api/http2.html#class-http2http2serverrequest) and [`Http2ServerResponse`](https://nodejs.org/api/http2.html#class-http2http2serverresponse) from [`node:http2`](https://nodejs.org/api/http2.html)
+    * Or at least stubs their imports to `undefined` if you are instead using the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
+* [`Readable`](https://nodejs.org/api/stream.html#class-streamreadable) from [`node:stream`](https://nodejs.org/api/stream.html)
+    * Or at least stubs its import to `undefined` if you are instead using [web streams](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream)
+* [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream), [`WritableStream`](https://developer.mozilla.org/en-US/docs/Web/API/WritableStream) and [`TransformStream`](https://developer.mozilla.org/en-US/docs/Web/API/TransformStream) from the [Web Streams API](https://developer.mozilla.org/en-US/docs/Web/API/Streams_API)
+    * Only when using the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
+
+---
+
+For Node users, [version 20](https://nodejs.org/en/blog/announcements/v20-release-announce) is the minimum officially supported version.
+
+---
+
+When using the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), the provided [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) and optional [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) object must be instances of [`globalThis.Request`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis) and [`globalThis.Response`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis), respectively. Providing a [ponyfilled](https://ponyfill.com/) implementation will cause an [error](http://localhost:4321/better-sse/reference/api/#sseerror) to be thrown unless you also assign it to [`globalThis`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis):
+
+```typescript
+import {
+    Request as PonyfilledRequest,
+    Response as PonyfilledResponse
+} from "fetch-ponyfill"
+
+globalThis.Request = PonyfilledRequest
+globalThis.Response = PonyfilledResponse
+```
