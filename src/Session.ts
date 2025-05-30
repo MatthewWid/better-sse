@@ -20,7 +20,6 @@ import {
 	type PushFromStream,
 	createPushFromStream,
 } from "./utils/createPushFromStream";
-import {generateId} from "./utils/generateId";
 import {
 	type SanitizerFunction,
 	sanitize as defaultSanitizer,
@@ -355,7 +354,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	 *
 	 * If no event name is given, the event name is set to `"message"`.
 	 *
-	 * If no event ID is given, the event ID (and thus the `lastId` property) is set to a unique string generated using a cryptographic pseudorandom number generator.
+	 * If no event ID is given, the event ID (and thus the `lastId` property) is set to a randomly generated UUIDv4.
 	 *
 	 * If the session has disconnected, an `SseError` will be thrown.
 	 *
@@ -368,7 +367,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	push = (
 		data: unknown,
 		eventName = "message",
-		eventId: string = generateId()
+		eventId: string = crypto.randomUUID()
 	): this => {
 		if (!this.isConnected) {
 			throw new SseError(

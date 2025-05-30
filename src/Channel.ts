@@ -1,7 +1,6 @@
 import type {DefaultSessionState, Session} from "./Session";
 import {SseError} from "./utils/SseError";
 import {type EventMap, TypedEmitter} from "./utils/TypedEmitter";
-import {generateId} from "./utils/generateId";
 
 interface ChannelOptions<State = DefaultChannelState> {
 	/**
@@ -16,9 +15,10 @@ interface BroadcastOptions<SessionState = DefaultSessionState> {
 	/**
 	 * Unique ID for the event being broadcast.
 	 *
-	 * If no event ID is given, the event ID is set to a unique string generated using a cryptographic pseudorandom number generator.
+	 * If no event ID is given, the event ID is set to a randomly generated UUIDv4.
 	 */
 	eventId?: string;
+
 	/**
 	 * Filter sessions that should receive the event.
 	 *
@@ -143,7 +143,7 @@ class Channel<
 		eventName = "message",
 		options: BroadcastOptions<SessionState> = {}
 	): this => {
-		const eventId = options.eventId ?? generateId();
+		const eventId = options.eventId ?? crypto.randomUUID();
 
 		const sessions = options.filter
 			? this.activeSessions.filter(options.filter)
