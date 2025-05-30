@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+* Update event ID generation to use `randomUUID` from the [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID) instead of [`node:crypto`](https://nodejs.org/api/crypto.html).
+
 ## 0.15.1 - 2025-05-26
 
 ### Added
