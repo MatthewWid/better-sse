@@ -1,14 +1,14 @@
 import {
 	type PushFromIterable,
 	createPushFromIterable,
-} from "./lib/createPushFromIterable";
+} from "./utils/createPushFromIterable";
 import {
 	type PushFromStream,
 	createPushFromStream,
-} from "./lib/createPushFromStream";
-import {generateId} from "./lib/generateId";
-import {type SanitizerFunction, sanitize} from "./lib/sanitize";
-import {type SerializerFunction, serialize} from "./lib/serialize";
+} from "./utils/createPushFromStream";
+import {generateId} from "./utils/generateId";
+import {type SanitizerFunction, sanitize} from "./utils/sanitize";
+import {type SerializerFunction, serialize} from "./utils/serialize";
 
 interface EventBufferOptions {
 	/**

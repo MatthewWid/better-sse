@@ -5,7 +5,10 @@ import type {EventSource} from "eventsource";
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {EventBuffer} from "./EventBuffer";
 import {Session} from "./Session";
-import {DEFAULT_RESPONSE_CODE, DEFAULT_RESPONSE_HEADERS} from "./lib/constants";
+import {
+	DEFAULT_RESPONSE_CODE,
+	DEFAULT_RESPONSE_HEADERS,
+} from "./utils/constants";
 import {
 	closeServer,
 	createEventSource,
@@ -16,7 +19,7 @@ import {
 	getBuffer,
 	getUrl,
 	waitForConnect,
-} from "./lib/testUtils";
+} from "./utils/testUtils";
 
 let server: http.Server;
 let url: string;

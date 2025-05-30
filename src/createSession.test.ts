@@ -8,7 +8,7 @@ import {
 	createEventSource,
 	createHttpServer,
 	getUrl,
-} from "./lib/testUtils";
+} from "./utils/testUtils";
 
 let server: http.Server;
 let url: string;

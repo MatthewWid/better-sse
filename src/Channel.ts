@@ -1,7 +1,7 @@
 import type {DefaultSessionState, Session} from "./Session";
-import {SseError} from "./lib/SseError";
-import {type EventMap, TypedEmitter} from "./lib/TypedEmitter";
-import {generateId} from "./lib/generateId";
+import {SseError} from "./utils/SseError";
+import {type EventMap, TypedEmitter} from "./utils/TypedEmitter";
+import {generateId} from "./utils/generateId";
 
 interface ChannelOptions<State = DefaultChannelState> {
 	/**

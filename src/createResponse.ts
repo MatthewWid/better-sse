@@ -3,7 +3,7 @@ import {
 	Session,
 	type SessionOptions,
 } from "./Session";
-import {SseError} from "./lib/SseError";
+import {SseError} from "./utils/SseError";
 
 type CreateResponseCallback<State> = (session: Session<State>) => void;
 

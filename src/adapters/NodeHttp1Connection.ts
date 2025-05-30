@@ -1,11 +1,11 @@
 import type {IncomingMessage, ServerResponse} from "node:http";
-import {applyHeaders} from "../lib/applyHeaders";
+import {applyHeaders} from "../utils/applyHeaders";
 import {
 	DEFAULT_REQUEST_HOST,
 	DEFAULT_REQUEST_METHOD,
 	DEFAULT_RESPONSE_CODE,
 	DEFAULT_RESPONSE_HEADERS,
-} from "../lib/constants";
+} from "../utils/constants";
 import type {Connection, ConnectionOptions} from "./Connection";
 
 class NodeHttp1Connection implements Connection {
