@@ -167,7 +167,7 @@ Check the [API documentation](https://matthewwid.github.io/better-sse/reference/
 
 # Documentation
 
-API documentation, getting started guides and usage with other frameworks is [available on the documentation website](https://matthewwid.github.io/better-sse/).
+See [the documentation website](https://matthewwid.github.io/better-sse/) for guides, usage examples, compatibility information and an API reference.
 
 # Contributing
 

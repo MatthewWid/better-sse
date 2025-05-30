@@ -1,12 +1,11 @@
 import type {Http2ServerRequest, Http2ServerResponse} from "node:http2";
-import {applyHeaders} from "../lib/applyHeaders";
+import {applyHeaders} from "../utils/applyHeaders";
 import {
-	CONNECTION_SPECIFIC_HEADERS,
 	DEFAULT_REQUEST_HOST,
 	DEFAULT_REQUEST_METHOD,
 	DEFAULT_RESPONSE_CODE,
 	DEFAULT_RESPONSE_HEADERS,
-} from "../lib/constants";
+} from "../utils/constants";
 import type {Connection, ConnectionOptions} from "./Connection";
 
 class NodeHttp2CompatConnection implements Connection {

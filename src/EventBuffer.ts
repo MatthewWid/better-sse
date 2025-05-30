@@ -1,14 +1,13 @@
 import {
 	type PushFromIterable,
 	createPushFromIterable,
-} from "./lib/createPushFromIterable";
+} from "./utils/createPushFromIterable";
 import {
 	type PushFromStream,
 	createPushFromStream,
-} from "./lib/createPushFromStream";
-import {generateId} from "./lib/generateId";
-import {type SanitizerFunction, sanitize} from "./lib/sanitize";
-import {type SerializerFunction, serialize} from "./lib/serialize";
+} from "./utils/createPushFromStream";
+import {type SanitizerFunction, sanitize} from "./utils/sanitize";
+import {type SerializerFunction, serialize} from "./utils/serialize";
 
 interface EventBufferOptions {
 	/**
@@ -131,7 +130,7 @@ class EventBuffer {
 	 *
 	 * If no event name is given, the event name is set to `"message"`.
 	 *
-	 * If no event ID is given, the event ID is set to a unique string generated using a cryptographic pseudorandom number generator.
+	 * If no event ID is given, the event ID is set to a randomly generated UUIDv4.
 	 *
 	 * @param data - Data to write.
 	 * @param eventName - Event name to write.
@@ -140,7 +139,7 @@ class EventBuffer {
 	push = (
 		data: unknown,
 		eventName = "message",
-		eventId: string = generateId()
+		eventId: string = crypto.randomUUID()
 	): this => {
 		this.event(eventName).id(eventId).data(data).dispatch();
 

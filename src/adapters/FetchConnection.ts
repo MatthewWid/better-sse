@@ -1,8 +1,8 @@
-import {applyHeaders} from "../lib/applyHeaders";
+import {applyHeaders} from "../utils/applyHeaders";
 import {
 	DEFAULT_RESPONSE_CODE,
 	DEFAULT_RESPONSE_HEADERS,
-} from "../lib/constants";
+} from "../utils/constants";
 import type {Connection, ConnectionOptions} from "./Connection";
 
 class FetchConnection implements Connection {

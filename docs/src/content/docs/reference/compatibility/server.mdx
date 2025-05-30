@@ -8,9 +8,9 @@ prev: false
 Better SSE works with any runtime that runs JavaScript ([ES2020+](https://tc39.es/ecma262/2020/)) and supports the following APIs:
 
 * [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request), [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) and [`AbortController`](https://developer.mozilla.org/en-US/docs/Web/API/AbortController) from the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
+* [`randomUUID`](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID) from the [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
 * [`EventEmitter`](https://nodejs.org/api/events.html#class-eventemitter) from [`node:events`](https://nodejs.org/api/events.html)
 * [`setImmediate`](https://nodejs.org/api/timers.html#setimmediatecallback-args) from [`node:timers`](https://nodejs.org/api/timers.html)
-* [`randomUUID`](https://nodejs.org/api/crypto.html#cryptorandomuuidoptions) (or [`randomBytes`](https://nodejs.org/api/crypto.html#cryptorandombytessize-callback) as a fallback) from [`node:crypto`](https://nodejs.org/api/crypto.html)
 * [`IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) and [`ServerResponse`](https://nodejs.org/api/http.html#class-httpserverresponse) from [`node:http`](https://nodejs.org/api/http.html)
     * Or at least stubs their imports to `undefined` if you are instead using the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
 * [`Http2ServerRequest`](https://nodejs.org/api/http2.html#class-http2http2serverrequest) and [`Http2ServerResponse`](https://nodejs.org/api/http2.html#class-http2http2serverresponse) from [`node:http2`](https://nodejs.org/api/http2.html)

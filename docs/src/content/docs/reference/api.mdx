@@ -98,7 +98,7 @@ Push an event to the client.
 
 If no event name is given, the event name is set to `"message"`.
 
-If no event ID is given, the event ID (and thus the [`lastId` property](#sessionlastid-string)) is set to a unique string generated using a [cryptographic pseudorandom number generator](https://nodejs.org/api/crypto.html#cryptorandomuuidoptions).
+If no event ID is given, the event ID (and thus the [`lastId` property](#sessionlastid-string)) is set to a [randomly generated](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID) [UUIDv4](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_4_(random)).
 
 If the session has disconnected, an [`SseError`](#sseerror) will be thrown.
 
@@ -271,7 +271,7 @@ Note that the broadcasted event will have the same ID across all receiving sessi
 
 |`options.`|Type|Default|Description|
 |-|-|-|-|
-|`eventId`|`string`||Unique ID for the event being broadcast.<br /><br />If no event ID is given, the event ID is set to a unique string generated using a [cryptographic pseudorandom number generator](https://nodejs.org/api/crypto.html#cryptorandomuuidoptions).|
+|`eventId`|`string`||Unique ID for the event being broadcast.<br /><br />If no event ID is given, the event ID is set to a [randomly generated](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID) [UUIDv4](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_4_(random)).|
 |`filter`|`(session: Session) => boolean`||Filter sessions that should receive the event.<br /><br />Called with each session and should return `true` to allow the event to be sent and otherwise return `false` to prevent the session from receiving the event.|
 
 ### `createChannel`: `<State, SessionState>(...args: ConstructorParameters<typeof Channel>) => Channel<State>`
@@ -331,7 +331,7 @@ This is equivalent to calling the methods `event`, `id`, `data` and `dispatch` i
 
 If no event name is given, the event name is set to `"message"`.
 
-If no event ID is given, the event ID is set to a unique string generated using a [cryptographic pseudorandom number generator](https://nodejs.org/api/crypto.html#cryptorandomuuidoptions).
+If no event ID is given, the event ID is set to a [randomly generated](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID) [UUIDv4](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_4_(random)).
 
 #### `EventBuffer#stream`: `(stream: stream.Readable | ReadableStream[, options: object]) => Promise<boolean>`
 

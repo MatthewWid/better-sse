@@ -4,7 +4,7 @@ import {createResponse} from "./createResponse";
 import {
 	createRequest as createTestRequest,
 	createResponse as createTestResponse,
-} from "./lib/testUtils";
+} from "./utils/testUtils";
 
 it("calls the callback with a connected instance of a Session", () =>
 	new Promise<void>((done) => {

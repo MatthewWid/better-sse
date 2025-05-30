@@ -4,7 +4,7 @@ import {EventBuffer} from "./EventBuffer";
 describe("serializer", () => {
 	it("can override the data serializer", () => {
 		const buffer = new EventBuffer({
-			serializer: (value) => `${JSON.stringify(value)}123`,
+			serializer: (value: unknown) => `${JSON.stringify(value)}123`,
 		});
 
 		buffer.data("test-data");

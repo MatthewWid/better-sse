@@ -8,7 +8,7 @@ export * from "./createChannel";
 export * from "./EventBuffer";
 export * from "./createEventBuffer";
 
-export type {StreamOptions} from "./lib/createPushFromStream";
-export type {IterateOptions} from "./lib/createPushFromIterable";
+export type {StreamOptions} from "./utils/createPushFromStream";
+export type {IterateOptions} from "./utils/createPushFromIterable";
 
-export * from "./lib/SseError";
+export * from "./utils/SseError";

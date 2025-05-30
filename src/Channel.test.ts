@@ -17,7 +17,7 @@ import {
 	createHttpServer,
 	getUrl,
 	waitForConnect,
-} from "./lib/testUtils";
+} from "./utils/testUtils";
 
 let server: http.Server;
 let url: string;

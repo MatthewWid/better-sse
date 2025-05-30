@@ -9,26 +9,25 @@ import type {Connection} from "./adapters/Connection";
 import {FetchConnection} from "./adapters/FetchConnection";
 import {NodeHttp1Connection} from "./adapters/NodeHttp1Connection";
 import {NodeHttp2CompatConnection} from "./adapters/NodeHttp2CompatConnection";
-import {SseError} from "./lib/SseError";
-import {type EventMap, TypedEmitter} from "./lib/TypedEmitter";
-import {applyHeaders} from "./lib/applyHeaders";
+import {SseError} from "./utils/SseError";
+import {type EventMap, TypedEmitter} from "./utils/TypedEmitter";
+import {applyHeaders} from "./utils/applyHeaders";
 import {
 	type PushFromIterable,
 	createPushFromIterable,
-} from "./lib/createPushFromIterable";
+} from "./utils/createPushFromIterable";
 import {
 	type PushFromStream,
 	createPushFromStream,
-} from "./lib/createPushFromStream";
-import {generateId} from "./lib/generateId";
+} from "./utils/createPushFromStream";
 import {
 	type SanitizerFunction,
 	sanitize as defaultSanitizer,
-} from "./lib/sanitize";
+} from "./utils/sanitize";
 import {
 	type SerializerFunction,
 	serialize as defaultSerializer,
-} from "./lib/serialize";
+} from "./utils/serialize";
 
 interface SessionOptions<State = DefaultSessionState>
 	extends Pick<EventBufferOptions, "serializer" | "sanitizer"> {
@@ -355,7 +354,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	 *
 	 * If no event name is given, the event name is set to `"message"`.
 	 *
-	 * If no event ID is given, the event ID (and thus the `lastId` property) is set to a unique string generated using a cryptographic pseudorandom number generator.
+	 * If no event ID is given, the event ID (and thus the `lastId` property) is set to a randomly generated UUIDv4.
 	 *
 	 * If the session has disconnected, an `SseError` will be thrown.
 	 *
@@ -368,7 +367,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	push = (
 		data: unknown,
 		eventName = "message",
-		eventId: string = generateId()
+		eventId: string = crypto.randomUUID()
 	): this => {
 		if (!this.isConnected) {
 			throw new SseError(
