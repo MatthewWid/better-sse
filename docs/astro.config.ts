@@ -29,6 +29,7 @@ export default defineConfig({
 						"reference/api",
 						"reference/recipes",
 						"reference/comparison",
+						"reference/faq",
 						{
 							label: "Compatibility",
 							items: [

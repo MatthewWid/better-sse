@@ -1,0 +1,332 @@
+---
+layout: ../../../layouts/Base.astro
+title: Frequently Asked Questions (FAQ)
+description: Answers to common questions about using Better SSE.
+tableOfContents:
+    maxHeadingLevel: 4
+---
+
+import {Tabs, TabItem, Code} from "@astrojs/starlight/components";
+
+Frequently asked questions related to using Better SSE.
+
+If you have any additional queries that are not answered here, feel free to [open an issue](https://github.com/MatthewWid/better-sse/issues/new) and use the [`question` label](https://github.com/MatthewWid/better-sse/issues?q=is%3Aissue%20label%3Aquestion).
+
+## What does this library do for me?
+
+*The [SSE protocol](https://html.spec.whatwg.org/multipage/server-sent-events.html) is fairly simple in and of itself, so what features does this library provide on-top?*
+
+TODO
+
+## What's the catch?
+
+While SSE is performant, bandwidth-efficient and works on a very simple protocol there are still a number of considerations you should make when deciding between real-time web technologies to use.
+
+TODO
+
+## Is this the same thing as Server Push?
+
+No.
+
+[HTTP/2 Server Push](https://en.wikipedia.org/wiki/HTTP/2_Server_Push), or just Server Push, is an old and now-unimplemented feature of the HTTP/2 specification that is unrelated to server-sent events.
+
+SSE is still part of the [current living standard](https://html.spec.whatwg.org/multipage/server-sent-events.html) and is [supported by all modern web browsers](/better-sse/reference/compatibility/browser/).
+
+## How do I disconnect a session from the server?
+
+To disconnect a session from the server you can simply close the underlying connection by calling [`ServerResponse#end`](https://nodejs.org/api/http.html#responseenddata-encoding-callback) (if using the [Node HTTP API](https://nodejs.org/api/http.html)) or [`ReadableStream#cancel`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream/cancel) on the [stream](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) in the [body of the `Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response/body) returned by [`Session#getResponse`](/better-sse/reference/api/#sessiongetresponse---response) (if using the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)).
+
+However, according to [the spec](https://html.spec.whatwg.org/multipage/server-sent-events.html#concept-event-stream-reconnection-time), this will cause the client to attempt to reconnect after a short timeout (the exact time can be changed using the `retry` option of the [`Session` constructor](http://localhost:4321/better-sse/reference/api/#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest--request-res-serverresponse--http2serverresponse--response--sessionoptions-options-sessionoptions).)
+
+As such, you could instead add a mechanism that makes the client disconnect *themselves* when they receive a specific event. For example, with an event named `disconnect`:
+
+```typescript title="client.ts"
+const source = new EventSource("/sse")
+
+source.addEventListener("disconnect", () => {
+    source.close()
+})
+```
+
+Then from the server, simply send that event to clients you wish to disconnect permanently:
+
+```typescript title="server.ts"
+session.push(null, "disconnect")
+```
+
+You can also ask new clients to stop reconnecting by sending a [`204 No Content`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/204) response code.
+
+## How do I add metadata to a session or channel?
+
+Both [sessions](/better-sse/reference/api/#sessionstate-state) and [channels](/better-sse/reference/api/#channelstate-state) have a `state` object property that you can use to store any metadata associated with them.
+
+For sessions, keep in mind that state only persists for the lifetime of the session. If the client disconnects and reconnects you will get a new session and thus must set its state again.
+
+You can provide an initial state value in the constructor options, allowing its type to be inferred:
+
+<Tabs syncKey="framework">
+    <TabItem label="Express">
+        ```typescript
+        app.get("/sse", async (req, res) => {
+            const session = await createSession(req, res, {
+                state: {
+                    username: "Alice",
+                }
+            })
+
+            session.state.username = 123456 // Error: Type 'number' is not assignable to type 'string'
+        })
+        ```
+    </TabItem>
+    <TabItem label="Hono">
+        ```typescript
+        app.get("/sse", (c) => 
+            createResponse(
+                request,
+                {
+                    state: {
+                        username: "Alice",
+                    },
+                },
+                (session) => {
+                    session.state.username = 123456 // Error: Type 'number' is not assignable to type 'string'
+                }
+            )
+        )
+        ```
+    </TabItem>
+</Tabs>
+
+Or provide the type explicitly to the first generic argument:
+
+<Tabs syncKey="framework">
+    <TabItem label="Express">
+        ```typescript
+        type SessionState = {
+            username: string,
+        }
+
+        app.get("/sse", async (req, res) => {
+            const session = await createSession<SessionState>(req, res)
+
+            session.state.username = "Alice"
+            session.state.username = 123456 // Error: Type 'number' is not assignable to type 'string'
+        })
+        ```
+    </TabItem>
+    <TabItem label="Hono">
+        ```typescript
+        type SessionState = {
+            username: string,
+        }
+
+        app.get("/sse", (c) => 
+            createResponse<SessionState>(request, (session) => {
+                session.state.username = "Alice"
+                session.state.username = 123456 // Error: Type 'number' is not assignable to type 'string'
+            })
+        )
+        ```
+    </TabItem>
+</Tabs>
+
+You can set the default state type for all sessions and/or channels using [module augmentation](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation) and [declaration merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces) to modify the `DefaultSessionState` and `DefaultChannelState` interfaces:
+
+<Tabs syncKey="framework">
+    <TabItem label="Express">
+        ```typescript
+        declare module "better-sse" {
+            interface DefaultSessionState {
+                username: string
+            }
+        }
+
+        app.get("/sse", async (req, res) => {
+            const session = await createSession(req, res)
+
+            session.state.username = "Alice"
+            session.state.username = 123456 // Error: Type 'number' is not assignable to type 'string'
+        })
+        ```
+    </TabItem>
+    <TabItem label="Hono">
+        ```typescript
+        declare module "better-sse" {
+            interface DefaultSessionState {
+                username: string
+            }
+        }
+
+        app.get("/sse", (c) => 
+            createResponse(request, (session) => {
+                session.state.username = "Alice"
+                session.state.username = 123456 // Error: Type 'number' is not assignable to type 'string'
+            })
+        )
+        ```
+    </TabItem>
+</Tabs>
+
+You can use the second generic argument to the [`Channel` constructor](/better-sse/reference/api/#channelstate-sessionstate) to define the state type of its registered sessions, enforcing that only sessions with a matching state type may be registered:
+
+<Tabs syncKey="framework">
+    <TabItem label="Express">
+        ```typescript
+        type AuthenticatedState = {
+            userId: string
+        }
+
+        type UnauthenticatedState = {
+            tempId: string
+        }
+
+        const protectedChannel = createChannel<DefaultChannelState, AuthenticatedState>()
+
+        app.get("/sse", async (req, res) => {
+            if (isAuthenticated()) {
+                const session = await createSession<AuthenticatedState>(req, res)
+                protectedChannel.register(session)
+            } else {
+                const session = await createSession<UnauthenticatedState>(req, res)
+                // Error: Argument of type 'SessionState<UnauthenticatedState>' is not assignable
+                // to parameter of type 'SessionState<AuthenticatedState>'
+                protectedChannel.register(session)
+            }
+        })
+        ```
+    </TabItem>
+    <TabItem label="Hono">
+        ```typescript
+        type AuthenticatedState = {
+            userId: string
+        }
+
+        type UnauthenticatedState = {
+            tempId: string
+        }
+
+        const protectedChannel = createChannel<DefaultChannelState, AuthenticatedState>()
+
+        app.get("/sse", (c) => {
+            if (isAuthenticated()) {
+                return createResponse<AuthenticatedState>(c.req.raw, (session) => {
+                    protectedChannel.register(session)
+                })
+            } else {
+                return createResponse<UnauthenticatedState>(c.req.raw, (session) => {
+                    // Error: Argument of type 'SessionState<UnauthenticatedState>' is not assignable
+                    // to parameter of type 'SessionState<AuthenticatedState>'
+                    protectedChannel.register(session)
+                })
+            }
+        })
+        ```
+    </TabItem>
+</Tabs>
+
+This also allows you to filter broadcasts based on session state with proper typing:
+
+```typescript
+type SessionState = {
+    priority: number
+}
+
+const channel = createChannel<DefaultChannelState, SessionState>()
+
+channel.broadcast("High priority update", "status-update", {
+    filter: (session) => session.state.priority > 50,
+})
+```
+
+## How do I track a user across multiple sessions?
+
+TODO
+
+## How do I broadcast events across multiple server instances?
+
+TODO
+
+## Troubleshooting
+
+### Why am I getting the error "Cannot push data to a non-active session."?
+
+This error occurs when you are attempting to [push](/better-sse/reference/api/#sessionpush-data-unknown-eventname-string-eventid-string--this) an event to a session that is not currently connected (or implicitly doing so from a [stream](/better-sse/reference/api/#sessionstream-stream-streamreadable--readablestream-options-object--promiseboolean) or [iterable](/better-sse/reference/api/#sessioniterate-iterable-iterable--asynciterable-options-object--promisevoid) that is still attached and yielding data after the session has been disconnected.)
+
+You can use the [`Session#isConnected`](/better-sse/reference/api/#sessionisconnected-boolean) property to check if a session is connected at any given time.
+
+When using [`createSession`](/better-sse/reference/api/#createsession-stateargs-constructorparameterstypeof-session--promisesessionstate) with the Fetch API you might be pushing events before the session has connected as it returns immediately without waiting for the underlying connection to be established:
+
+```typescript
+app.get("/sse", async (c) => {
+    const session = await createSession(c.req.raw)
+
+    session.push("Hello world!") // Error: Cannot push data to a non-active session.
+})
+```
+
+You can either manually wait for the `connected` event to fire or use the [`createResponse`](/better-sse/reference/api/#createresponse-stateargs-constructorparameterstypeof-session-callback-session-sessionstate--void--response) utility function instead:
+
+```typescript
+app.get("/sse", async (c) => {
+    const session = await createSession(c.req.raw)
+
+    session.addListener("connected", () => {
+        session.push("Hello world!")
+    })
+})
+```
+
+Additionally, make sure to clean up any async iterables and streams when the session disconnects:
+
+<Tabs>
+    <TabItem label="node:stream">
+        ```typescript
+        const stream = Readable.from(...)
+
+        session.stream(stream)
+
+        session.once("disconnected", () => {
+            stream.destroy()
+        })
+        ```
+    </TabItem>
+    <TabItem label="Web Streams API">
+        ```typescript
+        const stream = ReadableStream.from(...)
+
+        session.stream(stream)
+
+        session.once("disconnected", () => {
+            stream.cancel()
+        })
+        ```
+    </TabItem>
+</Tabs>
+
+### Why am I getting the error "Cannot register a non-active session."?
+
+This error occurs when you attempt to [register](/better-sse/reference/api/#channelregister-session-session--this) a session to a channel that is not currently connected.
+
+You can use the [`Session#isConnected`](/better-sse/reference/api/#sessionisconnected-boolean) property to check if a session is connected at any given time.
+
+When using [`createSession`](/better-sse/reference/api/#createsession-stateargs-constructorparameterstypeof-session--promisesessionstate) with the Fetch API you might be attempting to register the session before it has connected as it returns immediately without waiting for the underlying connection to be established:
+
+```typescript
+app.get("/sse", async (c) => {
+    const session = await createSession(c.req.raw)
+
+    channel.register(session) // Error: Cannot register a non-active session.
+})
+```
+
+You can either manually wait for the `connected` event to fire or use the [`createResponse`](/better-sse/reference/api/#createresponse-stateargs-constructorparameterstypeof-session-callback-session-sessionstate--void--response) utility function instead:
+
+```typescript
+app.get("/sse", async (c) => {
+    const session = await createSession(c.req.raw)
+
+    session.addListener("connected", () => {
+        channel.register(session)
+    })
+})
+```
