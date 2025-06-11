@@ -1,0 +1,490 @@
+---
+layout: ../../../layouts/Base.astro
+title: Frequently Asked Questions (FAQ)
+description: Answers to common questions about using Better SSE.
+tableOfContents:
+    maxHeadingLevel: 4
+---
+
+import {Tabs, TabItem, Code} from "@astrojs/starlight/components";
+
+Frequently asked questions related to using Better SSE.
+
+If you have any additional queries that are not answered here, feel free to [open an issue](https://github.com/MatthewWid/better-sse/issues/new) and use the [`question` label](https://github.com/MatthewWid/better-sse/issues?q=is%3Aissue%20label%3Aquestion).
+
+## What's the catch?
+
+While SSE is performant, bandwidth-efficient and works on a very simple protocol there are still a number of considerations you should make when deciding between real-time web technologies.
+
+Some of those considerations are listed below.
+
+### Connection limit
+
+When using HTTP/1.1, most web browsers impose a limit of six (6) concurrently open connections per browser to each domain. This limitation is non-standard and arbitrary, originating from a recommendation in the now-obsolete [RFC 2616](https://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.1.4) and [removed](https://web.archive.org/web/20160307164327/http://trac.tools.ietf.org/wg/httpbis/trac/ticket/131) in the current HTTP/1.1 specification defined in [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html). Nevertheless, [most browsers](https://docs.diffusiondata.com/cloud/latest/manual/html/designguide/solution/support/connection_limitations.html) continue to implement it and have marked relevant issues as "Won't Fix" ([Chrome](https://crbug.com/275955), [Firefox](https://bugzil.la/906896)).
+
+This means that if you open six [event sources](https://developer.mozilla.org/en-US/docs/Web/API/EventSource) at a time, or have one event source duplicated across six open tabs, for example, any new requests made to the same domain will stall until one of the existing connections is [closed](https://developer.mozilla.org/en-US/docs/Web/API/EventSource/close).
+
+There are a number of ways to work around this:
+
+1. Use [HTTP/2](https://developer.mozilla.org/en-US/docs/Glossary/HTTP_2) as it allows for many more and even unlimited concurrent connections (typically defaults to [100](https://www.rfc-editor.org/rfc/rfc7540#section-6.5.2)) as well as offering better performance in general.
+2. Use multiple hostnames to distribute connections across. For example, rather than connecting to `example.com/sse`, create a mechanism that chooses to connect to any of `api1.example.com/sse`, `api2.example.com/sse`, etc.
+3. Share a single event source and connection that stays open in a separate [Shared Worker](https://developer.mozilla.org/en-US/docs/Web/API/SharedWorker) that all tabs [listen for messages](https://developer.mozilla.org/en-US/docs/Web/API/MessagePort/message_event) on.
+4. Share a single event source and connection that stays open in a designated "leader" tab elected with the [Web Locks API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Locks_API) that other tabs listen for messages on using the [Broadcast Channel API](https://developer.mozilla.org/en-US/docs/Web/API/Broadcast_Channel_API).
+
+### UTF-8 data only
+
+You may only send data encoded in [UTF-8](https://en.wikipedia.org/wiki/UTF-8), according to [the spec](https://html.spec.whatwg.org/multipage/server-sent-events.html):
+
+> Event streams are always decoded as UTF-8. There is no way to specify another character encoding.
+
+As such, if you wish to send binary data you need to first encode it as [Base64](https://developer.mozilla.org/en-US/docs/Glossary/Base64) on the server and then decode it on the client-side (see [`btoa`](https://developer.mozilla.org/en-US/docs/Web/API/Window/btoa) and [`atob`](https://developer.mozilla.org/en-US/docs/Web/API/Window/atob)):
+
+```typescript title="server.ts"
+const encoded = btoa(binary)
+session.push(encoded, "binary-data")
+```
+
+```typescript title="client.ts"
+eventSource.addEventListener("binary-data", ({ data }) => {
+    const parsed = JSON.parse(data)
+    const decoded = atob(parsed)
+    console.log(decoded)
+})
+```
+
+### Manage timeouts
+
+Some servers, proxies and load balancers set a timeout on HTTP/1.1 connections. For example, [AWS ALBs](https://aws.amazon.com/blogs/aws/elb-idle-timeout-control/) default to 60 seconds, [Azure load balancers](https://learn.microsoft.com/en-us/azure/load-balancer/load-balancer-tcp-reset) default to 4 minutes, the [Bun HTTP API](https://bun.sh/docs/api/http#idletimeout) defaults to ten (10) seconds.
+
+If this timeout is based on connection idle time, you can change the keep-alive interval to a number below the threshold using the `keepAlive` option in the [`Session` constructor](/better-sse/reference/api/#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest--request-res-serverresponse--http2serverresponse--response--sessionoptions-options-sessionoptions) arguments:
+
+```typescript title="server.ts"
+const session = await createSession(req, res, {
+    keepAlive: 5_000, // 5 seconds
+})
+```
+
+Otherwise, you should disable these timeouts or set them to a value sufficiently high that you can tolerate repeated reconnection:
+
+* [Nginx configuration for SSE](https://stackoverflow.com/a/13673298/2954591)
+* [AWS ELB timeout configuration](https://aws.amazon.com/blogs/aws/elb-idle-timeout-control/)
+* [Azure load balancer timeout configuration](https://learn.microsoft.com/en-us/azure/load-balancer/load-balancer-tcp-idle-timeout?tabs=tcp-reset-idle-portal)
+* [GCP load balancer timeout configuration](https://cloud.google.com/load-balancing/docs/backend-service#timeout-setting)
+
+Note that clients that are disconnected, including due to being timed out, will automatically attempt to reconnect after a short delay. You can configure the delay time using the `retry` option in the [`Session` constructor](/better-sse/reference/api/#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest--request-res-serverresponse--http2serverresponse--response--sessionoptions-options-sessionoptions) arguments:
+
+```typescript title="server.ts"
+const session = await createSession(req, res, {
+    retry: 30_000, // 30 seconds
+})
+```
+
+### Manage reconnection
+
+When clients are disconnected they will automatically attempt to reconnect after a short delay.
+
+This is useful, but if you have many active sessions built up over time and then, for example, the server goes down momentarily, you will end up with a large number of clients all attempting to reconnect at the same time, leading to a sudden spike in traffic and potentially overwhelming the server. This is known as the [thundering herd problem](https://en.wikipedia.org/wiki/Thundering_herd_problem).
+
+To prevent this, you can use the `retry` option given to the [`Session` constructor](/better-sse/reference/api/#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest--request-res-serverresponse--http2serverresponse--response--sessionoptions-options-sessionoptions) arguments to request each client have a random delay offset before reconnecting:
+
+```typescript title="server.ts"
+const randomNumber = (min: number, max: number) =>
+    Math.floor(Math.random() * max) + min
+
+const session = await createSession(req, res, {
+    retry: randomNumber(5_000, 60_000), // Random delay between 5 seconds and 1 minute
+})
+```
+
+Alternatively, you can use an event source polyfill that supports [exponential backoff](https://en.wikipedia.org/wiki/Exponential_backoff) from the client-side such as [Event Source Plus](https://www.npmjs.com/package/event-source-plus).
+
+Keep in mind you can ask clients to stop reconnecting by sending a [`204 No Content`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/204) response code.
+
+### Disable caching and buffering
+
+Some servers, proxies and load balancers attempt to cache, compress and/or buffer data before it is sent to the client. While this is good for normal short-lived HTTP connections, it is not desirable for real-time communication as it prevents data from being delivered to the client immediately.
+
+Better SSE [adds headers](https://github.com/MatthewWid/better-sse/blob/61e77c616396831fa2d984df37e0d268d1a45900/src/utils/constants.ts#L7) for you that indicate caching, buffering and compression should be disabled, but some proxies and load balancers may still not respect them, meaning you need to disable this behaviour manually.
+
+* [Nginx configuration for SSE](https://stackoverflow.com/a/13673298/2954591)
+* [Azure configuration for SSE](https://learn.microsoft.com/en-us/azure/api-management/how-to-server-sent-events)
+* [GCP Apigee configuration for SSE](https://cloud.google.com/apigee/docs/api-platform/develop/server-sent-events)
+
+## Is this the same thing as Server Push?
+
+No.
+
+[HTTP/2 Server Push](https://en.wikipedia.org/wiki/HTTP/2_Server_Push), or just Server Push, is an old and now-unimplemented feature of the HTTP/2 specification that is unrelated to server-sent events.
+
+SSE is still part of the [current living standard](https://html.spec.whatwg.org/multipage/server-sent-events.html) and is [supported by all modern web browsers](/better-sse/reference/compatibility/browser/).
+
+## How do I disconnect a session from the server?
+
+To disconnect a session from the server you can simply close the underlying connection (call [`ServerResponse#end`](https://nodejs.org/api/http.html#responseenddata-encoding-callback) if using the [Node HTTP API](https://nodejs.org/api/http.html) or [`ReadableStream#cancel`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream/cancel) on the [stream](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) in the [body of the `Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response/body) returned by [`Session#getResponse`](/better-sse/reference/api/#sessiongetresponse---response) if using the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).)
+
+However, according to [the spec](https://html.spec.whatwg.org/multipage/server-sent-events.html#concept-event-stream-reconnection-time), this will cause the client to attempt to reconnect after a short timeout (the exact time can be changed using the `retry` option given to the [`Session` constructor](/better-sse/reference/api/#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest--request-res-serverresponse--http2serverresponse--response--sessionoptions-options-sessionoptions).)
+
+As such, you could instead add a mechanism that makes the client disconnect *themselves* when they receive a specific event. For example, with an event named `disconnect`:
+
+```typescript title="client.ts"
+const source = new EventSource("/sse")
+
+source.addEventListener("disconnect", () => {
+    source.close()
+})
+```
+
+Then from the server, simply send that event to clients you wish to disconnect permanently:
+
+```typescript title="server.ts"
+session.push(null, "disconnect")
+```
+
+You can also ask new clients to stop reconnecting by sending a [`204 No Content`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/204) response code.
+
+## How do I add metadata to a session or channel?
+
+Both [sessions](/better-sse/reference/api/#sessionstate-state) and [channels](/better-sse/reference/api/#channelstate-state) have a `state` property that you can use to store any metadata associated with them.
+
+For sessions, keep in mind that state only persists for the lifetime of the session. If the client disconnects and reconnects you will get a new session and thus must set its state again.
+
+You can provide an initial state value in the constructor options, allowing its type to be inferred:
+
+<Tabs syncKey="framework">
+    <TabItem label="Express">
+        ```typescript
+        app.get("/sse", async (req, res) => {
+            const session = await createSession(req, res, {
+                state: {
+                    username: "Alice",
+                }
+            })
+
+            session.state.username = 123456 // Error: Type 'number' is not assignable to type 'string'
+        })
+        ```
+    </TabItem>
+    <TabItem label="Hono">
+        ```typescript
+        app.get("/sse", (c) =>
+            createResponse(
+                request,
+                {
+                    state: {
+                        username: "Alice",
+                    },
+                },
+                (session) => {
+                    session.state.username = 123456 // Error: Type 'number' is not assignable to type 'string'
+                }
+            )
+        )
+        ```
+    </TabItem>
+</Tabs>
+
+Or provide the type explicitly to its first generic argument:
+
+<Tabs syncKey="framework">
+    <TabItem label="Express">
+        ```typescript
+        type SessionState = {
+            username: string,
+        }
+
+        app.get("/sse", async (req, res) => {
+            const session = await createSession<SessionState>(req, res)
+
+            session.state.username = "Alice"
+            session.state.username = 123456 // Error: Type 'number' is not assignable to type 'string'
+        })
+        ```
+    </TabItem>
+    <TabItem label="Hono">
+        ```typescript
+        type SessionState = {
+            username: string,
+        }
+
+        app.get("/sse", (c) =>
+            createResponse<SessionState>(c.req.raw, (session) => {
+                session.state.username = "Alice"
+                session.state.username = 123456 // Error: Type 'number' is not assignable to type 'string'
+            })
+        )
+        ```
+    </TabItem>
+</Tabs>
+
+You can set the default state type for all sessions and/or channels using [module augmentation](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation) and [declaration merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces) to modify the `DefaultSessionState` and `DefaultChannelState` interfaces:
+
+<Tabs syncKey="framework">
+    <TabItem label="Express">
+        ```typescript
+        declare module "better-sse" {
+            interface DefaultSessionState {
+                username: string
+            }
+        }
+
+        app.get("/sse", async (req, res) => {
+            const session = await createSession(req, res)
+
+            session.state.username = "Alice"
+            session.state.username = 123456 // Error: Type 'number' is not assignable to type 'string'
+        })
+        ```
+    </TabItem>
+    <TabItem label="Hono">
+        ```typescript
+        declare module "better-sse" {
+            interface DefaultSessionState {
+                username: string
+            }
+        }
+
+        app.get("/sse", (c) =>
+            createResponse(c.req.raw, (session) => {
+                session.state.username = "Alice"
+                session.state.username = 123456 // Error: Type 'number' is not assignable to type 'string'
+            })
+        )
+        ```
+    </TabItem>
+</Tabs>
+
+You can use the second generic argument to the [`Channel` constructor](/better-sse/reference/api/#channelstate-sessionstate) to define the state type of its registered sessions, enforcing that only sessions with a matching state type may be registered:
+
+<Tabs syncKey="framework">
+    <TabItem label="Express">
+        ```typescript
+        type AuthenticatedState = {
+            userId: string
+        }
+
+        type UnauthenticatedState = {
+            tempId: string
+        }
+
+        const protectedChannel = createChannel<DefaultChannelState, AuthenticatedState>()
+
+        app.get("/sse", async (req, res) => {
+            if (isAuthenticated()) {
+                const session = await createSession<AuthenticatedState>(req, res)
+                protectedChannel.register(session)
+            } else {
+                const session = await createSession<UnauthenticatedState>(req, res)
+                // Error: Argument of type 'SessionState<UnauthenticatedState>'
+                // is not assignable to parameter of type 'SessionState<AuthenticatedState>'
+                protectedChannel.register(session)
+            }
+        })
+        ```
+    </TabItem>
+    <TabItem label="Hono">
+        ```typescript
+        type AuthenticatedState = {
+            userId: string
+        }
+
+        type UnauthenticatedState = {
+            tempId: string
+        }
+
+        const protectedChannel = createChannel<DefaultChannelState, AuthenticatedState>()
+
+        app.get("/sse", (c) => {
+            if (isAuthenticated()) {
+                return createResponse<AuthenticatedState>(c.req.raw, (session) => {
+                    protectedChannel.register(session)
+                })
+            } else {
+                return createResponse<UnauthenticatedState>(c.req.raw, (session) => {
+                    // Error: Argument of type 'SessionState<UnauthenticatedState>'
+                    // is not assignable to parameter of type 'SessionState<AuthenticatedState>'
+                    protectedChannel.register(session)
+                })
+            }
+        })
+        ```
+    </TabItem>
+</Tabs>
+
+This also allows you to filter broadcasts based on session state with proper typing:
+
+```typescript
+type SessionState = {
+    priority: number
+}
+
+const channel = createChannel<DefaultChannelState, SessionState>()
+
+channel.broadcast("High priority update", "status-update", {
+    filter: (session) => session.state.priority > 50,
+})
+```
+
+## How do I track and send events to a specific user across multiple sessions?
+
+To track and send events only to certain users you can create a dedicated [channel](/better-sse/reference/api/#channelstate-sessionstate) that groups each users' active sessions together. Then when you want to send an event to them, simply broadcast it on their associated channel.
+
+First update your client-side code to send a user ID along with the request:
+
+```typescript title="client.ts"
+const userId = authAndGetUserId()
+
+const url = new URL("/sse", window.location.origin)
+
+url.searchParams.set("userId", userId)
+
+const source = new EventSource(url)
+```
+
+Then on the server create a [map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) from the user ID to a channel and register new sessions with them:
+
+<Tabs syncKey="framework">
+    <TabItem label="Express">
+        ```typescript
+        import { type Channel, createChannel, createSession } from "better-sse"
+
+        const userIdToChannel = new Map<string, Channel>()
+
+        app.get("/sse", async (req, res) => {
+            const { userId } = req.query
+
+            // Authenticate the user owns this ID
+
+            const session = await createSession(req, res)
+
+            if (!userIdToChannel.has(userId)) {
+                userIdToChannel.set(userId, createChannel())
+            }
+
+            const channel = userIdToChannel.get(userId)!
+
+            channel.register(session)
+        })
+        ```
+    </TabItem>
+    <TabItem label="Hono">
+        ```typescript
+        import { type Channel, createChannel, createResponse } from "better-sse"
+
+        const userIdToChannel = new Map<string, Channel>()
+
+        app.get("/sse", (c) => {
+            const { userId } = c.req.query()
+
+            // Authenticate the user owns this ID
+
+            return createResponse(c.req.raw, (session) => {
+                if (!userIdToChannel.has(userId)) {
+                    userIdToChannel.set(userId, createChannel())
+                }
+
+                const channel = userIdToChannel.get(userId)!
+
+                channel.register(session)
+            })
+        })
+        ```
+    </TabItem>
+</Tabs>
+
+Now when you want to send an event to a specific user, broadcast it on their associated channel:
+
+```typescript title="server.ts"
+userIdToChannel.get(userId)?.broadcast("For your eyes only")
+```
+
+You can also see if a user is online at any given time by checking if they have any active sessions:
+
+```typescript title="server.ts"
+const isUserOnline = (userId: string) =>
+    userIdToChannel.get(userId)?.sessionCount > 0
+```
+
+## Troubleshooting
+
+### Why am I getting the error "Cannot push data to a non-active session."?
+
+This error occurs when you are attempting to [push](/better-sse/reference/api/#sessionpush-data-unknown-eventname-string-eventid-string--this) an event to a session that is not currently connected (or implicitly doing so from a [stream](/better-sse/reference/api/#sessionstream-stream-streamreadable--readablestream-options-object--promiseboolean) or [iterable](/better-sse/reference/api/#sessioniterate-iterable-iterable--asynciterable-options-object--promisevoid) that is still attached and yielding data after the session has been disconnected.)
+
+You can use the [`Session#isConnected`](/better-sse/reference/api/#sessionisconnected-boolean) property to check if a session is connected at any given time.
+
+When using [`createSession`](/better-sse/reference/api/#createsession-stateargs-constructorparameterstypeof-session--promisesessionstate) with the Fetch API you might be pushing events before the session has connected as it returns immediately without waiting for the underlying connection to be established:
+
+```typescript
+app.get("/sse", async (c) => {
+    const session = await createSession(c.req.raw)
+
+    session.push("Hello world!") // Error: Cannot push data to a non-active session.
+})
+```
+
+You can either manually wait for the `connected` event to fire or use the [`createResponse`](/better-sse/reference/api/#createresponse-stateargs-constructorparameterstypeof-session-callback-session-sessionstate--void--response) utility function instead:
+
+```typescript
+app.get("/sse", async (c) => {
+    const session = await createSession(c.req.raw)
+
+    session.addListener("connected", () => {
+        session.push("Hello world!")
+    })
+})
+```
+
+Additionally, make sure to clean up any async iterables and streams when the session disconnects:
+
+<Tabs>
+    <TabItem label="node:stream">
+        ```typescript
+        const stream = Readable.from(...)
+
+        session.stream(stream)
+
+        session.once("disconnected", () => {
+            stream.destroy()
+        })
+        ```
+    </TabItem>
+    <TabItem label="Web Streams API">
+        ```typescript
+        const stream = ReadableStream.from(...)
+
+        session.stream(stream)
+
+        session.once("disconnected", () => {
+            stream.cancel()
+        })
+        ```
+    </TabItem>
+</Tabs>
+
+### Why am I getting the error "Cannot register a non-active session."?
+
+This error occurs when you attempt to [register](/better-sse/reference/api/#channelregister-session-session--this) a session to a channel that is not currently connected.
+
+You can use the [`Session#isConnected`](/better-sse/reference/api/#sessionisconnected-boolean) property to check if a session is connected at any given time.
+
+When using [`createSession`](/better-sse/reference/api/#createsession-stateargs-constructorparameterstypeof-session--promisesessionstate) with the Fetch API you might be attempting to register the session before it has connected as it returns immediately without waiting for the underlying connection to be established:
+
+```typescript
+app.get("/sse", async (c) => {
+    const session = await createSession(c.req.raw)
+
+    channel.register(session) // Error: Cannot register a non-active session.
+})
+```
+
+You can either manually wait for the `connected` event to fire or use the [`createResponse`](/better-sse/reference/api/#createresponse-stateargs-constructorparameterstypeof-session-callback-session-sessionstate--void--response) utility function instead:
+
+```typescript
+app.get("/sse", async (c) => {
+    const session = await createSession(c.req.raw)
+
+    session.addListener("connected", () => {
+        channel.register(session)
+    })
+})
+```
