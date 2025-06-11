@@ -65,14 +65,14 @@ class Channel<
 	}
 
 	/**
-	 * List of the currently active sessions subscribed to this channel.
+	 * List of the currently active sessions registered with this channel.
 	 */
 	get activeSessions(): ReadonlyArray<Session<SessionState>> {
 		return Array.from(this.sessions);
 	}
 
 	/**
-	 * Number of sessions subscribed to this channel.
+	 * Number of sessions registered with this channel.
 	 */
 	get sessionCount(): number {
 		return this.sessions.size;

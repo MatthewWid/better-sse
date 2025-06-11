@@ -225,13 +225,13 @@ Use [module augmentation and declaration merging](https://www.typescriptlang.org
 
 #### `Channel#activeSessions`: `ReadonlyArray<Session>`
 
-List of the currently active sessions subscribed to this channel.
+List of the currently active sessions registered with this channel.
 
 You should not mutate the contents of this array.
 
 #### `Channel#sessionCount`: `number`
 
-Number of sessions subscribed to this channel.
+Number of sessions registered with this channel.
 
 Equivalent to `channel.activeSessions.length`, though slightly faster to access.
 
