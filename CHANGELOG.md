@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Update event ID generation to use `randomUUID` from the [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID) instead of [`node:crypto`](https://nodejs.org/api/crypto.html).
 
+### Fixed
+
+* Fixed [a warning](https://nodejs.org/api/events.html#emittersetmaxlistenersn) being printed by the Node internals when adding more than ten listeners to events emitted by sessions and channels.
+
 ## 0.15.1 - 2025-05-26
 
 ### Added

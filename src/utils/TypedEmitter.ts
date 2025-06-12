@@ -23,6 +23,12 @@ type EventNames<T> =
  * to types of arguments in the event handler callback.
  */
 export class TypedEmitter<Events extends EventMap> extends EventEmitter {
+	constructor(...args: ConstructorParameters<typeof EventEmitter>) {
+		super(...args);
+
+		this.setMaxListeners(Number.POSITIVE_INFINITY);
+	}
+
 	addListener<EventName extends EventNames<Events>>(
 		event: EventName,
 		listener: Events[EventName]
