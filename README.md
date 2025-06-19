@@ -105,7 +105,7 @@ app.get("/sse", async (req, res) => {
 import { createResponse } from "better-sse"
 
 app.get("/sse", (c) =>
-    createResponse(c.req.raw, (session) => {
+    return createResponse(c.req.raw, (session) => {
         session.push("Hello world!", "message")
     })
 )
