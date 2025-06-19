@@ -88,7 +88,7 @@ Then create a session when the client makes a request on the specified route (`G
     <TabItem label="Hono">
         ```typescript
         app.get("/sse", (c) => 
-            createResponse(c.req.raw, (session) => {
+             return createResponse(c.req.raw, (session) => {
                 // ...
             })
         )
@@ -141,7 +141,7 @@ This will push the string `Hello world!` to the client as an event named `ping` 
 
         ```typescript
         app.get("/sse", (c) => 
-            createResponse(c.req.raw, (session) => {
+            return createResponse(c.req.raw, (session) => {
                 session.push("Hello world!")
             })
         )
