@@ -80,7 +80,7 @@ Then import the channel to where your route handler is located and *register* th
     </TabItem>
     <TabItem label="Hono">
         ```typescript title="server.ts" ins={2, 7} del={6}
-        import { createSession } from "better-sse"
+        import { createResponse } from "better-sse"
         import { ticker } from "./channels/ticker"
 
         app.get("/sse", (c) => 
