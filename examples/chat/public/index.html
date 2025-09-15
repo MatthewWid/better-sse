@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Chat - Better SSE</title>
+		<link rel="stylesheet" href="/index.css" />
+	</head>
+	<body>
+		<nav>
+			<h1>Better SSE Chat</h1>
+			<hr />
+			<button id="change-username-button" class="hidden">Change username</button>
+		</nav>
+		<main>
+			<div id="history"></div>
+			<form id="new-message-form">
+				<input
+					name="message"
+					id="new-message-input"
+					type="text"
+					placeholder="Type your message..."
+					autocomplete="off"
+					required
+				/>
+				<button type="submit">Send</button>
+			</form>
+		</main>
+		<div id="set-username-overlay">
+			<form id="set-username-form">
+				<h2>Enter a username</h2>
+				<input
+					name="username"
+					id="set-username-input"
+					type="text"
+					placeholder="Username"
+					autocomplete="off"
+					autofocus
+					required
+				/>
+				<button type="button" id="set-username-random">Random name</button>
+				<button type="submit">Join chat</button>
+			</div>
+		<script src="/index.js"></script>
+	</body>
+</html>
