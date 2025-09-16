@@ -110,6 +110,7 @@ const onUserJoinedOrLeft = (event) => {
 	messageEl.appendChild(contentEl);
 
 	historyEl.appendChild(messageEl);
+	historyEl.scrollTo(0, historyEl.scrollHeight);
 };
 
 /**
@@ -133,6 +134,7 @@ const onUserMessage = (event) => {
 	messageEl.appendChild(contentEl);
 
 	historyEl.appendChild(messageEl);
+	historyEl.scrollTo(0, historyEl.scrollHeight);
 };
 
 const onConnectionOpen = () => {

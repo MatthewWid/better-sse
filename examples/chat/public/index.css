@@ -56,12 +56,16 @@ main {
 	flex: 1;
 }
 
-#history {
+#messages {
 	flex: 1;
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-end;
 	overflow-y: auto;
+
+	#history {
+		overflow-y: auto;
+	}
 
 	.message {
 		padding: 12px;
