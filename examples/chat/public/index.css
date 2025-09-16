@@ -1,0 +1,129 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+html,
+body {
+	font-family: Arial, sans-serif;
+	width: 100vw;
+	height: 100vh;
+}
+
+body {
+	display: flex;
+}
+
+button {
+	cursor: pointer;
+}
+
+.hidden {
+	visibility: hidden;
+}
+
+nav {
+	padding: 0 12px;
+
+	h1 {
+		margin-top: 16px;
+		padding: 0;
+	}
+
+	hr {
+		margin: 12px 0;
+	}
+}
+
+#user-count {
+	margin-bottom: 12px;
+}
+
+#user-list {
+	list-style: none;
+	font-weight: bold;
+
+	li {
+		margin-left: 1ch;
+		margin-bottom: 12px;
+	}
+}
+
+main {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+}
+
+#messages {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	overflow-y: auto;
+
+	#history {
+		overflow-y: auto;
+	}
+
+	.message {
+		padding: 12px;
+
+		.username {
+			font-weight: bold;
+		}
+	}
+}
+
+#new-message-form {
+	display: flex;
+
+	button[type="submit"] {
+		margin: 6px;
+		padding: 12px;
+	}
+
+	input[name="message"] {
+		flex: 1;
+		padding: 12px;
+		border: none;
+		outline: none;
+	}
+}
+
+#set-username-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 99;
+	background: rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#set-username-input {
+	outline: 0;
+}
+
+#set-username-form {
+	margin-top: -60px;
+	border-radius: 8px;
+	padding: 24px;
+	background-color: rgb(240, 240, 240);
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+
+	input,
+	button {
+		padding: 12px;
+		margin-top: 12px;
+	}
+}
+
+#change-username-button {
+	padding: 12px;
+	width: 100%;
+}

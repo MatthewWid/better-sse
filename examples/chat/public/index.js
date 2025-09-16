@@ -1,0 +1,211 @@
+/**
+ * @typedef {Object} Message
+ * @property {string} username
+ * @property {string} content
+ */
+
+/** @type {HTMLDivElement} */
+let chatInfoEl;
+
+/** @type {HTMLDivElement} */
+let userCountEl;
+
+/** @type {HTMLUListElement} */
+let userListEl;
+
+/** @type {HTMLDivElement} */
+let historyEl;
+
+/** @type {HTMLFormElement} */
+let newMessageFormEl;
+
+/** @type {HTMLInputElement} */
+let newMessageInputEl;
+
+/** @type {HTMLDivElement} */
+let setUsernameOverlayEl;
+
+/** @type {HTMLFormElement} */
+let setUsernameFormEl;
+
+/** @type {HTMLInputElement} */
+let setUsernameInputEl;
+
+/** @type {HTMLButtonElement} */
+let setUsernameRandomButtonEl;
+
+/** @type {HTMLButtonElement} */
+let changeUsernameButton;
+
+/** @type {EventSource} */
+let eventSource;
+
+/** @type {string} */
+let username;
+
+let userCount = 0;
+
+/**
+ * @param {SubmitEvent} event
+ */
+const onSendMessage = async (event) => {
+	event.preventDefault();
+
+	const data = new FormData(newMessageFormEl);
+
+	const content = data.get("message").trim();
+
+	newMessageFormEl.reset();
+
+	const response = await fetch(`/chat/${username}/message`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({
+			content,
+		}),
+	});
+
+	if (!response.ok) {
+		console.error("Failed to send message. Got status:", response.status);
+	}
+};
+
+/**
+ * @param {MessageEvent} event
+ */
+const onUserJoinedOrLeft = (event) => {
+	const {data, type} = event;
+	const username = JSON.parse(data);
+
+	userCount += type === "user-joined" ? 1 : -1;
+	userCountEl.textContent = `Users Online (${userCount})`;
+
+	if (type === "user-joined") {
+		const userListItemEl = document.createElement("li");
+		userListItemEl.textContent = username;
+		userListEl.appendChild(userListItemEl);
+	} else {
+		for (const li of userListEl.children) {
+			if (li.textContent === username) {
+				userListEl.removeChild(li);
+				break;
+			}
+		}
+	}
+
+	const messageEl = document.createElement("div");
+	messageEl.classList.add("message");
+
+	const usernameEl = document.createElement("span");
+	usernameEl.classList.add("username");
+	usernameEl.textContent = username;
+	messageEl.appendChild(usernameEl);
+
+	const statusText = type === "user-joined" ? "joined" : "left";
+	const contentEl = document.createTextNode(` ${statusText} the chat.`);
+	messageEl.appendChild(contentEl);
+
+	historyEl.appendChild(messageEl);
+	historyEl.scrollTo(0, historyEl.scrollHeight);
+};
+
+/**
+ * @param {MessageEvent} event
+ */
+const onUserMessage = (event) => {
+	/**
+	 * @type {Message}
+	 */
+	const message = JSON.parse(event.data);
+
+	const messageEl = document.createElement("div");
+	messageEl.classList.add("message");
+
+	const usernameEl = document.createElement("span");
+	usernameEl.classList.add("username");
+	usernameEl.textContent = message.username;
+	messageEl.appendChild(usernameEl);
+
+	const contentEl = document.createTextNode(`: ${message.content}`);
+	messageEl.appendChild(contentEl);
+
+	historyEl.appendChild(messageEl);
+	historyEl.scrollTo(0, historyEl.scrollHeight);
+};
+
+const onConnectionOpen = () => {
+	setUsernameOverlayEl.classList.add("hidden");
+	chatInfoEl.classList.remove("hidden");
+	newMessageInputEl.focus();
+};
+
+/**
+ * @param {SubmitEvent} event
+ */
+const onSubmitSetUsername = async (event) => {
+	event.preventDefault();
+
+	const data = new FormData(setUsernameFormEl);
+
+	username = encodeURIComponent(data.get("username").trim());
+
+	const usernameCheckResponse = await fetch(`/chat/${username}/check`);
+
+	if (!usernameCheckResponse.ok) {
+		if (usernameCheckResponse.status === 409) {
+			alert("That username is already taken!");
+			setUsernameFormEl.reset();
+			setUsernameInputEl.focus();
+		}
+
+		return;
+	}
+
+	setUsernameFormEl.reset();
+
+	newMessageFormEl.removeEventListener("submit", onSendMessage);
+	newMessageFormEl.addEventListener("submit", onSendMessage);
+
+	eventSource = new EventSource(`/chat/${username}/sse`);
+
+	eventSource.addEventListener("user-joined", onUserJoinedOrLeft);
+	eventSource.addEventListener("user-left", onUserJoinedOrLeft);
+	eventSource.addEventListener("message", onUserMessage);
+
+	eventSource.addEventListener("open", onConnectionOpen);
+};
+
+const onSetRandomUsername = () => {
+	setUsernameInputEl.value = `User-${crypto.randomUUID().split("-")[0]}`;
+	setUsernameInputEl.focus();
+};
+
+const onChangeUsername = () => {
+	eventSource.close();
+	historyEl.replaceChildren();
+	setUsernameOverlayEl.classList.remove("hidden");
+	chatInfoEl.classList.add("hidden");
+	userCount = 0;
+	userListEl.replaceChildren();
+	setUsernameInputEl.focus();
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+	chatInfoEl = document.getElementById("chat-info");
+	userCountEl = document.getElementById("user-count");
+	userListEl = document.getElementById("user-list");
+	historyEl = document.getElementById("history");
+	newMessageFormEl = document.getElementById("new-message-form");
+	newMessageInputEl = document.getElementById("new-message-input");
+	setUsernameOverlayEl = document.getElementById("set-username-overlay");
+	setUsernameFormEl = document.getElementById("set-username-form");
+	setUsernameInputEl = document.getElementById("set-username-input");
+	setUsernameRandomButtonEl = document.getElementById("set-username-random");
+	changeUsernameButton = document.getElementById("change-username-button");
+
+	setUsernameFormEl.addEventListener("submit", onSubmitSetUsername);
+	setUsernameRandomButtonEl.addEventListener("click", onSetRandomUsername);
+	changeUsernameButton.addEventListener("click", onChangeUsername);
+});
