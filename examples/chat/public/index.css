@@ -36,6 +36,20 @@ nav {
 	}
 }
 
+#user-count {
+	margin-bottom: 12px;
+}
+
+#user-list {
+	list-style: none;
+	font-weight: bold;
+
+	li {
+		margin-left: 1ch;
+		margin-bottom: 12px;
+	}
+}
+
 main {
 	display: flex;
 	flex-direction: column;

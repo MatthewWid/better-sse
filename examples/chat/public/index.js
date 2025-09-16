@@ -5,6 +5,15 @@
  */
 
 /** @type {HTMLDivElement} */
+let chatInfoEl;
+
+/** @type {HTMLDivElement} */
+let userCountEl;
+
+/** @type {HTMLUListElement} */
+let userListEl;
+
+/** @type {HTMLDivElement} */
 let historyEl;
 
 /** @type {HTMLFormElement} */
@@ -33,6 +42,8 @@ let eventSource;
 
 /** @type {string} */
 let username;
+
+let userCount = 0;
 
 /**
  * @param {SubmitEvent} event
@@ -69,6 +80,22 @@ const onSendMessage = async (event) => {
 const onUserJoinedOrLeft = (event) => {
 	const {data, type} = event;
 	const username = JSON.parse(data);
+
+	userCount += type === "user-joined" ? 1 : -1;
+	userCountEl.textContent = `Users Online (${userCount})`;
+
+	if (type === "user-joined") {
+		const userListItemEl = document.createElement("li");
+		userListItemEl.textContent = username;
+		userListEl.appendChild(userListItemEl);
+	} else {
+		for (const li of userListEl.children) {
+			if (li.textContent === username) {
+				userListEl.removeChild(li);
+				break;
+			}
+		}
+	}
 
 	const messageEl = document.createElement("div");
 	messageEl.classList.add("message");
@@ -110,7 +137,7 @@ const onUserMessage = (event) => {
 
 const onConnectionOpen = () => {
 	setUsernameOverlayEl.classList.add("hidden");
-	changeUsernameButton.classList.remove("hidden");
+	chatInfoEl.classList.remove("hidden");
 	newMessageInputEl.focus();
 };
 
@@ -147,11 +174,16 @@ const onChangeUsername = () => {
 	eventSource.close();
 	historyEl.replaceChildren();
 	setUsernameOverlayEl.classList.remove("hidden");
-	changeUsernameButton.classList.add("hidden");
+	chatInfoEl.classList.add("hidden");
+	userCount = 0;
+	userListEl.replaceChildren();
 	setUsernameInputEl.focus();
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+	chatInfoEl = document.getElementById("chat-info");
+	userCountEl = document.getElementById("user-count");
+	userListEl = document.getElementById("user-list");
 	historyEl = document.getElementById("history");
 	newMessageFormEl = document.getElementById("new-message-form");
 	newMessageInputEl = document.getElementById("new-message-input");
