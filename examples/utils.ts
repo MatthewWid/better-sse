@@ -13,17 +13,21 @@ export const getFrontendFiles = (baseDir: string) => {
 
 	const indexHtmlContent = readFileSync(indexHtmlPath, "utf8");
 
-	let indexJsContent = "";
+	let indexJsContent: string;
 
 	try {
 		indexJsContent = readFileSync(indexJsPath, "utf8");
-	} catch (_) {}
+	} catch (_) {
+		indexJsContent = "";
+	}
 
-	let indexCssContent = "";
+	let indexCssContent: string;
 
 	try {
 		indexCssContent = readFileSync(indexCssPath, "utf8");
-	} catch (_) {}
+	} catch (_) {
+		indexCssContent = "";
+	}
 
 	return {
 		publicDir,
