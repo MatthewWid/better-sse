@@ -57,9 +57,7 @@ const onSendMessage = async (event) => {
 
 	newMessageFormEl.reset();
 
-	const url = `/chat/${username}/message`;
-
-	const response = await fetch(url, {
+	const response = await fetch(`/chat/${username}/message`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
@@ -146,12 +144,24 @@ const onConnectionOpen = () => {
 /**
  * @param {SubmitEvent} event
  */
-const onSubmitSetUsername = (event) => {
+const onSubmitSetUsername = async (event) => {
 	event.preventDefault();
 
 	const data = new FormData(setUsernameFormEl);
 
 	username = encodeURIComponent(data.get("username").trim());
+
+	const usernameCheckResponse = await fetch(`/chat/${username}/check`);
+
+	if (!usernameCheckResponse.ok) {
+		if (usernameCheckResponse.status === 409) {
+			alert("That username is already taken!");
+			setUsernameFormEl.reset();
+			setUsernameInputEl.focus();
+		}
+
+		return;
+	}
 
 	setUsernameFormEl.reset();
 

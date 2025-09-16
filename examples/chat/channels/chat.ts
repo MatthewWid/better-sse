@@ -22,6 +22,11 @@ export const chatChannel = createChannel<ChannelState, SessionState>({
 	},
 });
 
+export const isUsernameTaken = (username: string) =>
+	chatChannel.activeSessions.some(
+		(session) => session.state.username === username
+	);
+
 chatChannel.on("session-registered", async (session) => {
 	await session.batch((buffer) => {
 		for (const args of chatChannel.state.history) {

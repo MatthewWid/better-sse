@@ -2,7 +2,7 @@ import {createSession} from "better-sse";
 import {getPublicDirPath} from "../utils";
 
 import express from "express";
-import {chatChannel} from "./channels/chat";
+import {chatChannel, isUsernameTaken} from "./channels/chat";
 
 const app = express();
 
@@ -12,6 +12,11 @@ app.use(express.json());
 app.get("/chat/:username/sse", async (req, res) => {
 	const {username} = req.params;
 
+	if (isUsernameTaken(username)) {
+		res.sendStatus(409);
+		return;
+	}
+
 	const session = await createSession(req, res, {
 		state: {
 			username,
@@ -19,6 +24,16 @@ app.get("/chat/:username/sse", async (req, res) => {
 	});
 
 	chatChannel.register(session);
+});
+
+app.get("/chat/:username/check", (req, res) => {
+	const {username} = req.params;
+
+	if (isUsernameTaken(username)) {
+		res.sendStatus(409);
+	} else {
+		res.sendStatus(204);
+	}
 });
 
 app.post("/chat/:username/message", (req, res) => {
