@@ -16,6 +16,7 @@ This directory showcases examples of using Better SSE.
 -   [Channels](./channels)
 -   [Streams](./streams)
 -   [Benchmarks](./benchmarks)
+-   [Chat room](./chat)
 -   [System Resource Monitor](./resource-monitor)
 
 ### Frameworks
