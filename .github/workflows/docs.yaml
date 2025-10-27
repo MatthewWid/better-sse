@@ -16,7 +16,7 @@ jobs:
                 PUBLIC_ANALYTICS_SCRIPT_URL: ${{ vars.PUBLIC_ANALYTICS_SCRIPT_URL }}
                 PUBLIC_ANALYTICS_WEBSITE_ID: ${{ vars.PUBLIC_ANALYTICS_WEBSITE_ID }}
               with:
-                node-version: 20
+                node-version: 22
                 path: ./docs
     deploy:
       needs: build
