@@ -16,8 +16,9 @@ jobs:
                 PUBLIC_ANALYTICS_SCRIPT_URL: ${{ vars.PUBLIC_ANALYTICS_SCRIPT_URL }}
                 PUBLIC_ANALYTICS_WEBSITE_ID: ${{ vars.PUBLIC_ANALYTICS_WEBSITE_ID }}
               with:
-                node-version: 22
                 path: ./docs
+                node-version: 22
+                package-manager: pnpm@^10
     deploy:
       needs: build
       runs-on: ubuntu-latest
