@@ -18,7 +18,7 @@ jobs:
               with:
                 path: ./docs
                 node-version: 22
-                package-manager: pnpm@^10
+                package-manager: pnpm@10.19.0
     deploy:
       needs: build
       runs-on: ubuntu-latest
