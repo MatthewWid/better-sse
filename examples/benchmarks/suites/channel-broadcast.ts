@@ -1,7 +1,7 @@
 import {createChannel, createSession} from "better-sse";
-// @ts-ignore
+// @ts-expect-error EasySse has no type declarations
 import EasySse from "easy-server-sent-events";
-// @ts-ignore
+// @ts-expect-error SseChannel has no type declarations
 import SseChannel from "sse-channel";
 import {createClientPool} from "../lib/createClientPool";
 import {Suite} from "./Suite";

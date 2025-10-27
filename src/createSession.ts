@@ -57,7 +57,7 @@ function createSession<State = DefaultSessionState>(
 		 *
 		 * @see https://github.com/microsoft/TypeScript/issues/14107
 		 */
-		// @ts-ignore
+		// @ts-expect-error see comment above
 		const session = new Session<State>(req, res, options);
 
 		if (req instanceof Request) {

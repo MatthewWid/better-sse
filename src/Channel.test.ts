@@ -1,12 +1,12 @@
 import type http from "node:http";
 import type {EventSource} from "eventsource";
 import {
-	type MockInstance,
 	afterEach,
 	beforeEach,
 	describe,
 	expect,
 	it,
+	type MockInstance,
 	vi,
 } from "vitest";
 import {Channel} from "./Channel";

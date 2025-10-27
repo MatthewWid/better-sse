@@ -1,8 +1,8 @@
 import {createServer as createRawHttpServer} from "node:http";
-import {type Session, createSession} from "better-sse";
+import {createSession, type Session} from "better-sse";
 import type {Response as ExpressResponse} from "express";
 import SSE, {type Client} from "sse";
-// @ts-ignore
+// @ts-expect-error SseChannel has no type declarations
 import SseChannel from "sse-channel";
 import {createEventSource} from "../lib/createEventSource";
 import {Suite} from "./Suite";

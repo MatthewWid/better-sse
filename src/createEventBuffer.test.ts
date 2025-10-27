@@ -1,6 +1,6 @@
 import {expect, it} from "vitest";
-import {EventBuffer} from "./EventBuffer";
 import {createEventBuffer} from "./createEventBuffer";
+import {EventBuffer} from "./EventBuffer";
 
 it("returns a new instance of an event buffer", () => {
 	expect(createEventBuffer()).toBeInstanceOf(EventBuffer);

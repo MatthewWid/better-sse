@@ -1,5 +1,5 @@
 import {Readable as NodeReadableStream} from "node:stream";
-import {type Mock, beforeEach, describe, expect, it, vi} from "vitest";
+import {beforeEach, describe, expect, it, type Mock, vi} from "vitest";
 import {createPushFromStream} from "./createPushFromStream";
 
 const data = [1, 2, 3];

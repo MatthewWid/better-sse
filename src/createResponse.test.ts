@@ -1,6 +1,6 @@
-import {expect, it, vi} from "vitest";
-import {Session, type SessionOptions} from "./Session";
+import {expect, it} from "vitest";
 import {createResponse} from "./createResponse";
+import {Session, type SessionOptions} from "./Session";
 import {
 	createRequest as createTestRequest,
 	createResponse as createTestResponse,

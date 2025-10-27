@@ -2,7 +2,7 @@ import http from "node:http";
 import http2 from "node:http2";
 import type net from "node:net";
 import type {AddressInfo} from "node:net";
-import {EventSource, EventSourceFetchInit} from "eventsource";
+import {EventSource} from "eventsource";
 import type {EventBuffer} from "../EventBuffer";
 import type {Session} from "../Session";
 

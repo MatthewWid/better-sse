@@ -1,10 +1,10 @@
 import {
-	type PushFromIterable,
 	createPushFromIterable,
+	type PushFromIterable,
 } from "./utils/createPushFromIterable";
 import {
-	type PushFromStream,
 	createPushFromStream,
+	type PushFromStream,
 } from "./utils/createPushFromStream";
 import {type SanitizerFunction, sanitize} from "./utils/sanitize";
 import {type SerializerFunction, serialize} from "./utils/serialize";

@@ -1,4 +1,4 @@
-import {type Mock, beforeEach, expect, it, vi} from "vitest";
+import {beforeEach, expect, it, type Mock, vi} from "vitest";
 import {createPushFromIterable} from "./createPushFromIterable";
 
 const data = [1, 2, 3];

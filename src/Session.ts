@@ -4,30 +4,30 @@ import {
 } from "node:http";
 import {Http2ServerRequest, Http2ServerResponse} from "node:http2";
 import {setImmediate} from "node:timers";
-import {EventBuffer, type EventBufferOptions} from "./EventBuffer";
 import type {Connection} from "./adapters/Connection";
 import {FetchConnection} from "./adapters/FetchConnection";
 import {NodeHttp1Connection} from "./adapters/NodeHttp1Connection";
 import {NodeHttp2CompatConnection} from "./adapters/NodeHttp2CompatConnection";
-import {SseError} from "./utils/SseError";
-import {type EventMap, TypedEmitter} from "./utils/TypedEmitter";
+import {EventBuffer, type EventBufferOptions} from "./EventBuffer";
 import {applyHeaders} from "./utils/applyHeaders";
 import {
-	type PushFromIterable,
 	createPushFromIterable,
+	type PushFromIterable,
 } from "./utils/createPushFromIterable";
 import {
-	type PushFromStream,
 	createPushFromStream,
+	type PushFromStream,
 } from "./utils/createPushFromStream";
+import {SseError} from "./utils/SseError";
 import {
-	type SanitizerFunction,
 	sanitize as defaultSanitizer,
+	type SanitizerFunction,
 } from "./utils/sanitize";
 import {
-	type SerializerFunction,
 	serialize as defaultSerializer,
+	type SerializerFunction,
 } from "./utils/serialize";
+import {type EventMap, TypedEmitter} from "./utils/TypedEmitter";
 
 interface SessionOptions<State = DefaultSessionState>
 	extends Pick<EventBufferOptions, "serializer" | "sanitizer"> {

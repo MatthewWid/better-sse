@@ -1,7 +1,6 @@
 import {createSession} from "better-sse";
-import {getPublicDirPath} from "../utils";
-
 import express from "express";
+import {getPublicDirPath} from "../utils";
 import {chatChannel, isUsernameTaken} from "./channels/chat";
 
 const app = express();

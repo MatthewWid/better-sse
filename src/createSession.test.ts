@@ -1,8 +1,8 @@
 import type http from "node:http";
 import type {EventSource} from "eventsource";
 import {afterEach, beforeEach, expect, it} from "vitest";
-import {Session} from "./Session";
 import {createSession} from "./createSession";
+import {Session} from "./Session";
 import {
 	closeServer,
 	createEventSource,

@@ -1,4 +1,4 @@
-import {type Session, createSession} from "better-sse";
+import {createSession, type Session} from "better-sse";
 import express from "express";
 import {getPublicDirPath} from "../utils";
 
