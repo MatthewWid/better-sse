@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.3.1/schema.json",
 	"vcs": {
 		"enabled": true,
 		"clientKind": "git",
@@ -7,11 +7,12 @@
 		"defaultBranch": "master"
 	},
 	"files": {
-		"ignore": [
-			"docs/src/content/snippets/*.ts",
-			"docs/src/**/*.astro",
-			"docs/.astro/**/*",
-			"examples/*/public/*.js"
+		"includes": [
+			"**",
+			"!**/docs/src/content/snippets/**/*.ts",
+			"!**/docs/src/**/*.astro",
+			"!**/docs/.astro/**/*",
+			"!**/examples/**/*/public/**/*.js"
 		],
 		"ignoreUnknown": false
 	},
@@ -23,7 +24,13 @@
 		"lineWidth": 80,
 		"bracketSpacing": true
 	},
-	"organizeImports": { "enabled": true },
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
+	},
 	"linter": {
 		"enabled": true,
 		"rules": {

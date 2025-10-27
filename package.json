@@ -33,20 +33,23 @@
 			"import": "./build/index.mjs"
 		}
 	},
-	"files": ["build", "!build/**/*.map"],
+	"files": [
+		"build",
+		"!build/**/*.map"
+	],
 	"engines": {
 		"node": ">=20",
 		"pnpm": ">=10"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "1.9.4",
-		"@tsconfig/node20": "^20.1.5",
-		"@types/node": "^22.15.24",
+		"@biomejs/biome": "2.3.1",
+		"@tsconfig/node22": "^22.0.2",
+		"@types/node": "^22.18.12",
 		"eventsource": "^4.0.0",
 		"npm-run-all": "^4.1.5",
 		"tsup": "^8.5.0",
-		"typescript": "^5.8.3",
-		"vitest": "^3.1.4"
+		"typescript": "^5.9.3",
+		"vitest": "^4.0.3"
 	},
 	"packageManager": "pnpm@10.11.0"
 }
