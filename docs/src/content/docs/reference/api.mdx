@@ -77,6 +77,11 @@ Use [module augmentation and declaration merging](https://www.typescriptlang.org
 
 Get a [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) object representing the request of the underlying connection this session manages.
 
+<Aside title="Fetch-based frameworks only" type="note">
+    This method is only relevant when using a framework that is based on the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).<br />
+    If your framework uses the Node [HTTP/1](https://nodejs.org/docs/latest/api/http.html) or [HTTP/2](https://nodejs.org/docs/latest/api/http2.html) APIs you do not need to use it.
+</Aside>
+
 When using the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), this will be the original `Request` object passed to the session constructor.
 
 When using the [Node HTTP APIs](https://nodejs.org/api/http.html), this will be a new `Request` object with status code and headers copied from the original request.<br />
@@ -85,6 +90,11 @@ When the originally given request or response is closed, the abort signal attach
 #### `Session#getResponse`: `() => Response`
 
 Get a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) object representing the response of the underlying connection this session manages.
+
+<Aside title="Fetch-based frameworks only" type="note">
+    This method is only relevant when using a framework that is based on the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).<br />
+    If your framework uses the Node [HTTP/1](https://nodejs.org/docs/latest/api/http.html) or [HTTP/2](https://nodejs.org/docs/latest/api/http2.html) APIs you do not need to use it.
+</Aside>
 
 When using the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), this will be a new `Response` object with status code and headers copied from the original response if given.<br />
 Its body will be a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) that should begin being consumed for the session to consider itself connected.
@@ -173,6 +183,11 @@ createResponse(Request, Response, SessionOptions, CreateResponseCallback): Respo
 ```
 
 Create a new session using the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and return its corresponding `Response` object.
+
+<Aside title="Fetch-based frameworks only" type="note">
+    This helper function is only relevant when using a framework that is based on the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).<br />
+    If your framework uses the Node [HTTP/1](https://nodejs.org/docs/latest/api/http.html) or [HTTP/2](https://nodejs.org/docs/latest/api/http2.html) APIs you do not need to use it.
+</Aside>
 
 Takes the [same arguments as the Session class constructor](#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest--request-res-serverresponse--http2serverresponse--response--sessionoptions-options-sessionoptions).
 
