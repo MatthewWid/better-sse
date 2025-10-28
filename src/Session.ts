@@ -87,6 +87,13 @@ interface SessionOptions<State = DefaultSessionState>
 	 * Use this object to safely store information related to the session and user.
 	 */
 	state?: State;
+
+	/**
+	 * Disables instance checks for requests and responses. This can be used when
+	 * using requests and responses that have the correct shape, but are not instances of
+	 * Request / IncomingMessage / Http2ServerRequest (or corresponding responses).
+	 */
+	forceCompatibility?: 'fetch' | 'http1' | 'http2'
 }
 
 interface DefaultSessionState {
@@ -218,6 +225,13 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 						"a corresponding HTTP2ServerResponse object must also be provided."
 				);
 			}
+		} else if (givenOptions.forceCompatibility) {
+			const forcedCompat: Record<NonNullable<SessionOptions<State>['forceCompatibility']>, any> = {
+				"fetch": FetchConnection,
+				"http1": NodeHttp1Connection,
+				"http2": NodeHttp2CompatConnection
+			};
+			this.connection = new forcedCompat[givenOptions.forceCompatibility](req, res, givenOptions);
 		} else {
 			throw new SseError(
 				"Malformed request or response objects given to session constructor. " +
