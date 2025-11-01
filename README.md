@@ -115,7 +115,7 @@ app.get("/sse", (c) =>
 // Client
 const eventSource = new EventSource("/sse")
 
-eventSource.addEventListener("message", ({ data })) => {
+eventSource.addEventListener("message", ({ data }) => {
 	const contents = JSON.parse(data)
 	console.log(contents) // Hello world!
 })
