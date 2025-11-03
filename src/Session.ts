@@ -195,7 +195,7 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 						);
 					}
 
-					givenOptions = res;
+					givenOptions = res ?? {};
 				}
 			}
 
