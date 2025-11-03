@@ -25,6 +25,7 @@ interface Connection {
 	cleanup(): void;
 }
 
-interface ConnectionOptions extends Pick<SessionOptions, "statusCode"> {}
+interface ConnectionOptions
+	extends Pick<SessionOptions, "statusCode" | "headers"> {}
 
 export type {Connection, ConnectionOptions};

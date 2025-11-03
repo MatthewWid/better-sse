@@ -55,6 +55,10 @@ class NodeHttp2CompatConnection implements Connection {
 				this.response.headers
 			);
 		}
+
+		if (options.headers) {
+			applyHeaders(options.headers, this.response.headers);
+		}
 	}
 
 	private onClose = () => {

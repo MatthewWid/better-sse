@@ -9,7 +9,6 @@ import {FetchConnection} from "./adapters/FetchConnection";
 import {NodeHttp1Connection} from "./adapters/NodeHttp1Connection";
 import {NodeHttp2CompatConnection} from "./adapters/NodeHttp2CompatConnection";
 import {EventBuffer, type EventBufferOptions} from "./EventBuffer";
-import {applyHeaders} from "./utils/applyHeaders";
 import {
 	createPushFromIterable,
 	type PushFromIterable,
@@ -225,10 +224,6 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 					"HTTP2ServerRequest/HTTP2ServerResponse from the Node HTTP/2 Compatibility API, " +
 					"or Request/Response from the Fetch API."
 			);
-		}
-
-		if (givenOptions.headers) {
-			applyHeaders(givenOptions.headers, this.connection.response.headers);
 		}
 
 		if (givenOptions.trustClientEventId !== false) {

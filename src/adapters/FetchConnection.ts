@@ -34,6 +34,10 @@ class FetchConnection implements Connection {
 		if (response) {
 			applyHeaders(response.headers, this.response.headers);
 		}
+
+		if (options.headers) {
+			applyHeaders(options.headers, this.response.headers);
+		}
 	}
 
 	sendHead = () => {

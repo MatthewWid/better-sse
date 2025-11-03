@@ -47,6 +47,10 @@ class NodeHttp1Connection implements Connection {
 				this.response.headers
 			);
 		}
+
+		if (options.headers) {
+			applyHeaders(options.headers, this.response.headers);
+		}
 	}
 
 	private onClose = () => {
