@@ -1,12 +1,14 @@
+export * from "./adapters/Connection";
+export * from "./adapters/FetchConnection";
+export * from "./adapters/NodeHttp1Connection";
+export * from "./adapters/NodeHttp2CompatConnection";
 export * from "./Channel";
 export * from "./createChannel";
 export * from "./createEventBuffer";
 export * from "./createResponse";
 export * from "./createSession";
-
 export * from "./EventBuffer";
 export * from "./Session";
 export type {IterateOptions} from "./utils/createPushFromIterable";
 export type {StreamOptions} from "./utils/createPushFromStream";
-
 export * from "./utils/SseError";
