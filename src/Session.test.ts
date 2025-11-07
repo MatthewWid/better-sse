@@ -3,6 +3,8 @@ import http2 from "node:http2";
 import type {AddressInfo} from "node:net";
 import type {EventSource} from "eventsource";
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
+import {Connection} from "./adapters/Connection";
+import {FetchConnection} from "./adapters/FetchConnection";
 import {EventBuffer} from "./EventBuffer";
 import {Session} from "./Session";
 import {
@@ -41,7 +43,7 @@ afterEach(async () => {
 	await closeServer(server);
 });
 
-describe("connection", () => {
+describe("construction", () => {
 	it("constructs without errors when given no options", () =>
 		new Promise<void>((done) => {
 			server.on("request", (req, res) => {
@@ -1203,4 +1205,60 @@ describe("http/2 compatibility api", () => {
 
 			http2Req = http2Client.request().end();
 		}));
+});
+
+describe("custom connection", () => {
+	it("can pass a custom connection and retrieve its request and response", async () => {
+		class CustomConnection extends Connection {
+			url: URL;
+
+			constructor(
+				public request: Request,
+				public response: Response
+			) {
+				super();
+
+				this.url = new URL(request.url);
+			}
+
+			sendHead = () => {
+				// noop
+			};
+
+			sendChunk = () => {
+				// noop
+			};
+
+			cleanup = () => {
+				// noop
+			};
+		}
+
+		const {request} = createRequest();
+		const {response} = createResponse();
+		const connection = new CustomConnection(request, response);
+
+		const session = new Session(connection);
+
+		await waitForConnect(session);
+
+		expect(session.getRequest()).toBe(request);
+		expect(session.getResponse()).toBe(response);
+	});
+
+	it("throws when passing options to the third argument", () => {
+		const {request} = createRequest();
+		const {response} = createResponse();
+		const connection = new FetchConnection(request, response);
+
+		expect(
+			() =>
+				// @ts-expect-error testing passing options to third argument
+				new Session(connection, undefined, {
+					headers: {
+						"X-Test": "123",
+					},
+				})
+		).toThrowError("not to the third");
+	});
 });
