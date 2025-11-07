@@ -4,6 +4,9 @@ import type {SessionOptions} from "../Session";
  * Represents the full request and response of an underlying network connection,
  * abstracting away the differences between the Node HTTP/1, HTTP/2, Fetch and
  * any other APIs.
+ *
+ * You can implement your own custom `Connection` subclass to make Better SSE
+ * compatible with any framework.
  */
 abstract class Connection {
 	/**

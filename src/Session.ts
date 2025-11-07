@@ -71,12 +71,16 @@ interface SessionOptions<State = DefaultSessionState>
 	 *
 	 * A client can be asked to stop reconnecting by using 204 status code.
 	 *
+	 * Ignored if passing a custom `Connection` instance to the `Session` constructor.
+	 *
 	 * Defaults to `200`.
 	 */
 	statusCode?: number;
 
 	/**
 	 * Additional headers to be sent along with the response.
+	 *
+	 * Ignored if passing a custom `Connection` instance to the `Session` constructor.
 	 */
 	headers?: Record<string, string | string[] | undefined>;
 
