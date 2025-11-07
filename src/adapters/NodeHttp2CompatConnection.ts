@@ -1,14 +1,13 @@
 import type {Http2ServerRequest, Http2ServerResponse} from "node:http2";
-import {applyHeaders} from "../utils/applyHeaders";
 import {
 	DEFAULT_REQUEST_HOST,
 	DEFAULT_REQUEST_METHOD,
 	DEFAULT_RESPONSE_CODE,
 	DEFAULT_RESPONSE_HEADERS,
 } from "../utils/constants";
-import type {Connection, ConnectionOptions} from "./Connection";
+import {Connection, type ConnectionOptions} from "./Connection";
 
-class NodeHttp2CompatConnection implements Connection {
+class NodeHttp2CompatConnection extends Connection {
 	private controller: AbortController;
 
 	url: URL;
@@ -20,6 +19,8 @@ class NodeHttp2CompatConnection implements Connection {
 		private res: Http2ServerResponse,
 		options: ConnectionOptions = {}
 	) {
+		super();
+
 		this.url = new URL(
 			`http://${req.headers.host ?? DEFAULT_REQUEST_HOST}${req.url}`
 		);

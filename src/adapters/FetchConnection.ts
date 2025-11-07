@@ -3,9 +3,9 @@ import {
 	DEFAULT_RESPONSE_CODE,
 	DEFAULT_RESPONSE_HEADERS,
 } from "../utils/constants";
-import type {Connection, ConnectionOptions} from "./Connection";
+import {Connection, type ConnectionOptions} from "./Connection";
 
-class FetchConnection implements Connection {
+class FetchConnection extends Connection {
 	private static encoder = new TextEncoder();
 	private writer: WritableStreamDefaultWriter;
 
@@ -18,6 +18,8 @@ class FetchConnection implements Connection {
 		response: Response | null,
 		options: ConnectionOptions = {}
 	) {
+		super();
+
 		this.url = new URL(request.url);
 
 		this.request = request;

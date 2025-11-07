@@ -3,6 +3,7 @@ import type {
 	ServerResponse as Http1ServerResponse,
 } from "node:http";
 import type {Http2ServerRequest, Http2ServerResponse} from "node:http2";
+import type {Connection} from "./adapters/Connection";
 import {
 	type DefaultSessionState,
 	Session,
@@ -38,7 +39,11 @@ function createSession<State = DefaultSessionState>(
 	options?: SessionOptions<State>
 ): Promise<Session<State>>;
 function createSession<State = DefaultSessionState>(
-	req: Http1ServerRequest | Http2ServerRequest | Request,
+	req: Connection,
+	options?: SessionOptions<State>
+): Promise<Session<State>>;
+function createSession<State = DefaultSessionState>(
+	req: Http1ServerRequest | Http2ServerRequest | Request | Connection,
 	res?:
 		| Http1ServerResponse
 		| Http2ServerResponse

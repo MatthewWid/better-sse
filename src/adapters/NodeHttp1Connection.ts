@@ -6,9 +6,9 @@ import {
 	DEFAULT_RESPONSE_CODE,
 	DEFAULT_RESPONSE_HEADERS,
 } from "../utils/constants";
-import type {Connection, ConnectionOptions} from "./Connection";
+import {Connection, type ConnectionOptions} from "./Connection";
 
-class NodeHttp1Connection implements Connection {
+class NodeHttp1Connection extends Connection {
 	private controller: AbortController;
 
 	url: URL;
@@ -20,6 +20,8 @@ class NodeHttp1Connection implements Connection {
 		private res: ServerResponse,
 		options: ConnectionOptions = {}
 	) {
+		super();
+
 		this.url = new URL(
 			`http://${req.headers.host ?? DEFAULT_REQUEST_HOST}${req.url}`
 		);
