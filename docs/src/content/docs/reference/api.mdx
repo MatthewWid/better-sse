@@ -403,11 +403,38 @@ A `Connection` represents the underlying connection that a [`Session`](#sessions
 
 You can implement your own custom `Connection` subclass to make Better SSE compatible with any framework not already supported by the built-in connection types.
 
+#### `Connection.constants`: `ConnectionConstants`
+
+Useful constants that you may use when implementing your own custom connection.
+
+`ConnectionConstants` is an object with the following properties:
+
+|Property|Type|Description|
+|-|-|-|
+|`REQUEST_METHOD`|`string`|The default HTTP request method to apply to the [`Connection#request`](#connectionrequest-request) [`status` property](https://developer.mozilla.org/en-US/docs/Web/API/Response/status).|
+|`REQUEST_HOST`|`string`|The default domain to apply to the [`Connection#url`](#connectionurl-url) [`host` property](https://developer.mozilla.org/en-US/docs/Web/API/URL/host), typically overriden by the value of the [`Host` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Host).|
+|`RESPONSE_CODE`|`number`|The default HTTP response status code to apply to the [`Connection#response`](#connectionresponse-response) [`status` property](https://developer.mozilla.org/en-US/docs/Web/API/Response/status).|
+|`RESPONSE_HEADERS`|`Readonly<string, string>`|The default HTTP response headers to apply to the [`Connection#response`](#connectionresponse-response) [`headers` property](https://developer.mozilla.org/en-US/docs/Web/API/Response/headers).|
+
+#### `Connection.applyHeaders`: `(from: Record<string, string | string[] | undefined> | Headers, to: Headers)`
+
+*Static method.*
+
+Utility method to consistently merge headers from an object into a [`Headers`](https://developer.mozilla.org/en-US/docs/Web/API/Headers) object.
+
+For each [entry](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries) in `from`:
+
+* If the value is a `string`, it will replace the target header.
+* If the value is an `Array`, it will replace the target header and then append each item.
+* If the value is `undefined`, it will delete the target header.
+
 #### `Connection#url`: `URL`
 
 *Abstract property.*
 
 The URL used to open the connection to the server.
+
+You should pass this to the constructor of the [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) object stored in the [`Connection#request`](#connectionrequest-request) property.
 
 For [HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP)-based connections, [this is typically constructed](https://nodejs.org/api/http.html#http_message_url) from the request [`Host` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Host) and URL path, including the [query string](https://en.wikipedia.org/wiki/Query_string).
 

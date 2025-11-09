@@ -1,9 +1,21 @@
 import type {SessionOptions} from "../Session";
 
-const ConnectionConstants = Object.freeze({
+const connectionConstants = Object.freeze({
+	/**
+	 * The default HTTP request method to apply to the `Connection#request` `status` property.
+	 */
 	REQUEST_METHOD: "GET",
+	/**
+	 * The default domain to apply to the `Connection#url` `host` proerty, typically overriden by the value of the `Host` header.
+	 */
 	REQUEST_HOST: "localhost",
+	/**
+	 * The default HTTP response status code to apply to the `Connection#response` `status` property.
+	 */
 	RESPONSE_CODE: 200,
+	/**
+	 * The default HTTP response headers to apply to the `Connection#response` `headers` property.
+	 */
 	RESPONSE_HEADERS: Object.freeze({
 		"Content-Type": "text/event-stream",
 		"Cache-Control":
@@ -14,6 +26,8 @@ const ConnectionConstants = Object.freeze({
 	}),
 });
 
+type ConnectionConstants = typeof connectionConstants;
+
 /**
  * Represents the full request and response of an underlying network connection,
  * abstracting away the differences between the Node HTTP/1, HTTP/2, Fetch and
@@ -23,8 +37,19 @@ const ConnectionConstants = Object.freeze({
  * compatible with any framework.
  */
 abstract class Connection {
-	static constants = ConnectionConstants;
+	/**
+	 * Useful constants that you may use when implementing your own custom connection.
+	 */
+	static constants = connectionConstants;
 
+	/**
+	 * Utility method to consistently merge headers from an object into a `Headers` object.
+	 *
+	 * For each entry in `from`:
+	 * - If the value is a `string`, it will replace the target header.
+	 * - If the value is an `Array`, it will replace the target header and then append each item.
+	 * - If the value is `undefined`, it will delete the target header.
+	 */
 	static applyHeaders(
 		from: Record<string, string | string[] | undefined> | Headers,
 		to: Headers
@@ -50,6 +75,8 @@ abstract class Connection {
 	 * The URL used to open the connection to the server.
 	 *
 	 * For HTTP-based connections, this is typically constructured from the request `Host` header and URL path, including the query string.
+	 *
+	 * You should pass this to the constructor of the `Request` object stored in the `Connection#request` property.
 	 */
 	abstract url: URL;
 
@@ -95,5 +122,5 @@ abstract class Connection {
 interface BuiltInConnectionOptions
 	extends Pick<SessionOptions, "statusCode" | "headers"> {}
 
-export type {BuiltInConnectionOptions};
+export type {ConnectionConstants, BuiltInConnectionOptions};
 export {Connection};
