@@ -5,7 +5,7 @@ import {
 	DEFAULT_RESPONSE_CODE,
 	DEFAULT_RESPONSE_HEADERS,
 } from "../utils/constants";
-import {Connection, type ConnectionOptions} from "./Connection";
+import {Connection, type BuiltInConnectionOptions} from "./Connection";
 
 class NodeHttp2CompatConnection extends Connection {
 	private controller: AbortController;
@@ -17,7 +17,7 @@ class NodeHttp2CompatConnection extends Connection {
 	constructor(
 		private req: Http2ServerRequest,
 		private res: Http2ServerResponse,
-		options: ConnectionOptions = {}
+		options: BuiltInConnectionOptions = {}
 	) {
 		super();
 

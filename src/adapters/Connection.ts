@@ -73,8 +73,11 @@ abstract class Connection {
 	abstract cleanup(): void;
 }
 
-interface ConnectionOptions
+/**
+ * Options passed from `Session` `options` argument to the built-in `Connection` implementations.
+ */
+interface BuiltInConnectionOptions
 	extends Pick<SessionOptions, "statusCode" | "headers"> {}
 
-export type {ConnectionOptions};
+export type {BuiltInConnectionOptions};
 export {Connection};

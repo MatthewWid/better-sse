@@ -9,7 +9,7 @@ next: false
 ---
 
 import {Aside} from "@astrojs/starlight/components";
-import ConnectionOptions from "../../../components/connection-options.mdx";
+import BuiltInConnectionsOptions from "../../../components/built-in-connection-options.mdx";
 import StatusCodeDescription from "../../../components/status-code-description.mdx";
 import HeadersDescription from "../../../components/headers-description.mdx";
 
@@ -401,7 +401,7 @@ Represents an SSE-related error thrown from within Better SSE.
 
 A `Connection` represents the underlying connection that a [`Session`](#sessionstate) manages, abstracting away the differences between the [Node HTTP/1](https://nodejs.org/docs/latest/api/http.html), [Node HTTP/2](https://nodejs.org/docs/latest/api/http2.html), [Fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and any other APIs.
 
-You can implement your own custom `Connection` subclass to make Better SSE compatible with any framework.
+You can implement your own custom `Connection` subclass to make Better SSE compatible with any framework not already supported by the built-in connection types.
 
 #### `Connection#url`: `URL`
 
@@ -457,13 +457,13 @@ Perform any necessary cleanup after the connection is closed.
 
 The in-built `NodeHttp1Connection` represents a connection based on the Node [HTTP/1 API](https://nodejs.org/docs/latest/api/http.html).
 
-#### `new NodeHttp1Connection(req: IncomingMessage, res: ServerResponse[, options: ConnectionOptions])`
+#### `new NodeHttp1Connection(req: IncomingMessage, res: ServerResponse[, options: BuiltInConnectionsOptions])`
 
 `req` is an instance of [IncomingMessage](https://nodejs.org/api/http.html#http_class_http_incomingmessage).
 
 `res` is an instance of [ServerResponse](https://nodejs.org/api/http.html#http_class_http_serverresponse).
 
-<ConnectionOptions />
+<BuiltInConnectionsOptions />
 
 ### `NodeHttp2CompatConnection`
 
@@ -471,13 +471,13 @@ The in-built `NodeHttp1Connection` represents a connection based on the Node [HT
 
 The in-built `NodeHttp2CompatConnection` represents a connection based on the Node [HTTP/2 Compatibility API](https://nodejs.org/docs/latest/api/http2.html#compatibility-api).
 
-#### `new NodeHttp2CompatConnection(req: Http2ServerRequest, res: Http2ServerResponse[, options: ConnectionOptions])`
+#### `new NodeHttp2CompatConnection(req: Http2ServerRequest, res: Http2ServerResponse[, options: BuiltInConnectionsOptions])`
 
 `req` is an instance of [Http2ServerRequest](https://nodejs.org/api/http2.html#class-http2http2serverrequest).
 
 `res` is an instance of [Http2ServerResponse](https://nodejs.org/api/http2.html#class-http2http2serverresponse).
 
-<ConnectionOptions />
+<BuiltInConnectionsOptions />
 
 ### `FetchConnection`
 
@@ -485,10 +485,10 @@ The in-built `NodeHttp2CompatConnection` represents a connection based on the No
 
 The in-built `FetchConnection` represents a connection based on the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
 
-#### `new FetchConnection(req: Request[, res: Response][, options: ConnectionOptions])`
+#### `new FetchConnection(req: Request[, res: Response][, options: BuiltInConnectionsOptions])`
 
 `req` is an instance of [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request).
 
 `res` is an instance of [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response), if given.
 
-<ConnectionOptions />
+<BuiltInConnectionsOptions />

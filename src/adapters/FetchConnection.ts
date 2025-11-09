@@ -2,7 +2,7 @@ import {
 	DEFAULT_RESPONSE_CODE,
 	DEFAULT_RESPONSE_HEADERS,
 } from "../utils/constants";
-import {Connection, type ConnectionOptions} from "./Connection";
+import {Connection, type BuiltInConnectionOptions} from "./Connection";
 
 class FetchConnection extends Connection {
 	private static encoder = new TextEncoder();
@@ -15,7 +15,7 @@ class FetchConnection extends Connection {
 	constructor(
 		request: Request,
 		response: Response | null,
-		options: ConnectionOptions = {}
+		options: BuiltInConnectionOptions = {}
 	) {
 		super();
 
