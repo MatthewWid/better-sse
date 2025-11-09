@@ -9,6 +9,27 @@ import type {SessionOptions} from "../Session";
  * compatible with any framework.
  */
 abstract class Connection {
+	static applyHeaders(
+		from: Record<string, string | string[] | undefined> | Headers,
+		to: Headers
+	) {
+		const fromMap = from instanceof Headers ? Object.fromEntries(from) : from;
+
+		for (const [key, value] of Object.entries(fromMap)) {
+			if (Array.isArray(value)) {
+				to.delete(key);
+
+				for (const item of value) {
+					to.append(key, item);
+				}
+			} else if (value === undefined) {
+				to.delete(key);
+			} else {
+				to.set(key, value);
+			}
+		}
+	}
+
 	/**
 	 * The URL used to open the connection to the server.
 	 *

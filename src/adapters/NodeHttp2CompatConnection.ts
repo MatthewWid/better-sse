@@ -43,7 +43,7 @@ class NodeHttp2CompatConnection extends Connection {
 			}
 		}
 
-		applyHeaders(allowedHeaders, this.request.headers);
+		Connection.applyHeaders(allowedHeaders, this.request.headers);
 
 		this.response = new Response(null, {
 			status: options.statusCode ?? res.statusCode ?? DEFAULT_RESPONSE_CODE,
@@ -51,14 +51,14 @@ class NodeHttp2CompatConnection extends Connection {
 		});
 
 		if (res) {
-			applyHeaders(
+			Connection.applyHeaders(
 				res.getHeaders() as Record<string, string | string[] | undefined>,
 				this.response.headers
 			);
 		}
 
 		if (options.headers) {
-			applyHeaders(options.headers, this.response.headers);
+			Connection.applyHeaders(options.headers, this.response.headers);
 		}
 	}
 

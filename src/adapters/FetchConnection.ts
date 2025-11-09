@@ -1,4 +1,3 @@
-import {applyHeaders} from "../utils/applyHeaders";
 import {
 	DEFAULT_RESPONSE_CODE,
 	DEFAULT_RESPONSE_HEADERS,
@@ -34,11 +33,11 @@ class FetchConnection extends Connection {
 		});
 
 		if (response) {
-			applyHeaders(response.headers, this.response.headers);
+			Connection.applyHeaders(response.headers, this.response.headers);
 		}
 
 		if (options.headers) {
-			applyHeaders(options.headers, this.response.headers);
+			Connection.applyHeaders(options.headers, this.response.headers);
 		}
 	}
 

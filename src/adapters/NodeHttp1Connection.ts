@@ -1,5 +1,4 @@
 import type {IncomingMessage, ServerResponse} from "node:http";
-import {applyHeaders} from "../utils/applyHeaders";
 import {
 	DEFAULT_REQUEST_HOST,
 	DEFAULT_REQUEST_METHOD,
@@ -36,7 +35,7 @@ class NodeHttp1Connection extends Connection {
 			signal: this.controller.signal,
 		});
 
-		applyHeaders(req.headers, this.request.headers);
+		Connection.applyHeaders(req.headers, this.request.headers);
 
 		this.response = new Response(null, {
 			status: options.statusCode ?? res.statusCode ?? DEFAULT_RESPONSE_CODE,
@@ -44,14 +43,14 @@ class NodeHttp1Connection extends Connection {
 		});
 
 		if (res) {
-			applyHeaders(
+			Connection.applyHeaders(
 				res.getHeaders() as Record<string, string | string[] | undefined>,
 				this.response.headers
 			);
 		}
 
 		if (options.headers) {
-			applyHeaders(options.headers, this.response.headers);
+			Connection.applyHeaders(options.headers, this.response.headers);
 		}
 	}
 
