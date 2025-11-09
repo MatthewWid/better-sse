@@ -16,7 +16,8 @@ class NodeHttp2CompatConnection extends Connection {
 		super();
 
 		this.url = new URL(
-			`http://${req.headers.host ?? Connection.constants.REQUEST_HOST}${req.url}`
+			req.url ?? "/",
+			`http://${req.headers.host ?? Connection.constants.REQUEST_HOST}`
 		);
 
 		this.controller = new AbortController();
