@@ -1,5 +1,19 @@
 import type {SessionOptions} from "../Session";
 
+const ConnectionConstants = Object.freeze({
+	REQUEST_METHOD: "GET",
+	REQUEST_HOST: "localhost",
+	RESPONSE_CODE: 200,
+	RESPONSE_HEADERS: Object.freeze({
+		"Content-Type": "text/event-stream",
+		"Cache-Control":
+			"private, no-cache, no-store, no-transform, must-revalidate, max-age=0",
+		Connection: "keep-alive",
+		Pragma: "no-cache",
+		"X-Accel-Buffering": "no",
+	}),
+});
+
 /**
  * Represents the full request and response of an underlying network connection,
  * abstracting away the differences between the Node HTTP/1, HTTP/2, Fetch and
@@ -9,6 +23,8 @@ import type {SessionOptions} from "../Session";
  * compatible with any framework.
  */
 abstract class Connection {
+	static constants = ConnectionConstants;
+
 	static applyHeaders(
 		from: Record<string, string | string[] | undefined> | Headers,
 		to: Headers

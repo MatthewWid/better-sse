@@ -8,10 +8,6 @@ import {FetchConnection} from "./adapters/FetchConnection";
 import {EventBuffer} from "./EventBuffer";
 import {Session} from "./Session";
 import {
-	DEFAULT_RESPONSE_CODE,
-	DEFAULT_RESPONSE_HEADERS,
-} from "./utils/constants";
-import {
 	closeServer,
 	createEventSource,
 	createHttp2Server,
@@ -185,12 +181,14 @@ describe("construction", () => {
 
 				const lowercasedHeaders: Record<string, string | string[]> = {};
 
-				for (const [key, value] of Object.entries(DEFAULT_RESPONSE_HEADERS)) {
+				for (const [key, value] of Object.entries(
+					Connection.constants.RESPONSE_HEADERS
+				)) {
 					lowercasedHeaders[key.toLowerCase()] = value;
 				}
 
 				expect(writeHead).toHaveBeenCalledWith(
-					DEFAULT_RESPONSE_CODE,
+					Connection.constants.RESPONSE_CODE,
 					lowercasedHeaders
 				);
 
@@ -1173,7 +1171,7 @@ describe("http/2 compatibility api", () => {
 
 				const [givenCode] = writeHead.mock.calls[0];
 
-				expect(givenCode).toBe(DEFAULT_RESPONSE_CODE);
+				expect(givenCode).toBe(Connection.constants.RESPONSE_CODE);
 
 				await new Promise<void>((resolve) => res.end(resolve));
 

@@ -1,8 +1,4 @@
-import {
-	DEFAULT_RESPONSE_CODE,
-	DEFAULT_RESPONSE_HEADERS,
-} from "../utils/constants";
-import {Connection, type BuiltInConnectionOptions} from "./Connection";
+import {type BuiltInConnectionOptions, Connection} from "./Connection";
 
 class FetchConnection extends Connection {
 	private static encoder = new TextEncoder();
@@ -28,8 +24,11 @@ class FetchConnection extends Connection {
 		this.writer = writable.getWriter();
 
 		this.response = new Response(readable, {
-			status: options.statusCode ?? response?.status ?? DEFAULT_RESPONSE_CODE,
-			headers: DEFAULT_RESPONSE_HEADERS,
+			status:
+				options.statusCode ??
+				response?.status ??
+				Connection.constants.RESPONSE_CODE,
+			headers: Connection.constants.RESPONSE_HEADERS,
 		});
 
 		if (response) {

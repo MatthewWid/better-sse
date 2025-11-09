@@ -1,11 +1,5 @@
 import type {IncomingMessage, ServerResponse} from "node:http";
-import {
-	DEFAULT_REQUEST_HOST,
-	DEFAULT_REQUEST_METHOD,
-	DEFAULT_RESPONSE_CODE,
-	DEFAULT_RESPONSE_HEADERS,
-} from "../utils/constants";
-import {Connection, type BuiltInConnectionOptions} from "./Connection";
+import {type BuiltInConnectionOptions, Connection} from "./Connection";
 
 class NodeHttp1Connection extends Connection {
 	private controller: AbortController;
@@ -22,7 +16,7 @@ class NodeHttp1Connection extends Connection {
 		super();
 
 		this.url = new URL(
-			`http://${req.headers.host ?? DEFAULT_REQUEST_HOST}${req.url}`
+			`http://${req.headers.host ?? Connection.constants.REQUEST_HOST}${req.url}`
 		);
 
 		this.controller = new AbortController();
@@ -31,15 +25,18 @@ class NodeHttp1Connection extends Connection {
 		res.once("close", this.onClose);
 
 		this.request = new Request(this.url, {
-			method: req.method ?? DEFAULT_REQUEST_METHOD,
+			method: req.method ?? Connection.constants.REQUEST_METHOD,
 			signal: this.controller.signal,
 		});
 
 		Connection.applyHeaders(req.headers, this.request.headers);
 
 		this.response = new Response(null, {
-			status: options.statusCode ?? res.statusCode ?? DEFAULT_RESPONSE_CODE,
-			headers: DEFAULT_RESPONSE_HEADERS,
+			status:
+				options.statusCode ??
+				res.statusCode ??
+				Connection.constants.RESPONSE_CODE,
+			headers: Connection.constants.RESPONSE_HEADERS,
 		});
 
 		if (res) {
