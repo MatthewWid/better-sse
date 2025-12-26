@@ -1,3 +1,4 @@
+import type {Connection} from "./adapters/Connection";
 import {
 	type DefaultSessionState,
 	Session,
@@ -28,13 +29,22 @@ function createResponse<State = DefaultSessionState>(
 	callback: CreateResponseCallback<State>
 ): Response;
 function createResponse<State = DefaultSessionState>(
+	request: Connection,
+	callback: CreateResponseCallback<State>
+): Response;
+function createResponse<State = DefaultSessionState>(
+	request: Connection,
+	options: SessionOptions<State>,
+	callback: CreateResponseCallback<State>
+): Response;
+function createResponse<State = DefaultSessionState>(
 	request: Request,
 	response: Response,
 	options: SessionOptions<State>,
 	callback: CreateResponseCallback<State>
 ): Response;
 function createResponse<State = DefaultSessionState>(
-	request: Request,
+	request: Request | Connection,
 	response: Response | SessionOptions<State> | CreateResponseCallback<State>,
 	options?: SessionOptions<State> | CreateResponseCallback<State>,
 	callback?: CreateResponseCallback<State>

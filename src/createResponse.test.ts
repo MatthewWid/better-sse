@@ -1,4 +1,5 @@
 import {expect, it} from "vitest";
+import {FetchConnection} from "./adapters/FetchConnection";
 import {createResponse} from "./createResponse";
 import {Session, type SessionOptions} from "./Session";
 import {
@@ -62,6 +63,22 @@ it("passes arguments to the Session constructor as-is", () =>
 			expect(session.lastId).toBe("123");
 			expect(session.getResponse().headers.get("X-Test-1")).toBe("456");
 			expect(session.state.myState).toBe("789");
+			done();
+		});
+	}));
+
+it("can pass a custom connection adapter", () =>
+	new Promise<void>((done) => {
+		const {request} = createTestRequest({
+			headers: {
+				"Last-Event-ID": "123",
+			},
+		});
+
+		const connection = new FetchConnection(request, null);
+
+		createResponse(connection, (session) => {
+			expect(session.lastId).toBe("123");
 			done();
 		});
 	}));
