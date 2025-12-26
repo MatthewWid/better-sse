@@ -1,6 +1,7 @@
 import type http from "node:http";
 import type {EventSource} from "eventsource";
 import {afterEach, beforeEach, expect, it} from "vitest";
+import {NodeHttp1Connection} from "./adapters/NodeHttp1Connection";
 import {createSession} from "./createSession";
 import {Session} from "./Session";
 import {
@@ -8,6 +9,7 @@ import {
 	createEventSource,
 	createHttpServer,
 	getUrl,
+	waitForConnect,
 } from "./utils/testUtils";
 
 let server: http.Server;
@@ -34,6 +36,25 @@ it("resolves with an instance of a session", () =>
 			const session = await createSession(req, res);
 
 			expect(session).toBeInstanceOf(Session);
+
+			done();
+		});
+
+		eventsource = createEventSource(url);
+	}));
+
+it("can pass a custom connection adapter", () =>
+	new Promise<void>((done) => {
+		server.on("request", async (req, res) => {
+			req.headers["Last-Event-ID"] = "123";
+
+			const connection = new NodeHttp1Connection(req, res);
+
+			const session = await createSession(connection);
+
+			await waitForConnect(session);
+
+			expect(session.lastId).toBe("123");
 
 			done();
 		});
