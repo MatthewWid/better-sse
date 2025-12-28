@@ -101,14 +101,14 @@ abstract class Connection {
 	/**
 	 * Send the response head with status code and headers from the `response` instance.
 	 */
-	abstract sendHead: () => void;
+	abstract sendHead(): void;
 
 	/**
 	 * Write a chunk of data to the socket.
 	 *
 	 * You should encode the data to UTF-8 beforehand.
 	 */
-	abstract sendChunk: (chunk: string) => void;
+	abstract sendChunk(chunk: string): void;
 
 	/**
 	 * Perform any necessary cleanup after the connection is closed.
