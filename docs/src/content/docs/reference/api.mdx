@@ -15,7 +15,7 @@ import HeadersDescription from "../../../components/headers-description.mdx";
 
 ### `Session<State>`
 
-*Extends from [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter)*.
+*Extends from [`EventEmitter`](https://nodejs.org/api/events.html#events_class_eventemitter)*.
 
 A `Session` represents an open connection between the server and the client.
 
@@ -163,11 +163,12 @@ createSession(IncomingMessage, ServerResponse, SessionOptions?): Promise<Session
 createSession(Http2ServerRequest, Http2ServerResponse, SessionOptions?): Promise<Session>
 createSession(Request, Response, SessionOptions?): Promise<Session>
 createSession(Request, SessionOptions?): Promise<Session>
+createSession(Connection, SessionOptions?): Promise<Session>
 ```
 
 Create a new [`Session`](#sessionstate).
 
-Takes the [same arguments as the Session class constructor](#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest--request-res-serverresponse--http2serverresponse--response--sessionoptions-options-sessionoptions).
+Takes the [same arguments as the `Session` class constructor](#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest--request-res-serverresponse--http2serverresponse--response--sessionoptions-options-sessionoptions).
 
 When using the Fetch API, resolves immediately with a session instance before it has connected.<br />
 You can listen for the `connected` event on the session to know when it has connected, or otherwise use the shorthand `createResponse` function that does so for you instead.
@@ -192,7 +193,7 @@ Create a new session using the [Fetch API](https://developer.mozilla.org/en-US/d
     If your framework uses the Node [HTTP/1](https://nodejs.org/docs/latest/api/http.html) or [HTTP/2](https://nodejs.org/docs/latest/api/http2.html) APIs you do not need to use it.
 </Aside>
 
-Takes the [same arguments as the Session class constructor](#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest--request-res-serverresponse--http2serverresponse--response--sessionoptions-options-sessionoptions).
+Takes the [same arguments as the `Session` class constructor](#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest--request-res-serverresponse--http2serverresponse--response--sessionoptions-options-sessionoptions).
 
 The last argument should be a callback function `CreateResponseCallback` that will be invoked with the session instance once it has connected.
 
@@ -216,7 +217,7 @@ return createResponse(request, (session) => {
 
 ### `Channel<State, SessionState>`
 
-*Extends from [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter)*.
+*Extends from [`EventEmitter`](https://nodejs.org/api/events.html#events_class_eventemitter)*.
 
 A `Channel` is used to broadcast events to many sessions at once.
 
@@ -294,9 +295,9 @@ Note that the broadcasted event will have the same ID across all receiving sessi
 
 ### `createChannel`: `<State, SessionState>(...args: ConstructorParameters<typeof Channel>) => Channel<State>`
 
-Creates and returns an instance of a [Channel](#channelstate-sessionstate).
+Creates and returns an instance of a [`Channel`](#channelstate-sessionstate).
 
-Takes the [same arguments as the Channel class constructor](#channelstate-sessionstate).
+Takes the [same arguments as the `Channel` class constructor](#channelstate-sessionstate).
 
 ### `EventBuffer`
 
@@ -385,13 +386,13 @@ Get a copy of the buffer contents.
 
 ### `createEventBuffer`: `(...args: ConstructorParameters<typeof EventBuffer>) => EventBuffer`
 
-Creates and returns an instance of an [EventBuffer](#eventbuffer).
+Creates and returns an instance of an [`EventBuffer`](#eventbuffer).
 
-Takes the [same arguments as the EventBuffer class constructor](#new-eventbufferoptions-).
+Takes the [same arguments as the `EventBuffer` class constructor](#new-eventbufferoptions-).
 
 ### `SseError`
 
-*Extends from [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)*.
+*Extends from [`Error`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)*.
 
 Represents an SSE-related error thrown from within Better SSE.
 
@@ -480,42 +481,42 @@ Perform any necessary cleanup after the connection is closed.
 
 ### `NodeHttp1Connection`
 
-*Extends from [Connection](#connection).*
+*Extends from [`Connection`](#connection).*
 
 The in-built `NodeHttp1Connection` represents a connection based on the Node [HTTP/1 API](https://nodejs.org/docs/latest/api/http.html).
 
 #### `new NodeHttp1Connection(req: IncomingMessage, res: ServerResponse[, options: BuiltInConnectionsOptions])`
 
-`req` is an instance of [IncomingMessage](https://nodejs.org/api/http.html#http_class_http_incomingmessage).
+`req` is an instance of [`IncomingMessage`](https://nodejs.org/api/http.html#http_class_http_incomingmessage).
 
-`res` is an instance of [ServerResponse](https://nodejs.org/api/http.html#http_class_http_serverresponse).
+`res` is an instance of [`ServerResponse`](https://nodejs.org/api/http.html#http_class_http_serverresponse).
 
 <BuiltInConnectionsOptions />
 
 ### `NodeHttp2CompatConnection`
 
-*Extends from [Connection](#connection).*
+*Extends from [`Connection`](#connection).*
 
 The in-built `NodeHttp2CompatConnection` represents a connection based on the Node [HTTP/2 Compatibility API](https://nodejs.org/docs/latest/api/http2.html#compatibility-api).
 
 #### `new NodeHttp2CompatConnection(req: Http2ServerRequest, res: Http2ServerResponse[, options: BuiltInConnectionsOptions])`
 
-`req` is an instance of [Http2ServerRequest](https://nodejs.org/api/http2.html#class-http2http2serverrequest).
+`req` is an instance of [`Http2ServerRequest`](https://nodejs.org/api/http2.html#class-http2http2serverrequest).
 
-`res` is an instance of [Http2ServerResponse](https://nodejs.org/api/http2.html#class-http2http2serverresponse).
+`res` is an instance of [`Http2ServerResponse`](https://nodejs.org/api/http2.html#class-http2http2serverresponse).
 
 <BuiltInConnectionsOptions />
 
 ### `FetchConnection`
 
-*Extends from [Connection](#connection).*
+*Extends from [`Connection`](#connection).*
 
 The in-built `FetchConnection` represents a connection based on the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
 
-#### `new FetchConnection(req: Request[, res: Response][, options: BuiltInConnectionsOptions])`
+#### `new FetchConnection(req: Request, res: Response | null[, options: BuiltInConnectionsOptions])`
 
-`req` is an instance of [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request).
+`req` is an instance of [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request).
 
-`res` is an instance of [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response), if given.
+`res` is an instance of [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) or `null` if you do not want to provide response status code and headers.
 
 <BuiltInConnectionsOptions />
