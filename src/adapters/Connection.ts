@@ -1,21 +1,28 @@
 import type {SessionOptions} from "../Session";
 
-const connectionConstants = Object.freeze({
+type ConnectionConstants = Readonly<{
 	/**
 	 * The default HTTP request method to apply to the `Connection#request` `status` property.
 	 */
-	REQUEST_METHOD: "GET",
+	REQUEST_METHOD: string;
 	/**
-	 * The default domain to apply to the `Connection#url` `host` proerty, typically overriden by the value of the `Host` header.
+	 * The default domain to apply to the `Connection#url` `host` property, typically overriden by the value of the `Host` header.
 	 */
-	REQUEST_HOST: "localhost",
+	REQUEST_HOST: string;
 	/**
 	 * The default HTTP response status code to apply to the `Connection#response` `status` property.
 	 */
-	RESPONSE_CODE: 200,
+	RESPONSE_CODE: number;
 	/**
 	 * The default HTTP response headers to apply to the `Connection#response` `headers` property.
 	 */
+	RESPONSE_HEADERS: Readonly<Record<string, string>>;
+}>;
+
+const connectionConstants: ConnectionConstants = Object.freeze({
+	REQUEST_METHOD: "GET",
+	REQUEST_HOST: "localhost",
+	RESPONSE_CODE: 200,
 	RESPONSE_HEADERS: Object.freeze({
 		"Content-Type": "text/event-stream",
 		"Cache-Control":
@@ -25,8 +32,6 @@ const connectionConstants = Object.freeze({
 		"X-Accel-Buffering": "no",
 	}),
 });
-
-type ConnectionConstants = typeof connectionConstants;
 
 /**
  * Represents the full request and response of an underlying network connection,
