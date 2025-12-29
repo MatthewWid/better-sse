@@ -10,10 +10,10 @@
 		"astro": "astro"
 	},
 	"dependencies": {
-		"@astrojs/check": "^0.9.5",
-		"@astrojs/starlight": "^0.36.1",
-		"astro": "^5.15.1",
-		"sharp": "^0.34.4",
+		"@astrojs/check": "^0.9.6",
+		"@astrojs/starlight": "^0.36.3",
+		"astro": "^5.16.6",
+		"sharp": "^0.34.5",
 		"typescript": "^5.9.3"
 	},
 	"packageManager": "pnpm@10.19.0"
