@@ -1,14 +1,7 @@
 import type {Http2ServerRequest, Http2ServerResponse} from "node:http2";
-import {applyHeaders} from "../utils/applyHeaders";
-import {
-	DEFAULT_REQUEST_HOST,
-	DEFAULT_REQUEST_METHOD,
-	DEFAULT_RESPONSE_CODE,
-	DEFAULT_RESPONSE_HEADERS,
-} from "../utils/constants";
-import type {Connection, ConnectionOptions} from "./Connection";
+import {type BuiltInConnectionOptions, Connection} from "./Connection";
 
-class NodeHttp2CompatConnection implements Connection {
+class NodeHttp2CompatConnection extends Connection {
 	private controller: AbortController;
 
 	url: URL;
@@ -18,10 +11,16 @@ class NodeHttp2CompatConnection implements Connection {
 	constructor(
 		private req: Http2ServerRequest,
 		private res: Http2ServerResponse,
-		options: ConnectionOptions = {}
+		options: BuiltInConnectionOptions = {}
 	) {
+		super();
+
+		req.socket.setNoDelay(true);
+		res.socket?.setNoDelay(true);
+
 		this.url = new URL(
-			`http://${req.headers.host ?? DEFAULT_REQUEST_HOST}${req.url}`
+			req.url ?? "/",
+			`http://${req.headers.host ?? Connection.constants.REQUEST_HOST}`
 		);
 
 		this.controller = new AbortController();
@@ -30,7 +29,7 @@ class NodeHttp2CompatConnection implements Connection {
 		res.once("close", this.onClose);
 
 		this.request = new Request(this.url, {
-			method: req.method ?? DEFAULT_REQUEST_METHOD,
+			method: req.method ?? Connection.constants.REQUEST_METHOD,
 			signal: this.controller.signal,
 		});
 
@@ -42,22 +41,25 @@ class NodeHttp2CompatConnection implements Connection {
 			}
 		}
 
-		applyHeaders(allowedHeaders, this.request.headers);
+		Connection.applyHeaders(allowedHeaders, this.request.headers);
 
 		this.response = new Response(null, {
-			status: options.statusCode ?? res.statusCode ?? DEFAULT_RESPONSE_CODE,
-			headers: DEFAULT_RESPONSE_HEADERS,
+			status:
+				options.statusCode ??
+				res.statusCode ??
+				Connection.constants.RESPONSE_CODE,
+			headers: Connection.constants.RESPONSE_HEADERS,
 		});
 
 		if (res) {
-			applyHeaders(
+			Connection.applyHeaders(
 				res.getHeaders() as Record<string, string | string[] | undefined>,
 				this.response.headers
 			);
 		}
 
 		if (options.headers) {
-			applyHeaders(options.headers, this.response.headers);
+			Connection.applyHeaders(options.headers, this.response.headers);
 		}
 	}
 

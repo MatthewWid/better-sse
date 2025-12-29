@@ -9,10 +9,13 @@ next: false
 ---
 
 import {Aside} from "@astrojs/starlight/components";
+import BuiltInConnectionsOptions from "../../../components/built-in-connection-options.mdx";
+import StatusCodeDescription from "../../../components/status-code-description.mdx";
+import HeadersDescription from "../../../components/headers-description.mdx";
 
 ### `Session<State>`
 
-*Extends from [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter)*.
+*Extends from [`EventEmitter`](https://nodejs.org/api/events.html#events_class_eventemitter)*.
 
 A `Session` represents an open connection between the server and the client.
 
@@ -34,9 +37,9 @@ new Session(Request, Response, SessionOptions?)
 new Session(Request, SessionOptions?)
 ```
 
-`req` is an instance of [IncomingMessage](https://nodejs.org/api/http.html#http_class_http_incomingmessage), [Http2ServerRequest](https://nodejs.org/api/http2.html#class-http2http2serverrequest) or [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request).
+`req` is an instance of [`IncomingMessage`](https://nodejs.org/api/http.html#http_class_http_incomingmessage), [`Http2ServerRequest`](https://nodejs.org/api/http2.html#class-http2http2serverrequest), [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) or a custom [`Connection`](#connection).
 
-`res` is an instance of [ServerResponse](https://nodejs.org/api/http.html#http_class_http_serverresponse), [Http2ServerResponse](https://nodejs.org/api/http2.html#class-http2http2serverresponse) or [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response), respectively.
+`res` is an instance of [`ServerResponse`](https://nodejs.org/api/http.html#http_class_http_serverresponse), [`Http2ServerResponse`](https://nodejs.org/api/http2.html#class-http2http2serverresponse) or [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response), respectively.
 
 `options` is a `SessionOptions` object with the following properties:
 
@@ -47,8 +50,8 @@ new Session(Request, SessionOptions?)
 |`trustClientEventId`|`boolean`|`true`|Whether to trust or ignore the last event ID given by the client in the `Last-Event-ID` request header.<br /><br />When set to `false`, the `lastId` property will always be initialized to an empty string.|
 |`retry`|`number` \| `null`|`2000`|Time in milliseconds for the client to wait before attempting to reconnect if the connection is closed.<br /><br />Give as `null` to avoid sending an explicit reconnection time and allow the client browser to decide itself.|
 |`keepAlive`|`number` \| `null`|`10000`|Time in milliseconds interval for the session to send a comment to keep the connection alive.<br /><br />Give as `null` to disable the keep-alive mechanism.|
-|`statusCode`|`number`|`200`|Status code to be sent to the client.<br /><br />Event stream requests can be redirected using HTTP 301 and 307 status codes. Make sure to set `Location` header when using these status codes (301/307) using the `headers` property.<br /><br />A client can be asked to stop reconnecting by send a 204 status code.|
-|`headers`|`object`|`{}`|Additional headers to be sent along with the response.|
+|`statusCode`|`number`|`200`|<StatusCodeDescription /><br />Ignored if passing a custom [`Connection`](#connection) instance to the `Session` constructor.|
+|`headers`|`object`|`{}`|<HeadersDescription /><br />Ignored if passing a custom [`Connection`](#connection) instance to the `Session` constructor|
 |`state`|`State`|`DefaultSessionState`|Initial custom state for the session.<br /><br />Accessed via the [`state`](#sessionstate-state) property.<br /><br />When using TypeScript, providing the initial state structure allows the type of the `state` property to be automatically inferred.|
 
 #### `Session#lastId`: `string`
@@ -160,11 +163,12 @@ createSession(IncomingMessage, ServerResponse, SessionOptions?): Promise<Session
 createSession(Http2ServerRequest, Http2ServerResponse, SessionOptions?): Promise<Session>
 createSession(Request, Response, SessionOptions?): Promise<Session>
 createSession(Request, SessionOptions?): Promise<Session>
+createSession(Connection, SessionOptions?): Promise<Session>
 ```
 
 Create a new [`Session`](#sessionstate).
 
-Takes the [same arguments as the Session class constructor](#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest--request-res-serverresponse--http2serverresponse--response--sessionoptions-options-sessionoptions).
+Takes the [same arguments as the `Session` class constructor](#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest--request-res-serverresponse--http2serverresponse--response--sessionoptions-options-sessionoptions).
 
 When using the Fetch API, resolves immediately with a session instance before it has connected.<br />
 You can listen for the `connected` event on the session to know when it has connected, or otherwise use the shorthand `createResponse` function that does so for you instead.
@@ -189,7 +193,7 @@ Create a new session using the [Fetch API](https://developer.mozilla.org/en-US/d
     If your framework uses the Node [HTTP/1](https://nodejs.org/docs/latest/api/http.html) or [HTTP/2](https://nodejs.org/docs/latest/api/http2.html) APIs you do not need to use it.
 </Aside>
 
-Takes the [same arguments as the Session class constructor](#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest--request-res-serverresponse--http2serverresponse--response--sessionoptions-options-sessionoptions).
+Takes the [same arguments as the `Session` class constructor](#new-sessionstate--defaultsessionstatereq-incomingmessage--http2serverrequest--request-res-serverresponse--http2serverresponse--response--sessionoptions-options-sessionoptions).
 
 The last argument should be a callback function `CreateResponseCallback` that will be invoked with the session instance once it has connected.
 
@@ -213,7 +217,7 @@ return createResponse(request, (session) => {
 
 ### `Channel<State, SessionState>`
 
-*Extends from [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter)*.
+*Extends from [`EventEmitter`](https://nodejs.org/api/events.html#events_class_eventemitter)*.
 
 A `Channel` is used to broadcast events to many sessions at once.
 
@@ -291,9 +295,9 @@ Note that the broadcasted event will have the same ID across all receiving sessi
 
 ### `createChannel`: `<State, SessionState>(...args: ConstructorParameters<typeof Channel>) => Channel<State>`
 
-Creates and returns an instance of a [Channel](#channelstate-sessionstate).
+Creates and returns an instance of a [`Channel`](#channelstate-sessionstate).
 
-Takes the [same arguments as the Channel class constructor](#channelstate-sessionstate).
+Takes the [same arguments as the `Channel` class constructor](#channelstate-sessionstate).
 
 ### `EventBuffer`
 
@@ -382,12 +386,137 @@ Get a copy of the buffer contents.
 
 ### `createEventBuffer`: `(...args: ConstructorParameters<typeof EventBuffer>) => EventBuffer`
 
-Creates and returns an instance of an [EventBuffer](#eventbuffer).
+Creates and returns an instance of an [`EventBuffer`](#eventbuffer).
 
-Takes the [same arguments as the EventBuffer class constructor](#new-eventbufferoptions-).
+Takes the [same arguments as the `EventBuffer` class constructor](#new-eventbufferoptions-).
 
 ### `SseError`
 
-*Extends from [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)*.
+*Extends from [`Error`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)*.
 
 Represents an SSE-related error thrown from within Better SSE.
+
+### `Connection`
+
+*Abstract class.*
+
+A `Connection` represents the underlying connection that a [`Session`](#sessionstate) manages, abstracting away the differences between the [Node HTTP/1](https://nodejs.org/docs/latest/api/http.html), [Node HTTP/2](https://nodejs.org/docs/latest/api/http2.html), [Fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and any other APIs.
+
+You can implement your own custom `Connection` subclass to make Better SSE compatible with any framework not already supported by the built-in connection types.
+
+#### `Connection.constants`: `ConnectionConstants`
+
+Useful constants that you may use when implementing your own custom connection.
+
+`ConnectionConstants` is an object with the following properties:
+
+|Property|Type|Description|
+|-|-|-|
+|`REQUEST_METHOD`|`string`|The default HTTP request method to apply to the [`Connection#request`](#connectionrequest-request) [`status` property](https://developer.mozilla.org/en-US/docs/Web/API/Response/status).|
+|`REQUEST_HOST`|`string`|The default domain to apply to the [`Connection#url`](#connectionurl-url) [`host` property](https://developer.mozilla.org/en-US/docs/Web/API/URL/host), typically overriden by the value of the [`Host` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Host).|
+|`RESPONSE_CODE`|`number`|The default HTTP response status code to apply to the [`Connection#response`](#connectionresponse-response) [`status` property](https://developer.mozilla.org/en-US/docs/Web/API/Response/status).|
+|`RESPONSE_HEADERS`|`Readonly<string, string>`|The default HTTP response headers to apply to the [`Connection#response`](#connectionresponse-response) [`headers` property](https://developer.mozilla.org/en-US/docs/Web/API/Response/headers).|
+
+#### `Connection.applyHeaders`: `(from: Record<string, string | string[] | undefined> | Headers, to: Headers)`
+
+*Static method.*
+
+Utility method to consistently merge headers from an object into a [`Headers`](https://developer.mozilla.org/en-US/docs/Web/API/Headers) object.
+
+For each [entry](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries) in `from`:
+
+* If the value is a `string`, it will replace the target header.
+* If the value is an `Array`, it will replace the target header and then append each item.
+* If the value is `undefined`, it will delete the target header.
+
+#### `Connection#url`: `URL`
+
+*Abstract property.*
+
+The URL used to open the connection to the server.
+
+You should pass this to the constructor of the [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) object stored in the [`Connection#request`](#connectionrequest-request) property.
+
+For [HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP)-based connections, [this is typically constructed](https://nodejs.org/api/http.html#http_message_url) from the request [`Host` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Host) and URL path, including the [query string](https://en.wikipedia.org/wiki/Query_string).
+
+#### `Connection#request`: `Request`
+
+*Abstract property.*
+
+A [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) object representing the request that opened the connection.
+
+You should populate its [`url`](https://developer.mozilla.org/en-US/docs/Web/API/Request/url) property - likely with the same value as the [`url` property](#connectionurl) - its [`method`](https://developer.mozilla.org/en-US/docs/Web/API/Request/method) and its [`headers`](https://developer.mozilla.org/en-US/docs/Web/API/Request/headers) properties.
+
+You should populate its [`signal`](https://developer.mozilla.org/en-US/docs/Web/API/Request/signal) property with an [`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) that gets triggered when the request *or* the response is closed, indicating to the session that the connection has disconnected.
+
+#### `Connection#response`: `Response`
+
+*Abstract property.*
+
+A [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) object representing the response that will be sent to the client.
+
+You should populate its [`status`](https://developer.mozilla.org/en-US/docs/Web/API/Response/status) and [`headers`](https://developer.mozilla.org/en-US/docs/Web/API/Response/headers) properties.
+
+You *may* populate its [`body`](https://developer.mozilla.org/en-US/docs/Web/API/Response/body) property with a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) that will [enqueue](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultController/enqueue) any data written with the [`sendChunk`](#connectionsendchunk-chunk-string--void) method if you intend to use the session with a [Fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)-based framework.
+
+#### `Connection#sendHead`: `() => void`
+
+*Abstract method.*
+
+Send the response head with status code and headers from the [`response`](#connectionresponse-response) instance.
+
+#### `Connection#sendChunk`: `(chunk: string) => void`
+
+*Abstract method.*
+
+Write a chunk of data to the socket.
+
+You should [encode the data](https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder) to UTF-8 beforehand.
+
+#### `Connection#cleanup`: `() => void`
+
+*Abstract method.*
+
+Perform any necessary cleanup after the connection is closed.
+
+### `NodeHttp1Connection`
+
+*Extends from [`Connection`](#connection).*
+
+The in-built `NodeHttp1Connection` represents a connection based on the Node [HTTP/1 API](https://nodejs.org/docs/latest/api/http.html).
+
+#### `new NodeHttp1Connection(req: IncomingMessage, res: ServerResponse[, options: BuiltInConnectionsOptions])`
+
+`req` is an instance of [`IncomingMessage`](https://nodejs.org/api/http.html#http_class_http_incomingmessage).
+
+`res` is an instance of [`ServerResponse`](https://nodejs.org/api/http.html#http_class_http_serverresponse).
+
+<BuiltInConnectionsOptions />
+
+### `NodeHttp2CompatConnection`
+
+*Extends from [`Connection`](#connection).*
+
+The in-built `NodeHttp2CompatConnection` represents a connection based on the Node [HTTP/2 Compatibility API](https://nodejs.org/docs/latest/api/http2.html#compatibility-api).
+
+#### `new NodeHttp2CompatConnection(req: Http2ServerRequest, res: Http2ServerResponse[, options: BuiltInConnectionsOptions])`
+
+`req` is an instance of [`Http2ServerRequest`](https://nodejs.org/api/http2.html#class-http2http2serverrequest).
+
+`res` is an instance of [`Http2ServerResponse`](https://nodejs.org/api/http2.html#class-http2http2serverresponse).
+
+<BuiltInConnectionsOptions />
+
+### `FetchConnection`
+
+*Extends from [`Connection`](#connection).*
+
+The in-built `FetchConnection` represents a connection based on the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
+
+#### `new FetchConnection(req: Request, res: Response | null[, options: BuiltInConnectionsOptions])`
+
+`req` is an instance of [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request).
+
+`res` is an instance of [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) or `null` if you do not want to provide response status code and headers.
+
+<BuiltInConnectionsOptions />

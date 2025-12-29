@@ -1,0 +1,489 @@
+---
+layout: ../../../layouts/Base.astro
+title: Connection adapters
+description: Learn how to use custom connection adapters to make Better SSE compatible with anything.
+---
+
+*Connection adapters* allow you to make Better SSE [sessions](/better-sse/reference/api/#sessionstate) compatible with any protocol, framework or runtime environment.
+
+Where *sessions* manage the request and response lifecycle, the formatting of data and other SSE-specific behaviour, [*connection adapters*](/better-sse/reference/api/#connection) implement the underlying connection itself, such as extracting request headers and query parameters, sending response headers and data chunks, and reporting when the connection closes.
+
+## Built-in connection adapters
+
+Better SSE ships with several built-in connection adapters which are used internally but can also be extended to add or augment functionality.
+
+When a session is created, it will automatically determine which connection adapter to use based on the arguments provided.
+
+### Fetch API
+
+When providing an instance of [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) (and optionally [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response)) from the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), such as when using [Hono](https://hono.dev/), for example:
+
+```typescript
+import { createResponse } from "better-sse"
+
+app.get("/sse", async (c) =>
+    createResponse(c.req.raw, (session) => {
+        session.push("Hello world!")
+    })
+)
+```
+
+The session will use the built-in [`FetchConnection`](/better-sse/reference/api/#fetchconnection) adapter, equivalent to the following:
+
+```typescript mark={4}
+import { createResponse, FetchConnection } from "better-sse"
+
+app.get("/sse", async (c) => {
+    const connection = new FetchConnection(c.req.raw, null)
+
+    return createResponse(connection, (session) => {
+        session.push("Hello world!")
+    })
+})
+```
+
+### Node HTTP/1 API
+
+When providing instances of [`IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) and [`ServerResponse`](https://nodejs.org/api/http.html#class-httpserverresponse) from the [Node HTTP/1 API](https://nodejs.org/api/http.html), such as when using [Express](https://expressjs.com/), for example:
+
+```typescript
+import { createSession } from "better-sse"
+
+app.get("/sse", async (req, res) => {
+    const session = await createSession(req, res)
+    session.push("Hello world!")
+})
+```
+
+The session will use the built-in [`NodeHttp1Connection`](/better-sse/reference/api/#nodehttp1connection) adapter, equivalent to the following:
+
+```typescript mark={4}
+import { createSession, NodeHttp1Connection } from "better-sse"
+
+app.get("/sse", async (req, res) => {
+    const connection = new NodeHttp1Connection(req, res)
+    const session = await createSession(connection)
+    session.push("Hello world!")
+})
+```
+
+### Node HTTP/2 Compatibility API
+
+When providing instances of [`Http2ServerRequest`](https://nodejs.org/api/http2.html#class-http2http2serverrequest) and [`Http2ServerResponse`](https://nodejs.org/api/http2.html#class-http2http2serverresponse) from the [Node HTTP/2 Compatibility API](https://nodejs.org/api/http2.html#compatibility-api), such as when using [`createServer`](https://nodejs.org/api/http2.html#http2createserveroptions-onrequesthandler), for example:
+
+```typescript
+import { createSession } from "better-sse"
+
+createServer(async (req, res) => {
+    const { ":path": path, ":method": method } = req.headers
+
+    if (req.url === "/sse") {
+        const session = await createSession(req, res)
+        session.push("Hello world!")
+    }
+})
+```
+
+The session will use the built-in [`NodeHttp2CompatConnection`](/better-sse/reference/api/#nodehttp2compatconnection) adapter, equivalent to the following:
+
+```typescript mark={7}
+import { createSession, NodeHttp2CompatConnection } from "better-sse"
+
+createServer(async (req, res) => {
+    const { ":path": path, ":method": method } = req.headers
+
+    if (req.url === "/sse") {
+        const connection = new NodeHttp2CompatConnection(req, res)
+        const session = await createSession(connection)
+        session.push("Hello world!")
+    }
+})
+```
+
+## Create a custom connection adapter
+
+You can create a custom connection adapter from scratch - extending from the [`Connection` class](/better-sse/reference/api/#connection) directly - or by using any of the built-in adapters as a base:
+
+* [`FetchConnection`](/better-sse/reference/api/#fetchconnection) ([source code](https://github.com/MatthewWid/better-sse/blob/master/src/adapters/FetchConnection.ts))
+* [`NodeHttp1Connection`](/better-sse/reference/api/#nodehttp1connection) ([source code](https://github.com/MatthewWid/better-sse/blob/master/src/adapters/NodeHttp1Connection.ts))
+* [`NodeHttp2CompatConnection`](/better-sse/reference/api/#nodehttp2compatconnection) ([source code](https://github.com/MatthewWid/better-sse/blob/master/src/adapters/NodeHttp2CompatConnection.ts))
+
+If you want to publish your adapter as an npm-compatible package, remember to add `better-sse` as a peer dependency in your `package.json` file:
+
+```json title="package.json" mark={5-7}
+{
+    "name": "my-custom-connection-adapter",
+    "version": "0.1.0",
+    ...
+    "peerDependencies": {
+        "better-sse": ">=0.16.0"
+    }
+}
+
+```
+
+### Koa
+
+Let's create a custom connection adapter that abstracts away the implementation details of SSE streaming with [Koa](https://koajs.com/).
+
+To begin, create a class that extends from the base [`Connection` class](/better-sse/reference/api/#connection) and takes a Koa [`Context` object](https://koajs.com/#context) as its first argument:
+
+```typescript title="KoaConnection.ts"
+import { Connection } from "better-sse"
+import type { Context } from "koa"
+
+class KoaConnection extends Connection {
+    constructor(private ctx: Context) {
+        super()
+    }
+}
+```
+
+Next, we will implement the [`url`](/better-sse/reference/api/#connectionurl-url) property that the session will use to parse the [query string](https://en.wikipedia.org/wiki/Query_string) of the request URL. Thankfully, Koa provides [an instance of a WHATWG URL object](https://koajs.com/#request-url) natively:
+
+```typescript title="KoaConnection.ts" ins={2, 7}
+class KoaConnection extends Connection {
+    url: URL
+
+    constructor(private ctx: Context) {
+        super()
+
+        this.url = ctx.URL
+    }
+}
+```
+
+Then, we will implement the [`request`](/better-sse/reference/api/#connectionrequest-request) property that the session will use to parse the request headers and detect connection closure:
+
+```typescript title="KoaConnection.ts" ins={2, 5, 12-19}
+class KoaConnection extends Connection {
+    private controller: AbortController
+
+    url: URL
+    request: Request
+
+    constructor(private ctx: Context) {
+        super()
+
+        this.url = ctx.URL
+
+        this.controller = new AbortController()
+
+        this.request = new Request(this.url, {
+            method: ctx.request.method ?? Connection.constants.REQUEST_METHOD,
+            signal: this.controller.signal,
+        })
+
+        Connection.applyHeaders(ctx.headers, this.request.headers)
+    }
+}
+```
+
+Here, we create an [`AbortController`](https://developer.mozilla.org/en-US/docs/Web/API/AbortController) with its [`signal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal) attached to the request.
+
+We also copy the request method across, setting it to the default method given to us by the [`Connection` static `constant` properties](/better-sse/reference/api/#connectionconstants-connectionconstants) if it is not defined.
+
+Additionally, we use the built-in [`Connection.applyHeaders`](/better-sse/reference/api/#connectionapplyheaders-from-recordstring-string--string--undefined--headers-to-headers) static utility method to copy the request headers from Koa's [`Context#headers`](https://koajs.com/#request-headers) to the [request headers](https://developer.mozilla.org/en-US/docs/Web/API/Request/headers).
+
+---
+
+Next, we will implement the [`response`](/better-sse/reference/api/#connectionresponse-response) property that the session will use to parse the response status code and headers:
+
+```typescript title="KoaConnection.ts" ins={6, 22-28}
+class KoaConnection extends Connection {
+    private controller: AbortController
+
+    url: URL
+    request: Request
+    response: Response
+
+    constructor(private ctx: Context) {
+        super()
+
+        this.url = ctx.URL
+
+        this.controller = new AbortController()
+
+        this.request = new Request(this.url, {
+            method: ctx.request.method ?? Connection.constants.REQUEST_METHOD,
+            signal: this.controller.signal,
+        })
+
+        Connection.applyHeaders(ctx.headers, this.request.headers)
+
+        ctx.status = Connection.constants.RESPONSE_CODE
+        ctx.set(Connection.constants.RESPONSE_HEADERS)
+
+        this.response = new Response(null, {
+            status: Connection.constants.RESPONSE_CODE,
+            headers: Connection.constants.RESPONSE_HEADERS,
+        })
+    }
+}
+```
+
+Again, we use the built-in [`Connection.constants` static properties](/better-sse/reference/api/#connectionconstants-connectionconstants) to set default values for the status code and headers.
+
+We set the [response body](https://developer.mozilla.org/en-US/docs/Web/API/Response/body) to `null` as Koa currently [does not support streaming Fetch response bodies](https://github.com/koajs/koa/issues/1864). Instead, we will implement the response stream using a [Node stream](https://nodejs.org/docs/latest/api/stream.html#stream).
+
+---
+
+To finish off our constructor definition, we create a [Node `PassThrough` stream](https://nodejs.org/docs/latest/api/stream.html#class-streampassthrough) that simply passes written data directly through to its output and set it to be the response body:
+
+```typescript title="KoaConnection.ts" ins={2, 34-38, 41-43}
+...
+import { PassThrough } from "node:stream"
+
+class KoaConnection extends Connection {
+    private controller: AbortController
+    private stream: PassThrough
+
+    url: URL
+    request: Request
+    response: Response
+
+    constructor(private ctx: Context) {
+        super()
+
+        this.url = ctx.URL
+
+        this.controller = new AbortController()
+
+        this.request = new Request(this.url, {
+            method: ctx.request.method ?? Connection.constants.REQUEST_METHOD,
+            signal: this.controller.signal,
+        })
+
+        Connection.applyHeaders(ctx.headers, this.request.headers)
+
+        ctx.status = Connection.constants.RESPONSE_CODE
+        ctx.set(Connection.constants.RESPONSE_HEADERS)
+
+        this.response = new Response(null, {
+            status: Connection.constants.RESPONSE_CODE,
+            headers: Connection.constants.RESPONSE_HEADERS,
+        })
+
+        this.stream = new PassThrough()
+
+        this.stream.once("close", this.onClose)
+
+        ctx.body = this.stream
+    }
+
+    private onClose = () => {
+        this.controller.abort()
+    }
+}
+```
+
+When the stream [closes](https://nodejs.org/docs/latest/api/stream.html#event-close) we trigger the [abort signal](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) to notify the session that the connection has been terminated.
+
+---
+
+Now, we will implement the first abstract method - [`sendHead`](/better-sse/reference/api/#connectionsendhead---void) - that is called by the session to send the response status code, headers and any necessary preamble data to the client using Koa's [`Context#flushHeaders`](https://koajs.com/#response-flushheaders-) method:
+
+```typescript title="KoaConnection.ts" ins={4-6}
+class KoaConnection extends Connection {
+    ...
+
+    sendHead() {
+        this.ctx.flushHeaders()
+    }
+}
+```
+
+Next is the [`sendChunk`](/better-sse/reference/api/#connectionsendchunk-chunk-string--void) method that writes the given data to the stream:
+
+```typescript title="KoaConnection.ts" ins={8-10}
+class KoaConnection extends Connection {
+    ...
+
+    sendHead() {
+        this.ctx.flushHeaders()
+    }
+
+    sendChunk(chunk: string) {
+        this.stream.write(chunk)
+    }
+}
+```
+
+And finally we clean up our event listeners when the connection is closed with the [`cleanup`](/better-sse/reference/api/#connectioncleanup---void) method:
+
+```typescript title="KoaConnection.ts" ins={12-14}
+class KoaConnection extends Connection {
+    ...
+
+    sendHead() {
+        this.ctx.flushHeaders()
+    }
+
+    sendChunk(chunk: string) {
+        this.stream.write(chunk)
+    }
+
+    cleanup() {
+        this.stream.removeListener("close", this.onClose)
+    }
+}
+```
+
+By default, Koa will log errors produced by streams to the console. When streams are closed prematurely this usually *is* an error, but with SSE this is expected as the onus is on the client to close the connection stream that the server opens.
+
+As such, we can add additional functionality to suppress logging errors when an SSE stream is closed "prematurely":
+
+```typescript title="KoaConnection.ts" ins={4-15}
+class KoaConnection extends Connection {
+    ...
+
+    static addListeners = (app: Koa) => {
+        app.on("error", (err, ctx?: Context) => {
+            if (
+                err.code === "ERR_STREAM_PREMATURE_CLOSE" &&
+                ctx?.response.get("Content-Type") === "text/event-stream"
+            ) {
+                return
+            }
+
+            app.onerror(err)
+        })
+    }
+}
+```
+
+The final completed code for the Koa adapter is given below:
+
+<details>
+<summary>`KoaConnection.ts`</summary>
+```typescript
+import { PassThrough } from "node:stream"
+import { createSession } from "better-sse"
+import Koa, { Context } from "koa"
+
+class KoaConnection extends Connection {
+    static addListeners = (app: Koa) => {
+        app.on("error", (err, ctx?: Context) => {
+            if (
+                err.code === "ERR_STREAM_PREMATURE_CLOSE" &&
+                ctx?.response.get("Content-Type") === "text/event-stream"
+            ) {
+                return
+            }
+
+            app.onerror(err)
+        })
+    }
+
+    private controller: AbortController
+    private stream: PassThrough
+
+    url: URL
+    request: Request
+    response: Response
+
+    constructor(private ctx: Context) {
+        super()
+
+        this.url = ctx.URL
+
+        this.controller = new AbortController()
+
+        this.request = new Request(this.url, {
+            method: ctx.request.method ?? Connection.constants.REQUEST_METHOD,
+            signal: this.controller.signal,
+        })
+
+        Connection.applyHeaders(ctx.headers, this.request.headers)
+
+        ctx.status = Connection.constants.RESPONSE_CODE
+        ctx.set(Connection.constants.RESPONSE_HEADERS)
+
+        this.response = new Response(null, {
+            status: Connection.constants.RESPONSE_CODE,
+            headers: Connection.constants.RESPONSE_HEADERS,
+        })
+
+        this.stream = new PassThrough()
+
+        this.stream.once("close", this.onClose)
+
+        ctx.body = this.stream
+    }
+
+    private onClose = () => {
+        this.controller.abort()
+    }
+
+    sendHead = () => {
+        this.ctx.flushHeaders()
+    }
+
+    sendChunk = (chunk: string) => {
+        this.stream.write(chunk)
+    }
+
+    cleanup = () => {
+        this.stream.removeListener("close", this.onClose)
+    }
+}
+
+export { KoaConnection }
+```
+</details>
+
+It can be used like the following:
+
+```typescript title="server.ts" mark={3-4, 9-17}
+import Koa from "koa"
+import Router from "@koa/router"
+import { createSession } from "better-sse"
+import { KoaConnection } from "./KoaConnection"
+
+const app = new Koa()
+const router = new Router()
+
+KoaConnection.addListeners(app)
+
+router.get("/sse", async (ctx) => {
+	const connection = new KoaConnection(ctx)
+
+	const session = await createSession(connection)
+
+	session.push("Hello world!")
+})
+
+app.use(router.routes()).use(router.allowedMethods())
+
+app.listen(3000)
+```
+
+### Ultimate Express
+
+For frameworks that implement full compatibility with one of the built-in connection adapters but do not extend from the actual underlying base class, such as [Ultimate Express](https://github.com/dimdenGD/ultimate-express), the session will not be able to determine which connection adapter to use automatically:
+
+```typescript mark={7}
+import express from "ultimate-express"
+import { createSession } from "better-sse"
+
+const app = express()
+
+app.get("/sse", async (req, res) => {
+    const session = await createSession(req, res) // SseError thrown!
+})
+```
+
+In this case, you can simply create an instance of the appropriate built-in connection adapter yourself and pass it to the session to skip the detection mechanism:
+
+```typescript ins={2, 8-9} del={7}
+import express from "ultimate-express"
+import { createSession, NodeHttp1Connection } from "better-sse"
+
+const app = express()
+
+app.get("/sse", async (req, res) => {
+    const session = await createSession(req, res)
+    const connection = new NodeHttp1Connection(req, res)
+    const session = await createSession(connection)
+})
+```

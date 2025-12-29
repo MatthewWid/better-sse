@@ -1,11 +1,6 @@
-import {applyHeaders} from "../utils/applyHeaders";
-import {
-	DEFAULT_RESPONSE_CODE,
-	DEFAULT_RESPONSE_HEADERS,
-} from "../utils/constants";
-import type {Connection, ConnectionOptions} from "./Connection";
+import {type BuiltInConnectionOptions, Connection} from "./Connection";
 
-class FetchConnection implements Connection {
+class FetchConnection extends Connection {
 	private static encoder = new TextEncoder();
 	private writer: WritableStreamDefaultWriter;
 
@@ -16,8 +11,10 @@ class FetchConnection implements Connection {
 	constructor(
 		request: Request,
 		response: Response | null,
-		options: ConnectionOptions = {}
+		options: BuiltInConnectionOptions = {}
 	) {
+		super();
+
 		this.url = new URL(request.url);
 
 		this.request = request;
@@ -27,16 +24,19 @@ class FetchConnection implements Connection {
 		this.writer = writable.getWriter();
 
 		this.response = new Response(readable, {
-			status: options.statusCode ?? response?.status ?? DEFAULT_RESPONSE_CODE,
-			headers: DEFAULT_RESPONSE_HEADERS,
+			status:
+				options.statusCode ??
+				response?.status ??
+				Connection.constants.RESPONSE_CODE,
+			headers: Connection.constants.RESPONSE_HEADERS,
 		});
 
 		if (response) {
-			applyHeaders(response.headers, this.response.headers);
+			Connection.applyHeaders(response.headers, this.response.headers);
 		}
 
 		if (options.headers) {
-			applyHeaders(options.headers, this.response.headers);
+			Connection.applyHeaders(options.headers, this.response.headers);
 		}
 	}
 

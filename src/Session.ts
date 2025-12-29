@@ -4,7 +4,7 @@ import {
 } from "node:http";
 import {Http2ServerRequest, Http2ServerResponse} from "node:http2";
 import {setImmediate} from "node:timers";
-import type {Connection} from "./adapters/Connection";
+import {Connection} from "./adapters/Connection";
 import {FetchConnection} from "./adapters/FetchConnection";
 import {NodeHttp1Connection} from "./adapters/NodeHttp1Connection";
 import {NodeHttp2CompatConnection} from "./adapters/NodeHttp2CompatConnection";
@@ -71,12 +71,16 @@ interface SessionOptions<State = DefaultSessionState>
 	 *
 	 * A client can be asked to stop reconnecting by using 204 status code.
 	 *
+	 * Ignored if passing a custom `Connection` instance to the `Session` constructor.
+	 *
 	 * Defaults to `200`.
 	 */
 	statusCode?: number;
 
 	/**
 	 * Additional headers to be sent along with the response.
+	 *
+	 * Ignored if passing a custom `Connection` instance to the `Session` constructor.
 	 */
 	headers?: Record<string, string | string[] | undefined>;
 
@@ -166,8 +170,9 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	);
 	constructor(req: Request, res?: Response, options?: SessionOptions<State>);
 	constructor(req: Request, options?: SessionOptions<State>);
+	constructor(connection: Connection, options?: SessionOptions<State>);
 	constructor(
-		req: Http1ServerRequest | Http2ServerRequest | Request,
+		req: Http1ServerRequest | Http2ServerRequest | Request | Connection,
 		res?:
 			| Http1ServerResponse
 			| Http2ServerResponse
@@ -217,6 +222,18 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 						"a corresponding HTTP2ServerResponse object must also be provided."
 				);
 			}
+		} else if (req instanceof Connection) {
+			this.connection = req;
+
+			if (options) {
+				throw new SseError(
+					"When providing a Connection object, " +
+						"you may pass options as the second argument, " +
+						"but not to the third argument."
+				);
+			}
+
+			givenOptions = (res as SessionOptions<State>) ?? {};
 		} else {
 			throw new SseError(
 				"Malformed request or response objects given to session constructor. " +
