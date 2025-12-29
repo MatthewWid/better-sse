@@ -21,6 +21,7 @@ export default defineConfig({
 						"guides/getting-started",
 						"guides/channels",
 						"guides/batching",
+						"guides/connection-adapters",
 					],
 				},
 				{
