@@ -10,7 +10,7 @@
 	"dependencies": {
 		"@koa/router": "^15.1.1",
 		"benchmark": "^2.1.4",
-		"better-sse": "^0.15.1",
+		"better-sse": "^0.16.0",
 		"easy-server-sent-events": "^1.0.14",
 		"eventsource": "^4.0.0",
 		"express": "^5.1.0",
