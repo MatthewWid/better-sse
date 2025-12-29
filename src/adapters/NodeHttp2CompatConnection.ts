@@ -67,18 +67,18 @@ class NodeHttp2CompatConnection extends Connection {
 		this.controller.abort();
 	};
 
-	sendHead = () => {
+	sendHead = (): void => {
 		this.res.writeHead(
 			this.response.status,
 			Object.fromEntries(this.response.headers)
 		);
 	};
 
-	sendChunk = (chunk: string) => {
+	sendChunk = (chunk: string): void => {
 		this.res.write(chunk);
 	};
 
-	cleanup = () => {
+	cleanup = (): void => {
 		this.req.removeListener("close", this.onClose);
 		this.res.removeListener("close", this.onClose);
 	};

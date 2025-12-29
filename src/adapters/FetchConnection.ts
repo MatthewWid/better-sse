@@ -40,16 +40,16 @@ class FetchConnection extends Connection {
 		}
 	}
 
-	sendHead = () => {
+	sendHead = (): void => {
 		// noop
 	};
 
-	sendChunk = (chunk: string) => {
+	sendChunk = (chunk: string): void => {
 		const encoded = FetchConnection.encoder.encode(chunk);
 		this.writer.write(encoded);
 	};
 
-	cleanup = () => {
+	cleanup = (): void => {
 		this.writer.close();
 	};
 }
