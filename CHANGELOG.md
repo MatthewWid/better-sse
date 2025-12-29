@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.16.1 - 2025-12-29
+
+### Fixed
+
+* Fixed a crash that occurred when the underlying [socket](https://nodejs.org/docs/latest/api/net.html#class-netsocket) of the Node [request](https://nodejs.org/docs/latest/api/http.html#messagesocket) or [response](https://nodejs.org/docs/latest/api/http.html#responsesocket) did not define an implementation of the [`setNoDelay`](https://nodejs.org/docs/latest/api/net.html#socketsetnodelaynodelay) method.
+
 ## 0.16.0 - 2025-12-29
 
 ### Added
