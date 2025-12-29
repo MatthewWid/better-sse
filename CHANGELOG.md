@@ -7,13 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+* Added support for passing custom [connection adapters](https://matthewwid.github.io/better-sse/guides/connection-adapters/) to the `Session` constructor that enables compatibility with any protocol, framework or runtime environment.
+
 ### Changed
 
 * Update event ID generation to use `randomUUID` from the [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID) instead of [`node:crypto`](https://nodejs.org/api/crypto.html).
+* Update Node HTTP/1 and HTTP/2 Compatibility adapters to [disable Nagle's algorithm](https://nodejs.org/docs/latest/api/net.html#socketsetnodelaynodelay) on the underlying socket to reduce latency.
 
 ### Fixed
 
 * Fixed [a warning](https://nodejs.org/api/events.html#emittersetmaxlistenersn) being printed by the Node internals when adding more than ten listeners to events emitted by sessions and channels.
+* Fixed a crash that occurred when the request had no `Host` header when using the [Node HTTP/1](https://nodejs.org/api/http.html) or [Node HTTP/2 Compatibility](https://nodejs.org/api/http2.html#compatibility-api) API.
 
 ## 0.15.1 - 2025-05-26
 
