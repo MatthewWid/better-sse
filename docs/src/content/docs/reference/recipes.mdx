@@ -390,3 +390,22 @@ const init = async () => {
 
 init()
 ```
+
+### [Ultimate Express](https://github.com/dimdenGD/ultimate-express)
+
+```typescript title="server.ts"
+import express from "ultimate-express"
+import { createSession, NodeHttp1Connection } from "better-sse"
+
+const app = express()
+
+app.get("/sse", async (req, res) => {
+    const connection = new NodeHttp1Connection(req, res)
+
+    const session = await createSession(connection)
+
+    session.push("Hello world!")
+})
+
+app.listen(8080)
+```
