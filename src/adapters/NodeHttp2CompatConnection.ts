@@ -15,8 +15,8 @@ class NodeHttp2CompatConnection extends Connection {
 	) {
 		super();
 
-		req.socket.setNoDelay(true);
-		res.socket?.setNoDelay(true);
+		req.socket?.setNoDelay?.(true);
+		res.socket?.setNoDelay?.(true);
 
 		this.url = new URL(
 			req.url ?? "/",
