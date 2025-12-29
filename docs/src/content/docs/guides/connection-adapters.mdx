@@ -4,6 +4,8 @@ title: Connection adapters
 description: Learn how to use custom connection adapters to make Better SSE compatible with anything.
 ---
 
+import {LinkCard} from "@astrojs/starlight/components";
+
 *Connection adapters* allow you to make Better SSE [sessions](/better-sse/reference/api/#sessionstate) compatible with any protocol, framework or runtime environment.
 
 Where *sessions* manage the request and response lifecycle, the formatting of data and other SSE-specific behaviour, [*connection adapters*](/better-sse/reference/api/#connection) implement the underlying connection itself, such as extracting request headers and query parameters, sending response headers and data chunks, and reporting when the connection closes.
@@ -457,6 +459,8 @@ app.use(router.routes()).use(router.allowedMethods())
 
 app.listen(3000)
 ```
+
+<LinkCard title="See the full Koa adapter implementation" description="The code from this guide can be found in the examples section." href="https://github.com/MatthewWid/better-sse/tree/master/examples/koa-connection-adapter" />
 
 ### Ultimate Express
 

@@ -24,3 +24,7 @@ This directory showcases examples of using Better SSE.
 -   [Node HTTP/1 API](./http1)
 -   [Node HTTP/2 Compatibility API](./http2-compat)
 -   [Fetch API](./fetch)
+
+### Connection Adapters
+
+-   [Koa](./koa-connection-adapter)
