@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.16.0 - 2025-12-29
+
 ### Added
 
 * Added support for passing custom [connection adapters](https://matthewwid.github.io/better-sse/guides/connection-adapters/) to the `Session` constructor that enables compatibility with any protocol, framework or runtime environment.
@@ -19,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 * Fixed [a warning](https://nodejs.org/api/events.html#emittersetmaxlistenersn) being printed by the Node internals when adding more than ten listeners to events emitted by sessions and channels.
+* Fixed a crash that occurred when passing a [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) but no corresponding [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) object from the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) to the `Session` constructor.
 * Fixed a crash that occurred when the request had no `Host` header when using the [Node HTTP/1](https://nodejs.org/api/http.html) or [Node HTTP/2 Compatibility](https://nodejs.org/api/http2.html#compatibility-api) API.
 
 ## 0.15.1 - 2025-05-26

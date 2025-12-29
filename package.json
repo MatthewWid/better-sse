@@ -1,7 +1,7 @@
 {
 	"name": "better-sse",
 	"description": "Dead simple, dependency-less, spec-compliant server-sent events implementation written in TypeScript.",
-	"version": "0.15.1",
+	"version": "0.16.0",
 	"license": "MIT",
 	"author": "Matthew W. <matthew.widdi@gmail.com>",
 	"repository": "github:MatthewWid/better-sse",
