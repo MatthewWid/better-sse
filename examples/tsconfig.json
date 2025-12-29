@@ -1,9 +1,7 @@
 {
+	"extends": "../tsconfig.json",
 	"compilerOptions": {
-		"target": "ES2019",
-		"strict": true,
-		"outDir": "./build",
-		"moduleResolution": "node",
-		"esModuleInterop": true
-	}
+		"outDir": "./build"
+	},
+	"include": ["./**/*"]
 }
