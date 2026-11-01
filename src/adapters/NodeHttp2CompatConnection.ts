@@ -9,7 +9,7 @@ class NodeHttp2CompatConnection extends Connection {
 	response: Response;
 
 	constructor(
-		private req: Http2ServerRequest,
+		req: Http2ServerRequest,
 		private res: Http2ServerResponse,
 		options: BuiltInConnectionOptions = {}
 	) {
@@ -25,7 +25,6 @@ class NodeHttp2CompatConnection extends Connection {
 
 		this.controller = new AbortController();
 
-		req.once("close", this.onClose);
 		res.once("close", this.onClose);
 
 		this.request = new Request(this.url, {
@@ -79,7 +78,6 @@ class NodeHttp2CompatConnection extends Connection {
 	};
 
 	cleanup = (): void => {
-		this.req.removeListener("close", this.onClose);
 		this.res.removeListener("close", this.onClose);
 	};
 }

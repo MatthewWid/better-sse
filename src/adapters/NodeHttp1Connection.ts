@@ -9,7 +9,7 @@ class NodeHttp1Connection extends Connection {
 	response: Response;
 
 	constructor(
-		private req: IncomingMessage,
+		req: IncomingMessage,
 		private res: ServerResponse,
 		options: BuiltInConnectionOptions = {}
 	) {
@@ -25,7 +25,6 @@ class NodeHttp1Connection extends Connection {
 
 		this.controller = new AbortController();
 
-		req.once("close", this.onClose);
 		res.once("close", this.onClose);
 
 		this.request = new Request(this.url, {
@@ -71,7 +70,6 @@ class NodeHttp1Connection extends Connection {
 	};
 
 	cleanup = (): void => {
-		this.req.removeListener("close", this.onClose);
 		this.res.removeListener("close", this.onClose);
 	};
 }

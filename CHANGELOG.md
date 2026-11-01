@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+* Fixed Node HTTP/1 and HTTP/2 sessions not detecting client disconnection when the request body had been fully read before the session was created. Built-in adapters no longer treat request stream's [`close`](https://nodejs.org/api/http.html#event-close_2) event as a client disconnection.
+
 ## 0.16.1 - 2025-12-29
 
 ### Fixed
