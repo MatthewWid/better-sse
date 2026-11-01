@@ -1,3 +1,4 @@
+import {once} from "node:events";
 import type http from "node:http";
 import http2 from "node:http2";
 import type {AddressInfo} from "node:net";
@@ -56,7 +57,6 @@ describe("construction", () => {
 	it("throws when given an IncomingMessage object but no ServerResponse", () =>
 		new Promise<void>((done) => {
 			server.on("request", (req) => {
-				// @ts-expect-error testing no ServerResponse
 				expect(() => new Session(req)).toThrowError("ServerResponse");
 
 				done();
@@ -67,7 +67,6 @@ describe("construction", () => {
 
 	it("throws when given no arguments", () =>
 		new Promise<void>((done) => {
-			// @ts-expect-error testing no arguments
 			expect(() => new Session()).toThrowError("Malformed");
 
 			done();
@@ -106,6 +105,61 @@ describe("construction", () => {
 				eventsource.close();
 			});
 		}));
+
+	it("does not fire the disconnection event when the request body finishes before the session is created", async () => {
+		const reqController = new AbortController();
+		const reqClosed = Promise.withResolvers<void>();
+		const sessionDisconnectCallback = vi.fn();
+		const sessionConnected = Promise.withResolvers<void>();
+		let session: Session | undefined;
+
+		server.on("request", (req, res) => {
+			req.on("data", () => {
+				// Drain the request body.
+			});
+
+			// Create the session as soon as the body finishes, as body parsers do.
+			req.once("end", async () => {
+				session = new Session(req, res);
+				session.on("disconnected", sessionDisconnectCallback);
+
+				await waitForConnect(session);
+
+				sessionConnected.resolve();
+
+				if (!req.closed) {
+					await once(req, "close");
+				}
+
+				reqClosed.resolve();
+			});
+		});
+
+		try {
+			await fetch(`${url}/sse`, {
+				method: "POST",
+				body: "{}",
+				headers: {"content-type": "application/json"},
+				signal: reqController.signal,
+			});
+
+			await sessionConnected.promise;
+			await reqClosed.promise;
+
+			expect(session?.isConnected).toBeTruthy();
+			expect(sessionDisconnectCallback).not.toHaveBeenCalled();
+
+			reqController.abort();
+
+			await vi.waitFor(() => {
+				expect(sessionDisconnectCallback).toHaveBeenCalledTimes(1);
+			});
+
+			expect(session?.isConnected).toBeFalsy();
+		} finally {
+			reqController.abort();
+		}
+	});
 
 	it("fires the disconnection event when the server ends the response stream", () =>
 		new Promise<void>((done) => {
@@ -886,30 +940,6 @@ describe("fetch api", () => {
 						"X-Test-Array": ["123", "456"],
 					},
 				});
-			}));
-
-		it("triggers abort signal on req close", () =>
-			new Promise<void>((done) => {
-				server.on("request", async (req, res) => {
-					const session = new Session(req, res);
-
-					await waitForConnect(session);
-
-					const request = session.getRequest();
-
-					const callback = vi.fn();
-
-					request.signal.addEventListener("abort", callback);
-
-					req.once("close", () => {
-						expect(callback).toHaveBeenCalled();
-						done();
-					});
-
-					req.destroy();
-				});
-
-				eventsource = createEventSource(url);
 			}));
 
 		it("triggers abort signal on res close", () =>
