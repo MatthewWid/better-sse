@@ -31,7 +31,11 @@ interface ChannelEvents<SessionState = DefaultSessionState> extends EventMap {
 	"session-registered": (session: Session<SessionState>) => void;
 	"session-deregistered": (session: Session<SessionState>) => void;
 	"session-disconnected": (session: Session<SessionState>) => void;
-	broadcast: (data: unknown, eventName: string, eventId: string) => void;
+	broadcast: (
+		data: unknown,
+		eventName: string | undefined,
+		eventId: string
+	) => void;
 }
 
 interface DefaultChannelState {
@@ -131,16 +135,17 @@ class Channel<
 	 *
 	 * Under the hood this calls the `push` method on every active session.
 	 *
-	 * If no event name is given, the event name is set to `"message"`.
+	 * If no event name is given, no `event` field is written.
+	 * Per {@link https://html.spec.whatwg.org/multipage/server-sent-events.html#dispatchMessage | the specification}, clients then dispatch the event using the default event type `"message"`.
 	 *
 	 * Note that the broadcasted event will have the same ID across all receiving sessions instead of generating a unique ID for each.
 	 *
 	 * @param data - Data to write.
-	 * @param eventName - Event name to write.
+	 * @param eventName - Event name to write. If omitted, no `event` field is written.
 	 */
 	broadcast = (
 		data: unknown,
-		eventName = "message",
+		eventName?: string,
 		options: BroadcastOptions<SessionState> = {}
 	): this => {
 		const eventId = options.eventId ?? crypto.randomUUID();

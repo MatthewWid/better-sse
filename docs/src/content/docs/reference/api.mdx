@@ -109,13 +109,13 @@ Its body will be `null`, as data is instead written to the stream of the [origin
 
 Push an event to the client.
 
-If no event name is given, the event name is set to `"message"`.
+If no event name is given, no `event` field is written. Per [the specification](https://html.spec.whatwg.org/multipage/server-sent-events.html#dispatchMessage), clients then dispatch the event using the default event type `"message"`.
 
 If no event ID is given, the event ID (and thus the [`lastId` property](#sessionlastid-string)) is set to a [randomly generated](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID) [UUIDv4](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_4_(random)).
 
 If the session has disconnected, an [`SseError`](#sseerror) will be thrown.
 
-Emits the `push` event with the given data, event name and event ID in that order.
+Emits the `push` event with the given data, event name and event ID in that order. When no event name is given, the emitted event name is `undefined`.
 
 #### `Session#stream`: `(stream: stream.Readable | ReadableStream[, options: object]) => Promise<boolean>`
 
@@ -282,9 +282,9 @@ Broadcasts an event with the given data and name to every active session registe
 
 Under the hood this calls the [`push`](#session%23push%3A-(event%3A-string%2C-data%3A-any)-%3D>-this-%7C-(data%3A-any)-%3D>-this) method on every active session.
 
-If no event name is given, the event name is set to `"message"`.
+If no event name is given, no `event` field is written. Per [the specification](https://html.spec.whatwg.org/multipage/server-sent-events.html#dispatchMessage), clients then dispatch the event using the default event type `"message"`.
 
-Emits the `broadcast` event with the given data, event name and event ID in that order.
+Emits the `broadcast` event with the given data, event name and event ID in that order. When no event name is given, the emitted event name is `undefined`.
 
 Note that the broadcasted event will have the same ID across all receiving sessions instead of generating a unique ID for each.
 
@@ -348,7 +348,7 @@ Create, write and dispatch an event with the given data all at once.
 
 This is equivalent to calling the methods `event`, `id`, `data` and `dispatch` in that order.
 
-If no event name is given, the event name is set to `"message"`.
+If no event name is given, no `event` field is written. Per [the specification](https://html.spec.whatwg.org/multipage/server-sent-events.html#dispatchMessage), clients then dispatch the event using the default event type `"message"`.
 
 If no event ID is given, the event ID is set to a [randomly generated](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID) [UUIDv4](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_4_(random)).
 

@@ -99,7 +99,7 @@ interface DefaultSessionState {
 interface SessionEvents extends EventMap {
 	connected: () => void;
 	disconnected: () => void;
-	push: (data: unknown, eventName: string, eventId: string) => void;
+	push: (data: unknown, eventName: string | undefined, eventId: string) => void;
 }
 
 /**
@@ -364,7 +364,8 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	/**
 	 * Push an event to the client.
 	 *
-	 * If no event name is given, the event name is set to `"message"`.
+	 * If no event name is given, no `event` field is written.
+	 * Per {@link https://html.spec.whatwg.org/multipage/server-sent-events.html#dispatchMessage | the specification}, clients then dispatch the event using the default event type `"message"`.
 	 *
 	 * If no event ID is given, the event ID (and thus the `lastId` property) is set to a randomly generated UUIDv4.
 	 *
@@ -373,12 +374,12 @@ class Session<State = DefaultSessionState> extends TypedEmitter<SessionEvents> {
 	 * Emits the `push` event with the given data, event name and event ID in that order.
 	 *
 	 * @param data - Data to write.
-	 * @param eventName - Event name to write.
+	 * @param eventName - Event name to write. If omitted, no `event` field is written.
 	 * @param eventId - Event ID to write.
 	 */
 	push = (
 		data: unknown,
-		eventName = "message",
+		eventName?: string,
 		eventId: string = crypto.randomUUID()
 	): this => {
 		if (!this.isConnected) {

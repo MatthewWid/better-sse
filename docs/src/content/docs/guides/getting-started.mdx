@@ -102,7 +102,7 @@ Now that we have an active session we can use it to *push* an event to the clien
 session.push("Hello world!", "ping")
 ```
 
-This will push the string `Hello world!` to the client as an event named `ping` (defaults to `message` if no name is given.)
+This will push the string `Hello world!` to the client as an event named `ping`. If no name is given, no `event` field is written and clients dispatch the event using the default event type `"message"`.
 
 <Aside title="createSession or createResponse?">
     <details>

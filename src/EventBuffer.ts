@@ -128,20 +128,25 @@ class EventBuffer {
 	 *
 	 * This is equivalent to calling the methods `event`, `id`, `data` and `dispatch` in that order.
 	 *
-	 * If no event name is given, the event name is set to `"message"`.
+	 * If no event name is given, no `event` field is written.
+	 * Per {@link https://html.spec.whatwg.org/multipage/server-sent-events.html#dispatchMessage | the specification}, clients then dispatch the event using the default event type `"message"`.
 	 *
 	 * If no event ID is given, the event ID is set to a randomly generated UUIDv4.
 	 *
 	 * @param data - Data to write.
-	 * @param eventName - Event name to write.
+	 * @param eventName - Event name to write. If omitted, no `event` field is written.
 	 * @param eventId - Event ID to write.
 	 */
 	push = (
 		data: unknown,
-		eventName = "message",
+		eventName?: string,
 		eventId: string = crypto.randomUUID()
 	): this => {
-		this.event(eventName).id(eventId).data(data).dispatch();
+		if (eventName !== undefined) {
+			this.event(eventName);
+		}
+
+		this.id(eventId).data(data).dispatch();
 
 		return this;
 	};

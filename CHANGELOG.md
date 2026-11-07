@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+* `Session#push`, `Channel#broadcast` and `EventBuffer#push` no longer write an `event` field when no event name is given, instead of writing the default name `"message"`. Clients continue to dispatch these events as `"message"` per [the specification](https://html.spec.whatwg.org/multipage/server-sent-events.html#dispatchMessage). The `push` and `broadcast` events now emit `undefined` as the event name in this case.
+
 ### Fixed
 
 * Fixed Node HTTP/1 and HTTP/2 sessions not detecting client disconnection when the request body had been fully read before the session was created. Built-in adapters no longer treat request stream's [`close`](https://nodejs.org/api/http.html#event-close_2) event as a client disconnection.

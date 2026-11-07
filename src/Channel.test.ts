@@ -307,7 +307,7 @@ describe("broadcasting", () => {
 			eventsource = createEventSource(url);
 		}));
 
-	it("calls push with a default event name if none is given", () =>
+	it("calls push without an event name if none is given", () =>
 		new Promise<void>((done) => {
 			const channel = new Channel();
 
@@ -324,7 +324,7 @@ describe("broadcasting", () => {
 
 				expect(push).toHaveBeenCalledWith(
 					"data",
-					"message",
+					undefined,
 					expect.any(String)
 				);
 

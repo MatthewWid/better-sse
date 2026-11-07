@@ -146,6 +146,24 @@ describe("push", () => {
 		expect(id).toHaveBeenCalledWith(eventId);
 		expect(dispatch).toHaveBeenCalled();
 	});
+
+	it("does not write an event field when no event name is given", () => {
+		const buffer = new EventBuffer();
+
+		buffer.push("test-data", undefined, "test-id");
+
+		expect(buffer.read()).toBe('id:test-id\ndata:"test-data"\n\n');
+	});
+
+	it("writes an event field when given an event name", () => {
+		const buffer = new EventBuffer();
+
+		buffer.push("test-data", "test-type", "test-id");
+
+		expect(buffer.read()).toBe(
+			'event:test-type\nid:test-id\ndata:"test-data"\n\n'
+		);
+	});
 });
 
 describe("clear", () => {

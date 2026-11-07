@@ -622,6 +622,60 @@ describe("push", () => {
 			eventsource = createEventSource(url);
 		}));
 
+	it("does not write an event field when no event name is given", () =>
+		new Promise<void>((done) => {
+			server.on("request", async (req, res) => {
+				const session = new Session(req, res);
+
+				const connection = Reflect.get(session, "connection") as Connection;
+
+				const sendChunk = vi.spyOn(connection, "sendChunk");
+
+				await waitForConnect(session);
+
+				const callback = vi.fn();
+
+				session.on("push", callback);
+
+				session.push("test-data");
+
+				const written = sendChunk.mock.calls.at(-1)?.[0] as string;
+
+				expect(written).not.toContain("event:");
+
+				expect(written).toContain('data:"test-data"');
+
+				expect(callback).toHaveBeenCalledWith(
+					"test-data",
+					undefined,
+					expect.any(String)
+				);
+
+				done();
+			});
+
+			eventsource = createEventSource(url);
+		}));
+
+	it("dispatches a message event when pushing without an event name", () =>
+		new Promise<void>((done) => {
+			server.on("request", async (req, res) => {
+				const session = new Session(req, res);
+
+				await waitForConnect(session);
+
+				eventsource.addEventListener("message", (event) => {
+					expect(event.data).toBe('"test-data"');
+
+					done();
+				});
+
+				session.push("test-data");
+			});
+
+			eventsource = createEventSource(url);
+		}));
+
 	it("emits a push event with the same arguments", () =>
 		new Promise<void>((done) => {
 			const callback = vi.fn();
